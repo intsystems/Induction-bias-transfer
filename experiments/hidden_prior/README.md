@@ -30,7 +30,7 @@ python experiments/hidden_prior/plot_results.py
 
 ```text
 init:  loss = BCE(student(x), y)
-prior: loss = BCE(student(x), y) + prior_weight * mean((encoder_params - center)²)
+prior: loss = BCE(student(x), y) + prior_weight * mean((encoder_params - center)^2)
 ```
 
 `center` — encoder после воспроизведения активаций; штраф не применяется к голове.
@@ -47,11 +47,6 @@ prior: loss = BCE(student(x), y) + prior_weight * mean((encoder_params - center)
 распределение задач определяет инициализацию через MAML. Здесь проверяется
 родственная гипотеза через скрытые состояния учителя; MAML не реализуется.
 
-JSON по умолчанию: `results/pattern_hidden_prior/metrics.json`.
-Он содержит конфигурацию, шаблоны, истории учителей, ошибки воспроизведения
-признаков на source train/test и истории студентов. Файл обновляется после
-подготовки учителей и каждого завершённого целевого запуска.
-
 Графики: `sample_efficiency.png` и `curves_n*.png` рядом с JSON.
 Линии усредняются по целевым задачам, заливка — ± одно стандартное отклонение
 между задачами. Это не доверительный интервал и не разброс по seed.
@@ -63,6 +58,3 @@ python experiments/hidden_prior/experiment.py --device cuda --prior-weight 10 --
 python experiments/hidden_prior/plot_results.py results/pattern_hidden_prior/seed1.json --methods baseline cnn_init cnn_prior untrained_cnn_init
 ```
 
-Сравнивайте качество учителя, ошибку воспроизведения признаков, accuracy
-и чувствительность к сдвигу. Проверяйте несколько seed и весов штрафа
-с отдельными файлами. Целевой test не используется для выбора гиперпараметров.
