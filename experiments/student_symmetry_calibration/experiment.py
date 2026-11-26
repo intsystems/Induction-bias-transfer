@@ -257,7 +257,10 @@ def main():
     parser.add_argument("--gauge-check", action="store_true")
     parser.add_argument("--vary-classes", action="store_true")
     parser.add_argument("--odd-ratio", type=float, default=0.02)
+    parser.add_argument("--reference-ridge", type=float, default=1e-4)
     args = parser.parse_args()
+    if args.reference_ridge <= 0:
+        parser.error("--reference-ridge must be positive")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train = CIFAR10(args.data, train=True, download=True)
