@@ -87,7 +87,33 @@ def prior_options(probe, odd, args, rng):
     return {key: trace_normalized(value) for key, value in prior.items()}, np.linalg.eigvalsh(within)
 
 
-def coordinate_priors(h, strength, reference, ridge, rng):
+def budget_weights(energies, ratio):
+    mean = float(energies.mean())
+    if mean <= np.finfo(float).eps:
+        return np.full(len(energies), 1 / len(energies)), 0.0, 1.0
+    # A shift of the spectrum keeps the search nonnegative and permits
+    # concentrating on the minimum-variance eigenspace.
+    shifted = (energies - energies.min()) / mean
+    target = ratio * mean
+
+    def weights(multiplier):
+        value = 1.0 / (1.0 + multiplier * shifted)
+        return value / value.sum()
+
+    lower, upper = 0.0, 1.0
+    while upper < 1e8 and weights(upper) @ energies > target:
+        upper *= 2
+    for _ in range(48):
+        middle = (lower + upper) / 2
+        if weights(middle) @ energies > target:
+            lower = middle
+        else:
+            upper = middle
+    selected = weights(upper)
+    return selected, upper, float(selected @ energies / mean)
+
+
+def coordinate_priors(h, strength, reference, ridge, budgets, rng):
     total = h.reshape(-1, h.shape[-1])
     total_covariance = total.T @ total / len(total) + ridge * reference
     residual = (h[0] - h[1]) / 2
@@ -100,13 +126,36 @@ def coordinate_priors(h, strength, reference, ridge, rng):
     natural = np.linalg.solve(identity + strength * relative_orbit, identity)
     rotation, _ = np.linalg.qr(rng.normal(size=(width, width)))
     normalized = trace_normalized(natural)
-    return {
+    priors = {
         "ordinary_iso": trace_normalized(identity),
         "ordinary_orbit": trace_normalized(np.linalg.solve(identity + strength * ordinary, identity)),
         "natural_iso": whitener @ trace_normalized(identity) @ whitener.T,
         "natural_orbit": whitener @ normalized @ whitener.T,
         "natural_rotated": whitener @ rotation @ normalized @ rotation.T @ whitener.T,
     }
+    mean_energy = float(np.trace(relative_orbit) / width)
+    diagnostics = {
+        "fixed_strength": {
+            "multiplier": strength,
+            "achieved_ratio": float(np.trace(relative_orbit @ normalized) / mean_energy)
+                              if mean_energy > np.finfo(float).eps else 1.0,
+            "mean_orbit_energy": mean_energy,
+        }
+    }
+    if budgets:
+        energies, axes = np.linalg.eigh(relative_orbit)
+        energies = np.maximum(energies, 0)
+        for budget in budgets:
+            diagonal, multiplier, achieved = budget_weights(energies, budget)
+            covariance = (axes * diagonal) @ axes.T
+            key = f"{budget:g}"
+            priors[f"natural_budget_{key}"] = whitener @ covariance @ whitener.T
+            priors[f"natural_budget_rotated_{key}"] = (
+                whitener @ rotation @ covariance @ rotation.T @ whitener.T
+            )
+            diagnostics[key] = {"multiplier": multiplier, "achieved_ratio": achieved,
+                                "mean_orbit_energy": float(energies.mean())}
+    return priors, diagnostics
 
 
 def gauge_evaluation(probe, support, query, target_classes, args, seed):
@@ -124,13 +173,16 @@ def gauge_evaluation(probe, support, query, target_classes, args, seed):
     for basis_name, basis in (("native", identity), ("mixed", change)):
         h = centered_probe @ basis
         # Carry the reference metric under the same congruence as the data.
-        prior = coordinate_priors(h, args.strength, basis.T @ basis, ridge,
-                                  np.random.default_rng(seed + 221))
+        prior, budget_parameters = coordinate_priors(
+            h, args.strength, basis.T @ basis, ridge, args.variance_budgets,
+            np.random.default_rng(seed + 221)
+        )
         if basis_name == "native":
-            rotated_native = prior["natural_rotated"]
+            rotated_native = {k: v for k, v in prior.items() if "rotated" in k}
+            native_budget_parameters = budget_parameters
         else:
             inverse = np.linalg.solve(basis, identity)
-            prior["natural_rotated"] = inverse @ rotated_native @ inverse.T
+            prior.update({k: inverse @ v @ inverse.T for k, v in rotated_native.items()})
         centered_support = {k: (v - mean) @ basis for k, v in support.items()}
         centered_query = {k: (v - mean) @ basis for k, v in query.items()}
         metrics_by_basis[basis_name] = evaluate(
@@ -149,6 +201,7 @@ def gauge_evaluation(probe, support, query, target_classes, args, seed):
         "latent_width": width,
         "transported_reference_ridge": float(ridge),
         "test_kernel_relative_error": relative_errors,
+        "variance_budget_parameters": native_budget_parameters,
     }
 
 
@@ -256,11 +309,15 @@ def main():
     parser.add_argument("--precision-strengths", type=float, nargs="+")
     parser.add_argument("--gauge-check", action="store_true")
     parser.add_argument("--vary-classes", action="store_true")
+    parser.add_argument("--variance-budgets", type=float, nargs="+")
     parser.add_argument("--odd-ratio", type=float, default=0.02)
     parser.add_argument("--reference-ridge", type=float, default=1e-4)
     args = parser.parse_args()
     if args.reference_ridge <= 0:
         parser.error("--reference-ridge must be positive")
+    if args.variance_budgets and (not args.gauge_check or
+                                  any(not 0 < b < 1 for b in args.variance_budgets)):
+        parser.error("--variance-budgets requires --gauge-check and values in (0, 1)")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train = CIFAR10(args.data, train=True, download=True)

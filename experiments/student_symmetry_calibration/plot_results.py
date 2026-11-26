@@ -74,6 +74,35 @@ def plot_coordinate_check(data):
     return fig
 
 
+def plot_variance_budgets(data):
+    choices = sorted(data["config"]["variance_budgets"], reverse=True)
+    shots = data["config"]["shots"]
+    runs = [run["coordinate_comparison"]["native"] for run in data["runs"]]
+    fig, axes = plt.subplots(1, 2, figsize=(10.8, 4.1), layout="constrained")
+    for ax, (metric, label) in zip(axes, [
+        ("matched_view_accuracy", "Both views correct"),
+        ("clean_accuracy", "Clean accuracy"),
+    ], strict=True):
+        for n in shots:
+            values = np.array([
+                [100 * (run[str(n)][f"natural_budget_{b:g}"][metric] -
+                        run[str(n)][f"natural_budget_rotated_{b:g}"][metric]) for b in choices]
+                for run in runs
+            ])
+            center, spread = values.mean(axis=0), values.std(axis=0)
+            line, = ax.plot(100 * np.array(choices), center, marker="o", label=f"{n} labels per class")
+            ax.fill_between(100 * np.array(choices), center - spread, center + spread,
+                            alpha=0.12, color=line.get_color())
+        ax.axhline(0, color="black", alpha=0.35, linewidth=1)
+        ax.set_xticks(100 * np.array(choices))
+        ax.invert_xaxis()
+        ax.set_xlabel("Remaining source orbit variance (%)")
+        ax.set_ylabel(f"{label} · orbit minus rotated (pp)")
+        ax.grid(alpha=0.2)
+    axes[-1].legend(fontsize=8)
+    return fig
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=HERE / "results/metrics.json")
@@ -81,7 +110,8 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     if data["config"].get("gauge_check"):
-        fig = plot_coordinate_check(data)
+        fig = (plot_variance_budgets(data) if data["config"].get("variance_budgets")
+               else plot_coordinate_check(data))
         args.output.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(args.output, dpi=170)
         return
