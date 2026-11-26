@@ -31,13 +31,17 @@ def main():
              ("class_mapping_accuracy", "Correct class mappings (%)")]
         ):
             ax = axes[row, col]
-            for method, measurements in runs[0][str(shots[0])].items():
-                if metric not in measurements:
+            methods = dict.fromkeys(method for n in shots for method in runs[0][str(n)])
+            for method in methods:
+                available = [n for n in shots if metric in runs[0][str(n)].get(method, {})]
+                if not available:
                     continue
-                values = 100 * np.array([[run[str(n)][method][metric] for n in shots] for run in runs])
+                values = 100 * np.array(
+                    [[run[str(n)][method][metric] for n in available] for run in runs]
+                )
                 mean, sd = values.mean(axis=0), values.std(axis=0)
-                line, = ax.plot(shots, mean, marker="o", label=method.replace("_", " "))
-                ax.fill_between(shots, mean - sd, mean + sd, color=line.get_color(), alpha=0.09)
+                line, = ax.plot(available, mean, marker="o", label=method.replace("_", " "))
+                ax.fill_between(available, mean - sd, mean + sd, color=line.get_color(), alpha=0.09)
             ax.set_xticks(shots)
             ax.grid(alpha=0.2)
             if col == 0:

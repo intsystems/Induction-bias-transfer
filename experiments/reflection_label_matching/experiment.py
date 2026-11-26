@@ -74,20 +74,48 @@ def matching_posterior(edge):
     return posterior, mapping
 
 
-def gaussian_head(kernel, support, labels, query, noise):
+def gaussian_head(kernel, support, labels, query, noise, solve_precision=False):
     cross = support @ kernel
     covariance = cross @ support.T + noise ** 2 * np.eye(len(support))
-    alpha = np.linalg.solve(covariance, labels)
-    return query @ cross.T @ alpha, alpha, np.linalg.slogdet(covariance)[1]
+    if solve_precision:
+        precision = np.linalg.inv(covariance)
+        alpha = precision @ labels
+    else:
+        precision = None
+        alpha = np.linalg.solve(covariance, labels)
+    return query @ cross.T @ alpha, alpha, np.linalg.slogdet(covariance)[1], precision
+
+
+def quad_contrasts(quadratic):
+    diagonal = np.diag(quadratic)
+    return diagonal[:, None] + diagonal[None, :] - quadratic - quadratic.T
 
 
 def edge_evidence(even_head, odd_head, labels):
-    _, alpha_e, determinant_e = even_head
-    _, alpha_o, determinant_o = odd_head
-    quadratic = labels.T @ (alpha_o - alpha_e)
-    diagonal = np.diag(quadratic)
-    contrasts = diagonal[:, None] + diagonal[None, :] - quadratic - quadratic.T
+    _, alpha_e, determinant_e, _ = even_head
+    _, alpha_o, determinant_o, _ = odd_head
+    contrasts = quad_contrasts(labels.T @ (alpha_o - alpha_e))
     return -(determinant_o - determinant_e) / 2 - contrasts / 4
+
+
+def calibrated_evidence(even_head, odd_head, labels, shots):
+    _, alpha_e, logdet_e, precision_e = even_head
+    _, alpha_o, logdet_o, precision_o = odd_head
+    size = len(labels)
+    half_log_variance_ratio = (logdet_o - logdet_e) / (2 * size)
+    # Match determinants without changing conditional predictions for a parity.
+    volume_difference = (np.exp(half_log_variance_ratio) * alpha_o
+                         - np.exp(-half_log_variance_ratio) * alpha_e)
+    volume = -quad_contrasts(labels.T @ volume_difference) / 4
+
+    # Under uniformly permuted support labels the contrast has zero mean and
+    # squared norm 2*shots. Its covariance is a scaled centering projector.
+    difference = precision_o - precision_e
+    centered_trace = np.trace(difference) - difference.sum() / size
+    null_contrast = 2 * shots * centered_trace / (size - 1)
+    observed = quad_contrasts(labels.T @ (alpha_o - alpha_e))
+    null_centered = -(observed - null_contrast) / 4
+    return {"volume_balanced": volume, "null_centered": null_centered}
 
 
 def prototype_evidence(support, odd, shots, size):
@@ -98,6 +126,23 @@ def prototype_evidence(support, odd, shots, size):
     change = (self_distance[:, None] + self_distance[None, :]) / 2 - distance
     scale = np.median(np.abs(change[np.triu_indices(size, 1)]))
     return change / max(scale, 1e-8)
+
+
+def crossfit_edges(support, transformed, shots, count):
+    clean = support.reshape(count, shots, -1)
+    reflected = transformed.reshape(count, shots, -1)
+    width = clean.shape[-1]
+    score = np.zeros((count, count))
+    for index in range(shots):
+        retained = clean[:, np.arange(shots) != index]
+        center = retained.mean(axis=1)
+        within = ((retained - center[:, None]) ** 2).mean(axis=(0, 1))
+        pooled = retained.reshape(-1, width).var(axis=0)
+        variance = 0.6 * within + 0.4 * pooled + 0.05
+        residual = reflected[:, index, None, :] - center[None, :, :]
+        score -= ((residual ** 2) / variance).sum(axis=2) / (2 * np.sqrt(width))
+    improvements = score - np.diag(score)[:, None]
+    return improvements + improvements.T
 
 
 def combine(even, odd, matrix):
@@ -117,13 +162,13 @@ def score_predictions(prediction, labels, mapping, num_classes):
     return scores
 
 
-def episode(support, labels, query, truth, mapping, kernels, odd, count, args):
+def episode(support, support_mirror, labels, query, truth, mapping, kernels, odd, count, args):
     iso, even, odd_kernel, random_even, random_odd = kernels
     size = len(mapping)
     identity = np.eye(size)
     iso_prediction = gaussian_head(iso, support, labels, query, args.noise)[0]
-    even_head = gaussian_head(even, support, labels, query, args.noise)
-    odd_head = gaussian_head(odd_kernel, support, labels, query, args.noise)
+    even_head = gaussian_head(even, support, labels, query, args.noise, args.calibrate_evidence)
+    odd_head = gaussian_head(odd_kernel, support, labels, query, args.noise, args.calibrate_evidence)
     random_e = gaussian_head(random_even, support, labels, query, args.noise)
     random_o = gaussian_head(random_odd, support, labels, query, args.noise)
     edge_cost = math.log(args.match_strength / (size - 1))
@@ -146,6 +191,15 @@ def episode(support, labels, query, truth, mapping, kernels, odd, count, args):
         "posterior": (combine(even_head[0], odd_head[0], real_posterior), real_posterior, map_action),
         "oracle": (combine(even_head[0], odd_head[0], identity[mapping]), identity[mapping], mapping),
     }
+    if args.calibrate_evidence:
+        alternatives = calibrated_evidence(even_head, odd_head, labels, count)
+        if count > 1:
+            virtual = support * np.where(odd, -1, 1)
+            alternatives["crossfit_virtual"] = crossfit_edges(support, virtual, count, size)
+            alternatives["crossfit_observed"] = crossfit_edges(support, support_mirror, count, size)
+        for name, scores_by_edge in alternatives.items():
+            probabilities, decision = matching_posterior(scores_by_edge + edge_cost)
+            cases[name] = (combine(even_head[0], odd_head[0], probabilities), probabilities, decision)
     scores = {}
     swapped = mapping != np.arange(size)
     for name, (prediction, probabilities, decision) in cases.items():
@@ -160,6 +214,8 @@ def episode(support, labels, query, truth, mapping, kernels, odd, count, args):
             row["true_mapping_probability"] = float(probabilities[np.arange(size), mapping].mean())
             row["exact_permutation"] = float(np.array_equal(decision, mapping))
             row["number_moved_classes"] = float((decision != np.arange(size)).sum())
+        if name == "posterior":
+            row["raw_log_volume_bonus"] = float((even_head[2] - odd_head[2]) / 2)
         scores[name] = row
     return scores
 
@@ -187,9 +243,11 @@ def run_scenario(classes, train, test, tracks, kernels, odd, args, rng):
             selected.append([rng.choice(groups[i]) for i in indices])
         for n in args.shots:
             support = np.concatenate([train[label][0, ids[:n]] for label, ids in zip(classes, selected)])
+            support_mirror = np.concatenate([train[label][1, ids[:n]]
+                                             for label, ids in zip(classes, selected)])
             labels = np.repeat(np.eye(size), n, axis=0) - 1 / size
-            output[str(n)].append(episode(support, labels, query, truth, mapping,
-                                          kernels, odd, n, args))
+            output[str(n)].append(episode(support, support_mirror, labels, query, truth,
+                                          mapping, kernels, odd, n, args))
     return {budget: average(rows) for budget, rows in output.items()}
 
 
@@ -234,6 +292,7 @@ def main():
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=0.35)
     parser.add_argument("--match-strength", type=float, default=1.0)
+    parser.add_argument("--calibrate-evidence", action="store_true")
     args = parser.parse_args()
     torch.set_num_threads(2)
     device = torch.device(args.device)
