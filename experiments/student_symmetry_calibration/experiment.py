@@ -74,6 +74,62 @@ def prior_options(probe, odd, args, rng):
     return {key: trace_normalized(value) for key, value in prior.items()}, np.linalg.eigvalsh(within)
 
 
+def coordinate_priors(h, strength, rng):
+    total = h.reshape(-1, h.shape[-1])
+    total_covariance = total.T @ total / len(total)
+    residual = (h[0] - h[1]) / 2
+    orbit_covariance = residual.T @ residual / len(residual)
+    width = h.shape[-1]
+    identity = np.eye(width)
+    whitener = np.linalg.solve(np.linalg.cholesky(total_covariance).T, identity)
+    relative_orbit = whitener.T @ orbit_covariance @ whitener
+    ordinary = orbit_covariance / max(np.trace(orbit_covariance) / width, 1e-8)
+    natural = np.linalg.solve(identity + strength * relative_orbit, identity)
+    rotation, _ = np.linalg.qr(rng.normal(size=(width, width)))
+    normalized = trace_normalized(natural)
+    return {
+        "ordinary_iso": trace_normalized(identity),
+        "ordinary_orbit": trace_normalized(np.linalg.solve(identity + strength * ordinary, identity)),
+        "natural_iso": whitener @ trace_normalized(identity) @ whitener.T,
+        "natural_orbit": whitener @ normalized @ whitener.T,
+        "natural_rotated": whitener @ rotation @ normalized @ rotation.T @ whitener.T,
+    }
+
+
+def gauge_evaluation(probe, support, query, args, seed):
+    width = probe.shape[-1]
+    rng = np.random.default_rng(seed + 253)
+    left, _ = np.linalg.qr(rng.normal(size=(width, width)))
+    right, _ = np.linalg.qr(rng.normal(size=(width, width)))
+    identity = np.eye(width)
+    change = (left * np.geomspace(0.25, 4.0, width)) @ right
+    mean = probe.mean(axis=(0, 1), dtype=np.float64)
+    metrics_by_basis = {}
+    kernels = {}
+    for basis_name, basis in (("native", identity), ("mixed", change)):
+        h = (probe - mean) @ basis
+        prior = coordinate_priors(h, args.strength, np.random.default_rng(seed + 221))
+        if basis_name == "native":
+            rotated_native = prior["natural_rotated"]
+        else:
+            inverse = np.linalg.solve(basis, identity)
+            prior["natural_rotated"] = inverse @ rotated_native @ inverse.T
+        centered_support = {k: (v - mean) @ basis for k, v in support.items()}
+        centered_query = {k: (v - mean) @ basis for k, v in query.items()}
+        metrics_by_basis[basis_name] = evaluate(
+            prior, centered_support, centered_query, args, np.random.default_rng(seed + 422)
+        )
+        fixed_query = np.concatenate([centered_query[k][0, :12] for k in TARGET])
+        kernels[basis_name] = {name: (fixed_query @ matrix) @ fixed_query.T
+                               for name, matrix in prior.items()}
+    relative_errors = {}
+    for name, matrix in kernels["native"].items():
+        relative_errors[name] = float(np.linalg.norm(matrix - kernels["mixed"][name]) /
+                                      max(np.linalg.norm(matrix), 1e-12))
+    return metrics_by_basis, {"condition_number": float(np.linalg.cond(change)),
+                              "test_kernel_relative_error": relative_errors}
+
+
 def predict(prior, train, labels, test, noise):
     precision = np.linalg.solve(prior, np.eye(len(prior)))
     covariance_inverse = precision + train.T @ train / noise ** 2
@@ -137,13 +193,19 @@ def run(train, test, args, seed, device):
         reflected = torch.cat([student(batch.flip(-1)) for batch in probe.split(args.batch_size)])
         probe_z = np.stack((h, reflected.cpu().numpy()))
     priors, spectrum = prior_options(probe_z, odd, args, rng)
-    main = evaluate(priors, embed(student, target, args, device),
-                    embed(student, target_test, args, device), args, rng)
+    supports = embed(student, target, args, device)
+    queries = embed(student, target_test, args, device)
+    main = evaluate(priors, supports, queries, args, rng)
+    if args.gauge_check:
+        comparison, coordinate_diagnostics = gauge_evaluation(probe_z, supports, queries, args, seed)
+    else:
+        comparison, coordinate_diagnostics = {}, {}
     print(seed, round(accuracy_source, 4), len(odd), main[str(max(args.shots))]["joint"], flush=True)
     return {"seed": seed, "teacher_probe_accuracy": accuracy_source, "latent_width": len(odd),
             "teacher_odd_count": int(odd.sum()), "student_orbit_spectrum": spectrum.tolist(),
             "source_even_flip_mse": float(((probe_z[0, :, ~odd] - probe_z[1, :, ~odd]) ** 2).mean()),
-            "shots": main}
+            "shots": main, "coordinate_comparison": comparison,
+            "coordinate_diagnostics": coordinate_diagnostics}
 
 
 def main():
@@ -164,6 +226,7 @@ def main():
     parser.add_argument("--noise", type=float, default=0.45)
     parser.add_argument("--strength", type=float, default=4.0)
     parser.add_argument("--precision-strengths", type=float, nargs="+")
+    parser.add_argument("--gauge-check", action="store_true")
     parser.add_argument("--odd-ratio", type=float, default=0.02)
     args = parser.parse_args()
     torch.set_num_threads(2)

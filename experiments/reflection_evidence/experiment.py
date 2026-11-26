@@ -166,13 +166,21 @@ def prior_kernels(energies, rng):
     }
 
 
-def predict(kernels, inputs, values, test, noise):
+def predict(kernels, inputs, values, test, noise, center_evidence=False):
     # Work in observation space. With few labels this only solves tiny systems.
     products = inputs @ kernels
     covariances = products @ inputs.T + noise ** 2 * np.eye(len(inputs))
     alpha = np.linalg.solve(covariances, np.broadcast_to(values[:, None], (*covariances.shape[:-1], 1)))
     alpha = alpha[..., 0]
-    log_evidence = -0.5 * (np.linalg.slogdet(covariances)[1] + alpha @ values)
+    if center_evidence:
+        precision = np.linalg.inv(covariances)
+        count = len(values)
+        centered_trace = np.trace(precision, axis1=-2, axis2=-1) - precision.sum(axis=(-2, -1)) / count
+        expected = np.square(values).sum() * centered_trace / (count - 1)
+        # The centered score removes the mean preference under balanced null labels.
+        log_evidence = -(alpha @ values - expected) / 2
+    else:
+        log_evidence = -0.5 * (np.linalg.slogdet(covariances)[1] + alpha @ values)
     probs = np.exp(log_evidence - log_evidence.max())
     probs /= probs.sum()
     coefficients = (products.transpose(0, 2, 1) @ alpha[..., None])[..., 0]

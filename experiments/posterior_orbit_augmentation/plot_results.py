@@ -29,7 +29,14 @@ def main():
         for row, (metric, label) in enumerate([("mirror_accuracy", "Balanced mirror accuracy (%)"),
                                                ("clean_accuracy", "Balanced clean accuracy (%)")]):
             ax = axes[row, col]
-            for method in methods:
+            displayed = methods
+            if data["config"].get("mode_conditioned"):
+                displayed = (
+                    "no_augmentation", "adaptive_prior", "generated_posterior", "generated_oracle",
+                    "centered_mode_prior", "centered_mode_generated", "centered_mode_exact",
+                    "confidence_generated",
+                )
+            for method in displayed:
                 values = 100 * np.array([
                     [np.mean([task[str(n)]["metrics"][method][metric] for task in run.values()])
                      for n in shots] for run in runs

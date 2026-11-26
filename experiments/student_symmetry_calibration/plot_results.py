@@ -44,12 +44,47 @@ def plot_precision_sweep(data):
     return fig
 
 
+def plot_coordinate_check(data):
+    fields = (("matched_view_accuracy", "Both views correct (%)"),
+              ("clean_accuracy", "Clean accuracy (%)"))
+    shots = data["config"]["shots"]
+    runs = [run["coordinate_comparison"] for run in data["runs"]]
+    modes = ("native", "mixed")
+    fig, axes = plt.subplots(2, 2, figsize=(10.6, 6.3), sharex=True, sharey="row",
+                             layout="constrained")
+    for col, mode in enumerate(modes):
+        axes[0, col].set_title(f"{mode.capitalize()} latent coordinates")
+        for row, (metric, label) in enumerate(fields):
+            ax = axes[row, col]
+            for method in runs[0][mode][str(shots[0])]:
+                values = 100 * np.asarray([
+                    [run[mode][str(n)][method][metric] for n in shots] for run in runs
+                ])
+                center, spread = values.mean(axis=0), values.std(axis=0)
+                line, = ax.plot(shots, center, marker="o", label=method.replace("_", " "))
+                ax.fill_between(shots, center - spread, center + spread,
+                                color=line.get_color(), alpha=0.10)
+            ax.set_xticks(shots)
+            ax.grid(alpha=0.2)
+            if col == 0:
+                ax.set_ylabel(label)
+            if row == 1:
+                ax.set_xlabel("Labeled images per class")
+    axes[0, -1].legend(fontsize=8)
+    return fig
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=HERE / "results/metrics.json")
     parser.add_argument("--output", type=Path, default=HERE / "results/curves.png")
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
+    if data["config"].get("gauge_check"):
+        fig = plot_coordinate_check(data)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(args.output, dpi=170)
+        return
     if data["config"].get("precision_strengths"):
         fig = plot_precision_sweep(data)
         args.output.parent.mkdir(parents=True, exist_ok=True)

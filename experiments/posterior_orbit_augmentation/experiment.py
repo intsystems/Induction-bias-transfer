@@ -99,12 +99,33 @@ def train_views(student, generator, train, args, device, seed):
     return result
 
 
-def mirror_predict(iso, clean, reflected, labels, sign, test, noise):
+def mirror_predict(kernel, clean, reflected, labels, sign, test, noise, weight=1.0):
     views = len(reflected)
-    scale = views ** -0.5
+    scale = np.sqrt(weight / views)
     inputs = np.concatenate((clean, reflected.reshape(-1, clean.shape[-1]) * scale))
     values = np.concatenate((labels, np.tile(labels * (sign * scale), views)))
-    return predict(iso, inputs, values, test, noise)[0]
+    return predict(kernel, inputs, values, test, noise)[0]
+
+
+def mode_predictions(parity_models, parity, iso, clean, labels, proposals, query, args):
+    prior, centered_weights = predict(parity_models, clean, labels, query, args.noise,
+                                      center_evidence=True)
+    raw_prior, _ = predict(parity_models, clean, labels, query, args.noise)
+    predictions = {"binary_mode_prior": raw_prior, "centered_mode_prior": prior}
+    for name in ("generated", "exact"):
+        proposals_by_mode = [
+            mirror_predict(parity_models[i:i + 1], clean, proposals[name], labels,
+                           sign, query, args.noise)
+            for i, sign in enumerate((1, -1))
+        ]
+        predictions[f"centered_mode_{name}"] = centered_weights @ proposals_by_mode
+        if name == "generated":
+            predictions["raw_mode_generated"] = parity @ proposals_by_mode
+    theta = float(parity[0] - parity[1])
+    predictions["confidence_generated"] = mirror_predict(
+        iso, clean, proposals["generated"], labels, theta, query, args.noise, weight=theta ** 2
+    )
+    return predictions, float(centered_weights[0])
 
 
 def task_result(pair, sign, train, test, tracks, kernels, args, rng):
@@ -115,7 +136,8 @@ def task_result(pair, sign, train, test, tracks, kernels, args, rng):
                                   for label, value in zip(pair, (-1, 1))])
     iso, adaptive = kernels["isotropic"], kernels["adaptive"]
     parity_models = np.concatenate((kernels["fixed_even"], kernels["fixed_odd"]))
-    trajectory = {str(n): {"metrics": [], "posterior_same": []} for n in args.shots}
+    trajectory = {str(n): {"metrics": [], "posterior_same": [], "centered_same": []}
+                  for n in args.shots}
     for _ in range(args.episodes):
         selected = []
         for label in pair:
@@ -146,6 +168,12 @@ def task_result(pair, sign, train, test, tracks, kernels, args, rng):
             ):
                 predictions[method] = mirror_predict(iso, clean, proposals[proposal], labels,
                                                      label_sign, test_features, args.noise)
+            if args.mode_conditioned:
+                extra, centered_probability = mode_predictions(
+                    parity_models, parity, iso, clean, labels, proposals, test_features, args
+                )
+                predictions.update(extra)
+                row["centered_same"].append(centered_probability)
             metrics = {}
             for method, scores in predictions.items():
                 clean_pred, mirror_pred = np.where(scores >= 0, 1, -1).reshape(2, -1)
@@ -167,6 +195,10 @@ def task_result(pair, sign, train, test, tracks, kernels, args, rng):
             for method, metrics in episodes[0].items()
         }
         row["posterior_same"] = float(np.mean(row["posterior_same"]))
+        if args.mode_conditioned:
+            row["centered_same"] = float(np.mean(row["centered_same"]))
+        else:
+            del row["centered_same"]
     return trajectory
 
 
@@ -216,6 +248,7 @@ def main():
     parser.add_argument("--views", type=int, default=3)
     parser.add_argument("--noise", type=float, default=0.5)
     parser.add_argument("--kl-weight", type=float, default=0.5)
+    parser.add_argument("--mode-conditioned", action="store_true")
     args = parser.parse_args()
     torch.set_num_threads(2)
     device = torch.device(args.device)
