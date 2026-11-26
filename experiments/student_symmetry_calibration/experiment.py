@@ -4,6 +4,7 @@ import argparse
 import json
 import sys
 import time
+from itertools import combinations
 from pathlib import Path
 
 import numpy as np
@@ -23,19 +24,31 @@ def as_float(x, device):
     return x.to(device, dtype=torch.float32) / 255
 
 
-def data_partitions(train, test, args, seed, device):
+def class_split(seed, vary_classes):
+    if not vary_classes:
+        return SOURCE, TARGET
+    vehicles = (0, 1, 8, 9)
+    animals = (2, 3, 4, 5, 6, 7)
+    choices = [tuple(sorted((*v, *a))) for v in combinations(vehicles, 2)
+               for a in combinations(animals, 2) if tuple(sorted((*v, *a))) != SOURCE]
+    order = np.random.default_rng(2026).permutation(len(choices))
+    source = choices[order[(seed - 1) % len(choices)]]
+    return source, tuple(i for i in range(10) if i not in source)
+
+
+def data_partitions(train, test, args, seed, device, source_classes, target_classes):
     rng = torch.Generator().manual_seed(seed)
     train_images = torch.from_numpy(train.data).permute(0, 3, 1, 2)
     test_images = torch.from_numpy(test.data).permute(0, 3, 1, 2)
     train_labels = torch.tensor(train.targets)
     test_labels = torch.tensor(test.targets)
-    idx = balanced_indices(train_labels, SOURCE, args.source_examples + args.probe_examples, rng)
+    idx = balanced_indices(train_labels, source_classes, args.source_examples + args.probe_examples, rng)
     source = as_float(train_images[idx[:, :args.source_examples].reshape(-1)], device)
     probe = as_float(train_images[idx[:, args.source_examples:].reshape(-1)], device)
-    target_idx = balanced_indices(train_labels, TARGET, args.target_pool, rng)
-    test_idx = balanced_indices(test_labels, TARGET, args.test_per_class, rng)
-    target_pool = {label: train_images[row] for label, row in zip(TARGET, target_idx, strict=True)}
-    target_test = {label: test_images[row] for label, row in zip(TARGET, test_idx, strict=True)}
+    target_idx = balanced_indices(train_labels, target_classes, args.target_pool, rng)
+    test_idx = balanced_indices(test_labels, target_classes, args.test_per_class, rng)
+    target_pool = {label: train_images[row] for label, row in zip(target_classes, target_idx, strict=True)}
+    target_test = {label: test_images[row] for label, row in zip(target_classes, test_idx, strict=True)}
     return source, probe, target_pool, target_test
 
 
@@ -74,9 +87,9 @@ def prior_options(probe, odd, args, rng):
     return {key: trace_normalized(value) for key, value in prior.items()}, np.linalg.eigvalsh(within)
 
 
-def coordinate_priors(h, strength, rng):
+def coordinate_priors(h, strength, reference, ridge, rng):
     total = h.reshape(-1, h.shape[-1])
-    total_covariance = total.T @ total / len(total)
+    total_covariance = total.T @ total / len(total) + ridge * reference
     residual = (h[0] - h[1]) / 2
     orbit_covariance = residual.T @ residual / len(residual)
     width = h.shape[-1]
@@ -96,7 +109,7 @@ def coordinate_priors(h, strength, rng):
     }
 
 
-def gauge_evaluation(probe, support, query, args, seed):
+def gauge_evaluation(probe, support, query, target_classes, args, seed):
     width = probe.shape[-1]
     rng = np.random.default_rng(seed + 253)
     left, _ = np.linalg.qr(rng.normal(size=(width, width)))
@@ -104,11 +117,15 @@ def gauge_evaluation(probe, support, query, args, seed):
     identity = np.eye(width)
     change = (left * np.geomspace(0.25, 4.0, width)) @ right
     mean = probe.mean(axis=(0, 1), dtype=np.float64)
+    centered_probe = probe - mean
+    ridge = args.reference_ridge * max(np.mean(centered_probe ** 2), 1e-12)
     metrics_by_basis = {}
     kernels = {}
     for basis_name, basis in (("native", identity), ("mixed", change)):
-        h = (probe - mean) @ basis
-        prior = coordinate_priors(h, args.strength, np.random.default_rng(seed + 221))
+        h = centered_probe @ basis
+        # Carry the reference metric under the same congruence as the data.
+        prior = coordinate_priors(h, args.strength, basis.T @ basis, ridge,
+                                  np.random.default_rng(seed + 221))
         if basis_name == "native":
             rotated_native = prior["natural_rotated"]
         else:
@@ -117,17 +134,22 @@ def gauge_evaluation(probe, support, query, args, seed):
         centered_support = {k: (v - mean) @ basis for k, v in support.items()}
         centered_query = {k: (v - mean) @ basis for k, v in query.items()}
         metrics_by_basis[basis_name] = evaluate(
-            prior, centered_support, centered_query, args, np.random.default_rng(seed + 422)
+            prior, centered_support, centered_query, target_classes, args, np.random.default_rng(seed + 422)
         )
-        fixed_query = np.concatenate([centered_query[k][0, :12] for k in TARGET])
+        fixed_query = np.concatenate([centered_query[k][0, :12] for k in target_classes])
         kernels[basis_name] = {name: (fixed_query @ matrix) @ fixed_query.T
                                for name, matrix in prior.items()}
     relative_errors = {}
     for name, matrix in kernels["native"].items():
         relative_errors[name] = float(np.linalg.norm(matrix - kernels["mixed"][name]) /
                                       max(np.linalg.norm(matrix), 1e-12))
-    return metrics_by_basis, {"condition_number": float(np.linalg.cond(change)),
-                              "test_kernel_relative_error": relative_errors}
+    return metrics_by_basis, {
+        "condition_number": float(np.linalg.cond(change)),
+        "source_feature_rank": int(np.linalg.matrix_rank(centered_probe.reshape(-1, width))),
+        "latent_width": width,
+        "transported_reference_ridge": float(ridge),
+        "test_kernel_relative_error": relative_errors,
+    }
 
 
 def predict(prior, train, labels, test, noise):
@@ -147,19 +169,19 @@ def accuracy(predictions, truth):
     }
 
 
-def evaluate(priors, supports, queries, args, rng):
-    query_features = np.concatenate([queries[label] for label in TARGET], axis=1)
+def evaluate(priors, supports, queries, target_classes, args, rng):
+    query_features = np.concatenate([queries[label] for label in target_classes], axis=1)
     query_labels = np.concatenate([np.full(len(queries[label][0]), index)
-                                   for index, label in enumerate(TARGET)])
+                                   for index, label in enumerate(target_classes)])
     query_sym = query_features.mean(axis=0)
     measurements = {str(count): [] for count in args.shots}
     for _ in range(args.episodes):
         selected = {label: rng.choice(len(supports[label][0]), max(args.shots), replace=False)
-                    for label in TARGET}
+                    for label in target_classes}
         for count in args.shots:
-            x = np.concatenate([supports[label][:, selected[label][:count]] for label in TARGET],
+            x = np.concatenate([supports[label][:, selected[label][:count]] for label in target_classes],
                                axis=1).astype(np.float64)
-            targets = np.repeat(np.eye(len(TARGET)), count, axis=0) - 1 / len(TARGET)
+            targets = np.repeat(np.eye(len(target_classes)), count, axis=0) - 1 / len(target_classes)
             row = {}
             for key, prior in priors.items():
                 if key == "two_view":
@@ -179,15 +201,18 @@ def evaluate(priors, supports, queries, args, rng):
 
 def run(train, test, args, seed, device):
     rng = np.random.default_rng(seed)
-    source, probe, target, target_test = data_partitions(train, test, args, seed, device)
-    labels = torch.arange(len(SOURCE), device=device).repeat_interleave(args.source_examples)
-    teacher = fit_teacher(source, labels, args, seed, len(SOURCE))
+    source_classes, target_classes = class_split(seed, args.vary_classes)
+    source, probe, target, target_test = data_partitions(
+        train, test, args, seed, device, source_classes, target_classes
+    )
+    labels = torch.arange(len(source_classes), device=device).repeat_interleave(args.source_examples)
+    teacher = fit_teacher(source, labels, args, seed, len(source_classes))
     mean, basis, energies = discover_basis(teacher, probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     odd = energies.cpu().numpy() > 0.5
     with torch.inference_mode():
         pred = torch.cat([teacher(batch).argmax(dim=-1) for batch in probe.split(args.batch_size)])
-        truth = torch.arange(len(SOURCE), device=device).repeat_interleave(args.probe_examples)
+        truth = torch.arange(len(source_classes), device=device).repeat_interleave(args.probe_examples)
         accuracy_source = pred.eq(truth).float().mean().item()
         h = torch.cat([student(batch) for batch in probe.split(args.batch_size)]).cpu().numpy()
         reflected = torch.cat([student(batch.flip(-1)) for batch in probe.split(args.batch_size)])
@@ -195,13 +220,16 @@ def run(train, test, args, seed, device):
     priors, spectrum = prior_options(probe_z, odd, args, rng)
     supports = embed(student, target, args, device)
     queries = embed(student, target_test, args, device)
-    main = evaluate(priors, supports, queries, args, rng)
+    main = evaluate(priors, supports, queries, target_classes, args, rng)
     if args.gauge_check:
-        comparison, coordinate_diagnostics = gauge_evaluation(probe_z, supports, queries, args, seed)
+        comparison, coordinate_diagnostics = gauge_evaluation(
+            probe_z, supports, queries, target_classes, args, seed
+        )
     else:
         comparison, coordinate_diagnostics = {}, {}
     print(seed, round(accuracy_source, 4), len(odd), main[str(max(args.shots))]["joint"], flush=True)
-    return {"seed": seed, "teacher_probe_accuracy": accuracy_source, "latent_width": len(odd),
+    return {"seed": seed, "source_classes": source_classes, "target_classes": target_classes,
+            "teacher_probe_accuracy": accuracy_source, "latent_width": len(odd),
             "teacher_odd_count": int(odd.sum()), "student_orbit_spectrum": spectrum.tolist(),
             "source_even_flip_mse": float(((probe_z[0, :, ~odd] - probe_z[1, :, ~odd]) ** 2).mean()),
             "shots": main, "coordinate_comparison": comparison,
@@ -227,6 +255,7 @@ def main():
     parser.add_argument("--strength", type=float, default=4.0)
     parser.add_argument("--precision-strengths", type=float, nargs="+")
     parser.add_argument("--gauge-check", action="store_true")
+    parser.add_argument("--vary-classes", action="store_true")
     parser.add_argument("--odd-ratio", type=float, default=0.02)
     args = parser.parse_args()
     torch.set_num_threads(2)
@@ -236,7 +265,9 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     data = {"config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
             "device_name": torch.cuda.get_device_name(device) if device.type == "cuda" else "CPU",
-            "torch_version": torch.__version__, "source_classes": SOURCE, "target_classes": TARGET,
+            "torch_version": torch.__version__,
+            "source_classes": None if args.vary_classes else SOURCE,
+            "target_classes": None if args.vary_classes else TARGET,
             "runs": []}
     start = time.monotonic()
     for seed in args.seeds:
