@@ -30,14 +30,14 @@ TRANSFORM = Compose([Resize((32, 32)), PILToTensor()])
 
 
 class Teacher(nn.Module):
-    def __init__(self):
+    def __init__(self, classes=len(SOURCE_IDS)):
         super().__init__()
         self.base = nn.Sequential(
             nn.Conv2d(3, 24, 5, padding=2), nn.GELU(), nn.AvgPool2d(2),
             nn.Conv2d(24, 32, 3, padding=1), nn.GELU(),
             nn.AdaptiveAvgPool2d(2), nn.Flatten(),
         )
-        self.head = nn.Linear(256, len(SOURCE_IDS))
+        self.head = nn.Linear(256, classes)
 
     def encode(self, x):
         clean, mirrored = self.base(torch.cat([x, x.flip(-1)])).chunk(2)
@@ -99,9 +99,9 @@ def preprocess(train, test, args):
     )
 
 
-def fit_teacher(x, y, args, seed):
+def fit_teacher(x, y, args, seed, classes=len(SOURCE_IDS)):
     torch.manual_seed(seed)
-    teacher = Teacher().to(x.device)
+    teacher = Teacher(classes).to(x.device)
     optimizer = torch.optim.AdamW(teacher.parameters(), lr=0.003)
     rng = torch.Generator().manual_seed(seed)
     for _ in range(args.teacher_epochs):
