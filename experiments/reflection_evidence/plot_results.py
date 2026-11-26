@@ -25,6 +25,7 @@ def main():
     for col, family in enumerate(data["target_tasks"]):
         runs = [run["tasks"][family] for run in data["runs"]]
         one_task = next(iter(runs[0].values()))
+        colors = {method: f"C{i}" for i, method in enumerate(one_task[str(shots[0])])}
         axes[0, col].set_title(f"{family.capitalize()} sign pairs")
         for row, (metric, label) in enumerate([("mirror_accuracy", "Balanced mirror accuracy (%)"),
                                                ("mean_odd_share", "Posterior odd share (%)")]):
@@ -37,7 +38,8 @@ def main():
                     for run in runs
                 ])
                 mean, sd = values.mean(axis=0), values.std(axis=0)
-                line, = ax.plot(shots, mean, marker="o", label=method.replace("_", " "))
+                line, = ax.plot(shots, mean, marker="o", color=colors[method],
+                                label=method.replace("_", " "))
                 ax.fill_between(shots, mean - sd, mean + sd, color=line.get_color(), alpha=0.11)
             if col == 0:
                 ax.set_ylabel(label)

@@ -61,6 +61,16 @@ def prior_options(probe, odd, args, rng):
         "shuffled_student": gate @ basis @ empirical @ basis.T @ gate,
         "two_view": identity,
     }
+    if args.precision_strengths:
+        centers = (clean + flipped) / 2
+        centered = centers - centers.mean(axis=0)
+        between = centered.T @ centered / len(centered)
+        between /= max(np.trace(between) / width, 1e-8)
+        prior["between"] = np.linalg.solve(identity + args.strength * between, identity)
+        for strength in args.precision_strengths:
+            covariance = np.linalg.solve(identity + strength * within, identity)
+            prior[f"orbit_strength_{strength:g}"] = covariance
+            prior[f"rotated_strength_{strength:g}"] = basis @ covariance @ basis.T
     return {key: trace_normalized(value) for key, value in prior.items()}, np.linalg.eigvalsh(within)
 
 
@@ -153,6 +163,7 @@ def main():
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=0.45)
     parser.add_argument("--strength", type=float, default=4.0)
+    parser.add_argument("--precision-strengths", type=float, nargs="+")
     parser.add_argument("--odd-ratio", type=float, default=0.02)
     args = parser.parse_args()
     torch.set_num_threads(2)

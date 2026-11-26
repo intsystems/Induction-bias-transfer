@@ -26,6 +26,10 @@ SCENARIOS = {
     "only_fixed": STATIONARY,
     "only_swapped": DIRECTIONAL,
 }
+EXTRA_SCENARIOS = {
+    "fixed_heavy": tuple(sorted((*STATIONARY, 33, 34, 38, 39))),
+}
+
 
 
 def matching_posterior(edge):
@@ -128,7 +132,7 @@ def prototype_evidence(support, odd, shots, size):
     return change / max(scale, 1e-8)
 
 
-def crossfit_edges(support, transformed, shots, count):
+def crossfit_edges(support, transformed, shots, count, center_correction=None):
     clean = support.reshape(count, shots, -1)
     reflected = transformed.reshape(count, shots, -1)
     width = clean.shape[-1]
@@ -139,7 +143,10 @@ def crossfit_edges(support, transformed, shots, count):
         within = ((retained - center[:, None]) ** 2).mean(axis=(0, 1))
         pooled = retained.reshape(-1, width).var(axis=0)
         variance = 0.6 * within + 0.4 * pooled + 0.05
-        residual = reflected[:, index, None, :] - center[None, :, :]
+        evaluation = reflected[:, index]
+        if center_correction is not None:
+            evaluation = evaluation + center.mean(axis=0) @ center_correction
+        residual = evaluation[:, None, :] - center[None, :, :]
         score -= ((residual ** 2) / variance).sum(axis=2) / (2 * np.sqrt(width))
     improvements = score - np.diag(score)[:, None]
     return improvements + improvements.T
@@ -162,7 +169,8 @@ def score_predictions(prediction, labels, mapping, num_classes):
     return scores
 
 
-def episode(support, support_mirror, labels, query, truth, mapping, kernels, odd, count, args):
+def episode(support, support_mirror, labels, query, truth, mapping, kernels, odd,
+            estimated_operator, count, args):
     iso, even, odd_kernel, random_even, random_odd = kernels
     size = len(mapping)
     identity = np.eye(size)
@@ -197,6 +205,17 @@ def episode(support, support_mirror, labels, query, truth, mapping, kernels, odd
             virtual = support * np.where(odd, -1, 1)
             alternatives["crossfit_virtual"] = crossfit_edges(support, virtual, count, size)
             alternatives["crossfit_observed"] = crossfit_edges(support, support_mirror, count, size)
+            if estimated_operator is not None:
+                teacher_operator = np.diag(np.where(odd, -1, 1))
+                latent_identity = np.eye(len(odd))
+                estimated = support @ estimated_operator
+                alternatives["crossfit_centered_teacher"] = crossfit_edges(
+                    support, virtual, count, size, latent_identity - teacher_operator
+                )
+                alternatives["crossfit_estimated"] = crossfit_edges(support, estimated, count, size)
+                alternatives["crossfit_centered_estimated"] = crossfit_edges(
+                    support, estimated, count, size, latent_identity - estimated_operator
+                )
         for name, scores_by_edge in alternatives.items():
             probabilities, decision = matching_posterior(scores_by_edge + edge_cost)
             cases[name] = (combine(even_head[0], odd_head[0], probabilities), probabilities, decision)
@@ -228,7 +247,7 @@ def average(rows):
     }
 
 
-def run_scenario(classes, train, test, tracks, kernels, odd, args, rng):
+def run_scenario(classes, train, test, tracks, kernels, odd, estimated_operator, args, rng):
     size = len(classes)
     mapping = np.array([classes.index(SWAPS.get(label, label)) for label in classes])
     query = np.concatenate([np.concatenate([test[label][view] for label in classes])
@@ -247,8 +266,32 @@ def run_scenario(classes, train, test, tracks, kernels, odd, args, rng):
                                              for label, ids in zip(classes, selected)])
             labels = np.repeat(np.eye(size), n, axis=0) - 1 / size
             output[str(n)].append(episode(support, support_mirror, labels, query, truth,
-                                          mapping, kernels, odd, n, args))
+                                          mapping, kernels, odd, estimated_operator, n, args))
     return {budget: average(rows) for budget, rows in output.items()}
+
+
+def scenarios_for(args):
+    return SCENARIOS | EXTRA_SCENARIOS if args.calibrate_operator else SCENARIOS
+
+
+@torch.inference_mode()
+def recover_operator(student, probe, odd, args):
+    clean = torch.cat([student(x) for x in probe.split(args.batch_size)]).double().cpu().numpy()
+    mirror = torch.cat([student(x.flip(-1)) for x in probe.split(args.batch_size)]).double().cpu().numpy()
+    mean = (clean + mirror).mean(axis=0) / 2
+    clean, mirror = clean - mean, mirror - mean
+    cross = clean.T @ mirror / len(clean)
+    teacher_operator = np.diag(np.where(odd, -1, 1))
+    scale = (np.square(clean).mean() + np.square(mirror).mean()) / 2
+    objective = (cross + cross.T) / 2 + args.operator_anchor * scale * teacher_operator
+    _, basis = np.linalg.eigh(objective)
+    estimated = basis * np.where(np.arange(len(odd)) < odd.sum(), -1, 1)
+    operator = estimated @ basis.T
+    return operator, {
+        "teacher_flip_mse": float(np.mean((clean @ teacher_operator - mirror) ** 2)),
+        "estimated_flip_mse": float(np.mean((clean @ operator - mirror) ** 2)),
+        "normalized_operator_distance": float(np.linalg.norm(teacher_operator - operator) / np.sqrt(len(odd))),
+    }
 
 
 def run(data, args, device, seed):
@@ -265,12 +308,28 @@ def run(data, args, device, seed):
     train = embed(student, train, args, device)
     test = embed(student, test, args, device)
     energies = energies.cpu().numpy()
+    odd = energies > 0.5
+    estimated_operator, diagnostics = (recover_operator(student, probe, odd, args)
+                                       if args.calibrate_operator else (None, {}))
+    if estimated_operator is not None:
+        clean, mirror = np.concatenate(list(test.values()), axis=1)
+        mean = (clean + mirror).mean(axis=0) / 2
+        teacher_sign = np.where(odd, -1, 1)
+        diagnostics["target_teacher_flip_mse"] = float(
+            np.mean(((clean - mean) * teacher_sign - (mirror - mean)) ** 2)
+        )
+        diagnostics["target_estimated_flip_mse"] = float(
+            np.mean(((clean - mean) @ estimated_operator - (mirror - mean)) ** 2)
+        )
     bank = prior_kernels(energies, rng)
     kernels = (bank["isotropic"][0], bank["fixed_even"][0], bank["fixed_odd"][0],
                bank["random_adaptive"][0], bank["random_adaptive"][-1])
     result = {"seed": seed, "teacher_probe_accuracy": accuracy, "latent_width": len(energies),
-              "scenarios": {name: run_scenario(classes, train, test, tracks, kernels, energies > 0.5, args, rng)
-                            for name, classes in SCENARIOS.items()}}
+              "operator_diagnostics": diagnostics,
+              "scenarios": {
+                  name: run_scenario(classes, train, test, tracks, kernels, odd, estimated_operator, args, rng)
+                  for name, classes in scenarios_for(args).items()
+              }}
     focal = result["scenarios"]["mixed"][str(max(args.shots))]["posterior"]
     print(seed, "teacher", round(accuracy, 4), "mirror", round(focal["mirror_accuracy"], 4),
           "mapping", round(focal["class_mapping_accuracy"], 4), flush=True)
@@ -293,7 +352,11 @@ def main():
     parser.add_argument("--noise", type=float, default=0.35)
     parser.add_argument("--match-strength", type=float, default=1.0)
     parser.add_argument("--calibrate-evidence", action="store_true")
+    parser.add_argument("--calibrate-operator", action="store_true")
+    parser.add_argument("--operator-anchor", type=float, default=0.1)
     args = parser.parse_args()
+    if args.calibrate_operator:
+        args.calibrate_evidence = True
     torch.set_num_threads(2)
     device = torch.device(args.device)
     data = preprocess(GTSRB(args.data, split="train", download=True),
@@ -301,7 +364,7 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     metrics = {"config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
                "device_name": torch.cuda.get_device_name(device) if device.type == "cuda" else "CPU",
-               "torch_version": torch.__version__, "scenarios": SCENARIOS, "runs": []}
+               "torch_version": torch.__version__, "scenarios": scenarios_for(args), "runs": []}
     start = time.monotonic()
     for seed in args.seeds:
         metrics["runs"].append(run(data, args, device, seed))

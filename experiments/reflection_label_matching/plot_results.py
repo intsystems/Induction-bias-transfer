@@ -25,13 +25,15 @@ def main():
                              sharex=True, sharey="row", squeeze=False, layout="constrained")
     for col, scenario in enumerate(scenarios):
         runs = [run["scenarios"][scenario] for run in data["runs"]]
+        methods = dict.fromkeys(method for n in shots for method in runs[0][str(n)])
+        palette = plt.get_cmap("tab20").colors
+        colors = {method: color for method, color in zip(methods, (*palette[::2], *palette[1::2]))}
         axes[0, col].set_title(scenario.replace("_", " ").capitalize())
         for row, (metric, label) in enumerate(
             [("mirror_accuracy", "Balanced mirror accuracy (%)"),
              ("class_mapping_accuracy", "Correct class mappings (%)")]
         ):
             ax = axes[row, col]
-            methods = dict.fromkeys(method for n in shots for method in runs[0][str(n)])
             for method in methods:
                 available = [n for n in shots if metric in runs[0][str(n)].get(method, {})]
                 if not available:
@@ -40,7 +42,8 @@ def main():
                     [[run[str(n)][method][metric] for n in available] for run in runs]
                 )
                 mean, sd = values.mean(axis=0), values.std(axis=0)
-                line, = ax.plot(available, mean, marker="o", label=method.replace("_", " "))
+                line, = ax.plot(available, mean, marker="o", color=colors[method],
+                                label=method.replace("_", " "))
                 ax.fill_between(available, mean - sd, mean + sd, color=line.get_color(), alpha=0.09)
             ax.set_xticks(shots)
             ax.grid(alpha=0.2)
@@ -48,7 +51,7 @@ def main():
                 ax.set_ylabel(label)
             if row == 1:
                 ax.set_xlabel("Labeled sign tracks per class")
-    axes[0, -1].legend(fontsize=8, loc="lower right")
+    axes[0, -1].legend(fontsize=7, loc="lower right", ncols=2)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.output, dpi=170)
 

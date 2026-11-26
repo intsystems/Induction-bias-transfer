@@ -24,6 +24,7 @@ def main():
                              sharex=True, sharey="row", layout="constrained")
     for col, rate in enumerate(rates):
         runs = [r["corruption"][str(rate)]["shots"] for r in data["runs"]]
+        colors = {method: f"C{i}" for i, method in enumerate(runs[0][str(shots[0])])}
         axes[0, col].set_title(f"Wrong source pairs: {rate:.0%}")
         for row, (metric, label) in enumerate([
                 ("shifted_accuracy", "Composed-view accuracy (%)"),
@@ -34,7 +35,7 @@ def main():
                     continue
                 scores = 100 * np.array([[run[str(n)][mode][metric] for n in shots] for run in runs])
                 center, spread = scores.mean(axis=0), scores.std(axis=0)
-                line, = ax.plot(shots, center, marker="o", label=mode)
+                line, = ax.plot(shots, center, marker="o", color=colors[mode], label=mode)
                 ax.fill_between(shots, center - spread, center + spread, color=line.get_color(), alpha=.12)
             ax.grid(alpha=.2)
             ax.set_xticks(shots)
