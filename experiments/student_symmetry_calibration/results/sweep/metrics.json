@@ -1,0 +1,4888 @@
+{
+  "config": {
+    "data": "/tmp/ibt-cifar-data",
+    "output": "experiments/student_symmetry_calibration/results/sweep/metrics.json",
+    "device": "cuda",
+    "seeds": [
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42
+    ],
+    "shots": [
+      5,
+      20,
+      60
+    ],
+    "teacher_epochs": 26,
+    "student_epochs": 22,
+    "source_examples": 1400,
+    "probe_examples": 320,
+    "target_pool": 600,
+    "test_per_class": 600,
+    "batch_size": 128,
+    "episodes": 8,
+    "noise": 0.45,
+    "strength": 4.0,
+    "precision_strengths": [
+      0.5,
+      2.0,
+      4.0,
+      8.0,
+      32.0
+    ],
+    "odd_ratio": 0.02
+  },
+  "device_name": "NVIDIA GeForce RTX 3070 Laptop GPU",
+  "torch_version": "2.14.0+cu130",
+  "source_classes": [
+    0,
+    2,
+    6,
+    8
+  ],
+  "target_classes": [
+    1,
+    3,
+    4,
+    5,
+    7,
+    9
+  ],
+  "runs": [
+    {
+      "seed": 31,
+      "teacher_probe_accuracy": 0.688281238079071,
+      "latent_width": 91,
+      "teacher_odd_count": 36,
+      "student_orbit_spectrum": [
+        2.899337322095562e-15,
+        3.562739655726775e-15,
+        4.543652101305631e-15,
+        4.899594473203942e-15,
+        6.3944716481812785e-15,
+        6.988313731434191e-15,
+        8.746230712563305e-15,
+        9.489438005664852e-15,
+        1.0259423879868156e-14,
+        1.260177023751205e-14,
+        1.3994331072712849e-14,
+        1.606416100041533e-14,
+        1.776546366634987e-14,
+        1.9145802884696014e-14,
+        1.9861957449376926e-14,
+        2.1564758794289723e-14,
+        2.3018820087482346e-14,
+        2.7344425453908503e-14,
+        3.0025116171088293e-14,
+        3.306534729813923e-14,
+        3.5272789427876735e-14,
+        3.931988961361967e-14,
+        4.500307159229764e-14,
+        5.0538750908453256e-14,
+        5.295191577715585e-14,
+        5.858654813250311e-14,
+        6.276227893470807e-14,
+        6.900499840961299e-14,
+        7.330620666455404e-14,
+        8.381918894216824e-14,
+        8.720937882050732e-14,
+        9.434146689420242e-14,
+        1.0490926282271116e-13,
+        1.0602720224066054e-13,
+        1.14196218481246e-13,
+        1.1894561103638494e-13,
+        1.3450633646528332e-13,
+        1.3861460663392102e-13,
+        1.596561522243501e-13,
+        1.689238550548173e-13,
+        1.8176111742295621e-13,
+        2.0752536707338866e-13,
+        2.144553028056366e-13,
+        2.40534313146656e-13,
+        2.6007529713046997e-13,
+        3.5396322526065437e-13,
+        4.912248292890849e-13,
+        5.380788481014977e-13,
+        8.591222789725139e-13,
+        1.3706539396994198e-12,
+        2.599878181267231e-12,
+        5.7300987130190615e-12,
+        2.7235077188240648e-11,
+        4.219811706447717e-11,
+        1.1242125999618377e-10,
+        3.736936789793943e-10,
+        8.54031831736764e-10,
+        1.1840103224493415e-09,
+        1.3321898416193796e-09,
+        3.948669922427699e-09,
+        5.934435502816921e-09,
+        1.0462604813083495e-08,
+        2.4897016259862495e-08,
+        3.583449527902705e-08,
+        4.3511109259347476e-08,
+        1.0046830404990569e-07,
+        1.985097870866211e-07,
+        3.4000443307594414e-07,
+        3.103312375292571e-06,
+        8.102335649001528e-06,
+        1.633841507301433e-05,
+        5.902274789710535e-05,
+        0.00011283519645738298,
+        0.0002457548325394104,
+        0.0005980158633575623,
+        0.002608216438947062,
+        0.007119698816484526,
+        0.00739447020498019,
+        0.012783527659529783,
+        0.03524789710261332,
+        0.08767596871800959,
+        0.1732824133107458,
+        0.2638808087929302,
+        0.30780212824067255,
+        0.3863170861920232,
+        0.4746740299439248,
+        0.48958675338199437,
+        1.0011833751846662,
+        5.798485657884766,
+        12.689300838629396,
+        69.26161318928322
+      ],
+      "source_even_flip_mse": 0.005215351469814777,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.1982638888888889,
+            "mirror_accuracy": 0.1982638888888889,
+            "matched_view_accuracy": 0.14836805555555554,
+            "agreement": 0.7341319444444444
+          },
+          "teacher": {
+            "clean_accuracy": 0.19940972222222222,
+            "mirror_accuracy": 0.19930555555555557,
+            "matched_view_accuracy": 0.1504861111111111,
+            "agreement": 0.7371527777777778
+          },
+          "student": {
+            "clean_accuracy": 0.20024305555555555,
+            "mirror_accuracy": 0.20055555555555554,
+            "matched_view_accuracy": 0.18600694444444443,
+            "agreement": 0.9243055555555555
+          },
+          "joint": {
+            "clean_accuracy": 0.20451388888888888,
+            "mirror_accuracy": 0.20350694444444445,
+            "matched_view_accuracy": 0.16368055555555555,
+            "agreement": 0.8007291666666667
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2,
+            "mirror_accuracy": 0.2009375,
+            "matched_view_accuracy": 0.15125,
+            "agreement": 0.7380208333333333
+          },
+          "two_view": {
+            "clean_accuracy": 0.20309027777777777,
+            "mirror_accuracy": 0.20309027777777777,
+            "matched_view_accuracy": 0.20309027777777777,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.20340277777777777,
+            "mirror_accuracy": 0.20256944444444447,
+            "matched_view_accuracy": 0.13475694444444447,
+            "agreement": 0.6390625000000001
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.20208333333333334,
+            "mirror_accuracy": 0.2028125,
+            "matched_view_accuracy": 0.17722222222222223,
+            "agreement": 0.8685416666666667
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.19892361111111112,
+            "mirror_accuracy": 0.19843750000000002,
+            "matched_view_accuracy": 0.14840277777777777,
+            "agreement": 0.7349305555555556
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.20135416666666667,
+            "mirror_accuracy": 0.20163194444444443,
+            "matched_view_accuracy": 0.18416666666666667,
+            "agreement": 0.9097916666666667
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.19927083333333334,
+            "mirror_accuracy": 0.19871527777777778,
+            "matched_view_accuracy": 0.1489236111111111,
+            "agreement": 0.7356597222222222
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.20024305555555555,
+            "mirror_accuracy": 0.20055555555555554,
+            "matched_view_accuracy": 0.18600694444444443,
+            "agreement": 0.9243055555555555
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.19892361111111112,
+            "mirror_accuracy": 0.19885416666666667,
+            "matched_view_accuracy": 0.14885416666666668,
+            "agreement": 0.7356597222222222
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.20034722222222223,
+            "mirror_accuracy": 0.19947916666666668,
+            "matched_view_accuracy": 0.1876736111111111,
+            "agreement": 0.9368055555555556
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.1988888888888889,
+            "mirror_accuracy": 0.19909722222222223,
+            "matched_view_accuracy": 0.14895833333333336,
+            "agreement": 0.735625
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.20361111111111113,
+            "mirror_accuracy": 0.2015277777777778,
+            "matched_view_accuracy": 0.19298611111111114,
+            "agreement": 0.9492013888888888
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.1986111111111111,
+            "mirror_accuracy": 0.19895833333333335,
+            "matched_view_accuracy": 0.14878472222222222,
+            "agreement": 0.7359722222222222
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.21135416666666668,
+            "mirror_accuracy": 0.21329861111111112,
+            "matched_view_accuracy": 0.16486111111111112,
+            "agreement": 0.7577083333333334
+          },
+          "teacher": {
+            "clean_accuracy": 0.21333333333333335,
+            "mirror_accuracy": 0.21541666666666667,
+            "matched_view_accuracy": 0.16722222222222222,
+            "agreement": 0.7613194444444444
+          },
+          "student": {
+            "clean_accuracy": 0.2098611111111111,
+            "mirror_accuracy": 0.21059027777777778,
+            "matched_view_accuracy": 0.19649305555555555,
+            "agreement": 0.9298263888888889
+          },
+          "joint": {
+            "clean_accuracy": 0.21274305555555556,
+            "mirror_accuracy": 0.2142013888888889,
+            "matched_view_accuracy": 0.17121527777777779,
+            "agreement": 0.7907638888888888
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2132638888888889,
+            "mirror_accuracy": 0.21513888888888888,
+            "matched_view_accuracy": 0.16746527777777778,
+            "agreement": 0.7630555555555556
+          },
+          "two_view": {
+            "clean_accuracy": 0.21489583333333334,
+            "mirror_accuracy": 0.21489583333333334,
+            "matched_view_accuracy": 0.21489583333333334,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2193402777777778,
+            "mirror_accuracy": 0.22204861111111113,
+            "matched_view_accuracy": 0.15125,
+            "agreement": 0.6496527777777777
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.21684027777777778,
+            "mirror_accuracy": 0.2184722222222222,
+            "matched_view_accuracy": 0.18586805555555555,
+            "agreement": 0.8466666666666667
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.21097222222222223,
+            "mirror_accuracy": 0.21319444444444446,
+            "matched_view_accuracy": 0.16458333333333336,
+            "agreement": 0.7589583333333334
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.21243055555555557,
+            "mirror_accuracy": 0.21371527777777777,
+            "matched_view_accuracy": 0.19475694444444447,
+            "agreement": 0.9072916666666666
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.21090277777777777,
+            "mirror_accuracy": 0.21291666666666667,
+            "matched_view_accuracy": 0.1645138888888889,
+            "agreement": 0.7596180555555556
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.2098611111111111,
+            "mirror_accuracy": 0.21059027777777778,
+            "matched_view_accuracy": 0.19649305555555555,
+            "agreement": 0.9298263888888889
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.2107986111111111,
+            "mirror_accuracy": 0.21281250000000002,
+            "matched_view_accuracy": 0.16451388888888888,
+            "agreement": 0.7602430555555555
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.20871527777777776,
+            "mirror_accuracy": 0.20937500000000003,
+            "matched_view_accuracy": 0.1980208333333333,
+            "agreement": 0.9450694444444445
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.21090277777777777,
+            "mirror_accuracy": 0.21274305555555556,
+            "matched_view_accuracy": 0.16458333333333333,
+            "agreement": 0.7602777777777778
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.20763888888888887,
+            "mirror_accuracy": 0.208125,
+            "matched_view_accuracy": 0.2014236111111111,
+            "agreement": 0.9660416666666667
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.21090277777777777,
+            "mirror_accuracy": 0.21298611111111113,
+            "matched_view_accuracy": 0.16472222222222221,
+            "agreement": 0.7603819444444444
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.22649305555555557,
+            "mirror_accuracy": 0.23100694444444447,
+            "matched_view_accuracy": 0.17607638888888888,
+            "agreement": 0.7340972222222222
+          },
+          "teacher": {
+            "clean_accuracy": 0.22899305555555555,
+            "mirror_accuracy": 0.23381944444444447,
+            "matched_view_accuracy": 0.18100694444444443,
+            "agreement": 0.746875
+          },
+          "student": {
+            "clean_accuracy": 0.23923611111111112,
+            "mirror_accuracy": 0.23975694444444445,
+            "matched_view_accuracy": 0.21090277777777777,
+            "agreement": 0.8626041666666667
+          },
+          "joint": {
+            "clean_accuracy": 0.23364583333333333,
+            "mirror_accuracy": 0.23711805555555557,
+            "matched_view_accuracy": 0.18743055555555554,
+            "agreement": 0.7649999999999999
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.22885416666666666,
+            "mirror_accuracy": 0.23371527777777779,
+            "matched_view_accuracy": 0.18149305555555556,
+            "agreement": 0.7466319444444445
+          },
+          "two_view": {
+            "clean_accuracy": 0.22767361111111112,
+            "mirror_accuracy": 0.22767361111111112,
+            "matched_view_accuracy": 0.22767361111111112,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.23958333333333334,
+            "mirror_accuracy": 0.24222222222222223,
+            "matched_view_accuracy": 0.17100694444444448,
+            "agreement": 0.6582986111111111
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.23493055555555556,
+            "mirror_accuracy": 0.2373263888888889,
+            "matched_view_accuracy": 0.19475694444444447,
+            "agreement": 0.7969097222222222
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.22604166666666664,
+            "mirror_accuracy": 0.23038194444444443,
+            "matched_view_accuracy": 0.17583333333333334,
+            "agreement": 0.7342361111111111
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2382986111111111,
+            "mirror_accuracy": 0.2389236111111111,
+            "matched_view_accuracy": 0.205625,
+            "agreement": 0.8397916666666667
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.22614583333333332,
+            "mirror_accuracy": 0.23031249999999998,
+            "matched_view_accuracy": 0.17559027777777778,
+            "agreement": 0.7336805555555554
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.23923611111111112,
+            "mirror_accuracy": 0.23975694444444445,
+            "matched_view_accuracy": 0.21090277777777777,
+            "agreement": 0.8626041666666667
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.22614583333333332,
+            "mirror_accuracy": 0.23034722222222223,
+            "matched_view_accuracy": 0.1757291666666667,
+            "agreement": 0.7334722222222222
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.2390625,
+            "mirror_accuracy": 0.2398611111111111,
+            "matched_view_accuracy": 0.21625,
+            "agreement": 0.8861805555555555
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2263541666666667,
+            "mirror_accuracy": 0.2305902777777778,
+            "matched_view_accuracy": 0.17600694444444445,
+            "agreement": 0.7336111111111111
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.22993055555555555,
+            "mirror_accuracy": 0.22975694444444444,
+            "matched_view_accuracy": 0.21972222222222224,
+            "agreement": 0.9495486111111111
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.22628472222222223,
+            "mirror_accuracy": 0.23020833333333332,
+            "matched_view_accuracy": 0.17572916666666666,
+            "agreement": 0.7337847222222222
+          }
+        }
+      }
+    },
+    {
+      "seed": 32,
+      "teacher_probe_accuracy": 0.6703125238418579,
+      "latent_width": 74,
+      "teacher_odd_count": 28,
+      "student_orbit_spectrum": [
+        9.32420157751492e-15,
+        1.0577840069929624e-14,
+        1.2746784033484523e-14,
+        1.3474154662871157e-14,
+        1.4109870776662859e-14,
+        1.529003613733538e-14,
+        1.7578997126293236e-14,
+        1.8789570572499223e-14,
+        2.1803340719243388e-14,
+        2.267286612977997e-14,
+        2.6399591755697547e-14,
+        3.2116580137659374e-14,
+        3.2863068417948745e-14,
+        3.9058552076022735e-14,
+        4.015303692873868e-14,
+        4.301524195931281e-14,
+        4.753636506931807e-14,
+        5.2401597336733216e-14,
+        8.533125568679016e-14,
+        1.813207727778764e-13,
+        3.4397251820456853e-13,
+        1.9663317937576504e-12,
+        2.8365458041563068e-12,
+        9.891348033897406e-12,
+        2.1887083920099434e-11,
+        4.614125638926807e-11,
+        7.44314085910549e-11,
+        1.508032282806767e-10,
+        2.488756503535983e-10,
+        4.92831342204048e-10,
+        7.239836399566164e-10,
+        8.423343843528902e-10,
+        1.8773199408837213e-09,
+        7.468691574878468e-09,
+        2.322147855438139e-08,
+        2.4076663570498633e-08,
+        3.532689509405199e-08,
+        9.65622526349051e-08,
+        1.5038629414522678e-07,
+        3.562243889771997e-07,
+        4.4905556840179155e-07,
+        6.086109753970998e-07,
+        3.389711693591753e-06,
+        5.267397347347612e-06,
+        6.793575734579795e-06,
+        1.8739357601004043e-05,
+        3.333461605163063e-05,
+        4.706059872527914e-05,
+        0.00010160177510425069,
+        0.00010963633820890555,
+        0.00023680576058132403,
+        0.0003473513234414219,
+        0.0003840167524273968,
+        0.0008845141357904737,
+        0.0009499506696726084,
+        0.0021732470990271954,
+        0.0027397735333437195,
+        0.007044984984791593,
+        0.028143001272699173,
+        0.03727501203494055,
+        0.06647514818502659,
+        0.0826169436793569,
+        0.10884787738863495,
+        0.12685817583529496,
+        0.18812467111755474,
+        0.2537444577734103,
+        0.3123659369122053,
+        0.4729737511649162,
+        1.1493935109048596,
+        5.987412539392695,
+        11.788174617857992,
+        16.822650375423642,
+        17.87364280540468,
+        18.686212952594982
+      ],
+      "source_even_flip_mse": 0.0327192023396492,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2703125,
+            "mirror_accuracy": 0.2739583333333333,
+            "matched_view_accuracy": 0.12638888888888888,
+            "agreement": 0.3689236111111111
+          },
+          "teacher": {
+            "clean_accuracy": 0.28871527777777783,
+            "mirror_accuracy": 0.2872222222222222,
+            "matched_view_accuracy": 0.22541666666666665,
+            "agreement": 0.7246180555555556
+          },
+          "student": {
+            "clean_accuracy": 0.28510416666666666,
+            "mirror_accuracy": 0.2851736111111111,
+            "matched_view_accuracy": 0.2528125,
+            "agreement": 0.8555902777777777
+          },
+          "joint": {
+            "clean_accuracy": 0.28961805555555553,
+            "mirror_accuracy": 0.28625,
+            "matched_view_accuracy": 0.23958333333333331,
+            "agreement": 0.7883680555555554
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.28770833333333334,
+            "mirror_accuracy": 0.2856944444444444,
+            "matched_view_accuracy": 0.2230902777777778,
+            "agreement": 0.7214583333333333
+          },
+          "two_view": {
+            "clean_accuracy": 0.30093749999999997,
+            "mirror_accuracy": 0.30093749999999997,
+            "matched_view_accuracy": 0.30093749999999997,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.20416666666666666,
+            "mirror_accuracy": 0.20829861111111111,
+            "matched_view_accuracy": 0.015,
+            "agreement": 0.041354166666666664
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.28725694444444444,
+            "mirror_accuracy": 0.2876388888888889,
+            "matched_view_accuracy": 0.21791666666666668,
+            "agreement": 0.6965972222222223
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.27038194444444447,
+            "mirror_accuracy": 0.27260416666666665,
+            "matched_view_accuracy": 0.12708333333333333,
+            "agreement": 0.374375
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.28680555555555554,
+            "mirror_accuracy": 0.28680555555555554,
+            "matched_view_accuracy": 0.24677083333333333,
+            "agreement": 0.8236458333333334
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2705208333333333,
+            "mirror_accuracy": 0.2718055555555556,
+            "matched_view_accuracy": 0.12760416666666666,
+            "agreement": 0.3753819444444445
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.28510416666666666,
+            "mirror_accuracy": 0.2851736111111111,
+            "matched_view_accuracy": 0.2528125,
+            "agreement": 0.8555902777777777
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.27041666666666664,
+            "mirror_accuracy": 0.27149305555555553,
+            "matched_view_accuracy": 0.12784722222222222,
+            "agreement": 0.37604166666666666
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.28163194444444445,
+            "mirror_accuracy": 0.2823611111111111,
+            "matched_view_accuracy": 0.25461805555555556,
+            "agreement": 0.8752430555555556
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2701041666666667,
+            "mirror_accuracy": 0.27131944444444445,
+            "matched_view_accuracy": 0.1280902777777778,
+            "agreement": 0.37819444444444444
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.27784722222222225,
+            "mirror_accuracy": 0.2771180555555556,
+            "matched_view_accuracy": 0.2548958333333333,
+            "agreement": 0.8993402777777777
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2698611111111111,
+            "mirror_accuracy": 0.27020833333333333,
+            "matched_view_accuracy": 0.12746527777777777,
+            "agreement": 0.38006944444444446
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.3309722222222222,
+            "mirror_accuracy": 0.3359375,
+            "matched_view_accuracy": 0.20770833333333333,
+            "agreement": 0.5127777777777778
+          },
+          "teacher": {
+            "clean_accuracy": 0.34322916666666664,
+            "mirror_accuracy": 0.3442361111111111,
+            "matched_view_accuracy": 0.2640972222222222,
+            "agreement": 0.6895486111111111
+          },
+          "student": {
+            "clean_accuracy": 0.3440625,
+            "mirror_accuracy": 0.34552083333333333,
+            "matched_view_accuracy": 0.2975347222222222,
+            "agreement": 0.8142013888888888
+          },
+          "joint": {
+            "clean_accuracy": 0.3450347222222222,
+            "mirror_accuracy": 0.3445486111111111,
+            "matched_view_accuracy": 0.2795138888888889,
+            "agreement": 0.7443402777777777
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3426041666666667,
+            "mirror_accuracy": 0.34413194444444445,
+            "matched_view_accuracy": 0.26381944444444444,
+            "agreement": 0.6892708333333333
+          },
+          "two_view": {
+            "clean_accuracy": 0.36354166666666665,
+            "mirror_accuracy": 0.36354166666666665,
+            "matched_view_accuracy": 0.36354166666666665,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2823958333333333,
+            "mirror_accuracy": 0.29336805555555556,
+            "matched_view_accuracy": 0.09871527777777778,
+            "agreement": 0.22055555555555556
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.3402777777777778,
+            "mirror_accuracy": 0.34468750000000004,
+            "matched_view_accuracy": 0.25,
+            "agreement": 0.6461111111111111
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.33034722222222224,
+            "mirror_accuracy": 0.33493055555555556,
+            "matched_view_accuracy": 0.2071527777777778,
+            "agreement": 0.5118750000000001
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.34572916666666664,
+            "mirror_accuracy": 0.34569444444444447,
+            "matched_view_accuracy": 0.2865972222222222,
+            "agreement": 0.7690972222222223
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.3300694444444444,
+            "mirror_accuracy": 0.3348263888888889,
+            "matched_view_accuracy": 0.20673611111111112,
+            "agreement": 0.5115972222222223
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.3440625,
+            "mirror_accuracy": 0.34552083333333333,
+            "matched_view_accuracy": 0.2975347222222222,
+            "agreement": 0.8142013888888888
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.32972222222222225,
+            "mirror_accuracy": 0.33472222222222225,
+            "matched_view_accuracy": 0.2064236111111111,
+            "agreement": 0.51125
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.3423611111111111,
+            "mirror_accuracy": 0.3432986111111111,
+            "matched_view_accuracy": 0.30347222222222225,
+            "agreement": 0.8450347222222223
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.33013888888888887,
+            "mirror_accuracy": 0.33444444444444443,
+            "matched_view_accuracy": 0.20663194444444444,
+            "agreement": 0.5113541666666667
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.3353125,
+            "mirror_accuracy": 0.33690972222222226,
+            "matched_view_accuracy": 0.3076388888888889,
+            "agreement": 0.8834375
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.33038194444444446,
+            "mirror_accuracy": 0.33510416666666665,
+            "matched_view_accuracy": 0.20673611111111112,
+            "agreement": 0.5107638888888889
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.3743402777777778,
+            "mirror_accuracy": 0.3750347222222222,
+            "matched_view_accuracy": 0.2628125,
+            "agreement": 0.5990625
+          },
+          "teacher": {
+            "clean_accuracy": 0.3801388888888889,
+            "mirror_accuracy": 0.38100694444444444,
+            "matched_view_accuracy": 0.29052083333333334,
+            "agreement": 0.6794097222222222
+          },
+          "student": {
+            "clean_accuracy": 0.38159722222222225,
+            "mirror_accuracy": 0.3832291666666667,
+            "matched_view_accuracy": 0.3180555555555556,
+            "agreement": 0.7701736111111112
+          },
+          "joint": {
+            "clean_accuracy": 0.38260416666666663,
+            "mirror_accuracy": 0.38513888888888886,
+            "matched_view_accuracy": 0.3087152777777778,
+            "agreement": 0.7311458333333334
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3801041666666667,
+            "mirror_accuracy": 0.38038194444444445,
+            "matched_view_accuracy": 0.2903125,
+            "agreement": 0.6791666666666667
+          },
+          "two_view": {
+            "clean_accuracy": 0.40121527777777777,
+            "mirror_accuracy": 0.40121527777777777,
+            "matched_view_accuracy": 0.40121527777777777,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.35444444444444445,
+            "mirror_accuracy": 0.3584027777777778,
+            "matched_view_accuracy": 0.20118055555555556,
+            "agreement": 0.43614583333333334
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.3785763888888889,
+            "mirror_accuracy": 0.3794444444444445,
+            "matched_view_accuracy": 0.2799652777777778,
+            "agreement": 0.6469791666666667
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.37392361111111116,
+            "mirror_accuracy": 0.3758680555555556,
+            "matched_view_accuracy": 0.26260416666666664,
+            "agreement": 0.59875
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.3812847222222222,
+            "mirror_accuracy": 0.3821875,
+            "matched_view_accuracy": 0.3038888888888889,
+            "agreement": 0.7235763888888889
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.3739583333333333,
+            "mirror_accuracy": 0.3758680555555556,
+            "matched_view_accuracy": 0.2625694444444444,
+            "agreement": 0.5984375
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.38159722222222225,
+            "mirror_accuracy": 0.3832291666666667,
+            "matched_view_accuracy": 0.3180555555555556,
+            "agreement": 0.7701736111111112
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.3741319444444444,
+            "mirror_accuracy": 0.3756597222222222,
+            "matched_view_accuracy": 0.26260416666666664,
+            "agreement": 0.5985763888888889
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.3803472222222222,
+            "mirror_accuracy": 0.3814236111111111,
+            "matched_view_accuracy": 0.3295486111111111,
+            "agreement": 0.81375
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.37395833333333334,
+            "mirror_accuracy": 0.3757986111111111,
+            "matched_view_accuracy": 0.26288194444444446,
+            "agreement": 0.5990972222222222
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.3725,
+            "mirror_accuracy": 0.3751388888888889,
+            "matched_view_accuracy": 0.33715277777777775,
+            "agreement": 0.8662152777777778
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.3745486111111111,
+            "mirror_accuracy": 0.3758680555555556,
+            "matched_view_accuracy": 0.2634375,
+            "agreement": 0.6002777777777777
+          }
+        }
+      }
+    },
+    {
+      "seed": 33,
+      "teacher_probe_accuracy": 0.6859375238418579,
+      "latent_width": 68,
+      "teacher_odd_count": 27,
+      "student_orbit_spectrum": [
+        3.451878746595578e-15,
+        4.3082543431213614e-15,
+        4.751134154403899e-15,
+        4.9387468234373366e-15,
+        6.276706737556866e-15,
+        7.226246460764455e-15,
+        7.415053164370967e-15,
+        8.346822286481123e-15,
+        9.095577704679734e-15,
+        9.988977905244711e-15,
+        1.0308680474988509e-14,
+        1.231432466743024e-14,
+        1.3890072611480866e-14,
+        1.6370568615921405e-14,
+        1.8742050192307424e-14,
+        2.5280743865254958e-14,
+        3.0427466833765283e-14,
+        3.236265570473048e-14,
+        3.749396586744888e-14,
+        5.801201794619143e-14,
+        7.832021739504296e-14,
+        2.0616292075650083e-13,
+        4.173237205924676e-13,
+        1.0124941708632672e-12,
+        1.7555830397375726e-12,
+        5.157089017444387e-12,
+        1.352125190200538e-11,
+        1.799690307860671e-11,
+        7.372395952389618e-11,
+        1.5497212738568997e-10,
+        2.3307318176469895e-10,
+        5.276586792128954e-10,
+        1.622438531155263e-09,
+        2.2879006448774207e-09,
+        3.3556843606139675e-09,
+        5.1394600327852175e-09,
+        5.559202047019818e-09,
+        1.5870342331325698e-08,
+        3.0807725716003e-08,
+        5.5153949941185575e-08,
+        1.5039423039000947e-07,
+        2.3665744306559878e-07,
+        6.484691382562068e-07,
+        7.527003618628125e-07,
+        1.0044257937043241e-06,
+        1.5301306037645973e-06,
+        1.8766071299772699e-06,
+        5.304886324015802e-06,
+        8.047502068591567e-06,
+        9.687335016754547e-06,
+        2.6234704939342607e-05,
+        3.733032363002383e-05,
+        6.045793029592017e-05,
+        0.00011835178508203681,
+        0.0002751585610344197,
+        0.0004668943929332617,
+        0.0008451976898312175,
+        0.0029536261131419906,
+        0.004439196684496283,
+        0.006525934134860629,
+        0.007676073987170757,
+        0.021970014147671642,
+        0.05015768283549317,
+        0.07309578779837453,
+        0.1952280049228099,
+        0.9573742060127464,
+        16.407433833120468,
+        50.27128665492033
+      ],
+      "source_even_flip_mse": 0.03425268456339836,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2315625,
+            "mirror_accuracy": 0.2279861111111111,
+            "matched_view_accuracy": 0.1185763888888889,
+            "agreement": 0.44829861111111113
+          },
+          "teacher": {
+            "clean_accuracy": 0.2339236111111111,
+            "mirror_accuracy": 0.23204861111111114,
+            "matched_view_accuracy": 0.1329861111111111,
+            "agreement": 0.5028472222222222
+          },
+          "student": {
+            "clean_accuracy": 0.24253472222222222,
+            "mirror_accuracy": 0.24069444444444443,
+            "matched_view_accuracy": 0.21173611111111112,
+            "agreement": 0.8354861111111112
+          },
+          "joint": {
+            "clean_accuracy": 0.23472222222222222,
+            "mirror_accuracy": 0.23291666666666666,
+            "matched_view_accuracy": 0.13149305555555557,
+            "agreement": 0.4867013888888889
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.23364583333333333,
+            "mirror_accuracy": 0.23211805555555556,
+            "matched_view_accuracy": 0.13274305555555554,
+            "agreement": 0.5020486111111111
+          },
+          "two_view": {
+            "clean_accuracy": 0.2482638888888889,
+            "mirror_accuracy": 0.2482638888888889,
+            "matched_view_accuracy": 0.2482638888888889,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.21711805555555558,
+            "mirror_accuracy": 0.21597222222222223,
+            "matched_view_accuracy": 0.07447916666666667,
+            "agreement": 0.26958333333333334
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.2404513888888889,
+            "mirror_accuracy": 0.23822916666666666,
+            "matched_view_accuracy": 0.18708333333333332,
+            "agreement": 0.7246180555555556
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.2312847222222222,
+            "mirror_accuracy": 0.22822916666666665,
+            "matched_view_accuracy": 0.11875,
+            "agreement": 0.44843750000000004
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2420138888888889,
+            "mirror_accuracy": 0.23913194444444447,
+            "matched_view_accuracy": 0.20572916666666666,
+            "agreement": 0.8153472222222222
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2313888888888889,
+            "mirror_accuracy": 0.22822916666666668,
+            "matched_view_accuracy": 0.11868055555555554,
+            "agreement": 0.4484722222222222
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.24253472222222222,
+            "mirror_accuracy": 0.24069444444444443,
+            "matched_view_accuracy": 0.21173611111111112,
+            "agreement": 0.8354861111111112
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.2314236111111111,
+            "mirror_accuracy": 0.22802083333333334,
+            "matched_view_accuracy": 0.11871527777777777,
+            "agreement": 0.4488888888888889
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.24336805555555557,
+            "mirror_accuracy": 0.24229166666666668,
+            "matched_view_accuracy": 0.21569444444444444,
+            "agreement": 0.8490277777777778
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2315625,
+            "mirror_accuracy": 0.2282986111111111,
+            "matched_view_accuracy": 0.11888888888888888,
+            "agreement": 0.44909722222222226
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.24385416666666665,
+            "mirror_accuracy": 0.24357638888888888,
+            "matched_view_accuracy": 0.21815972222222224,
+            "agreement": 0.8565277777777778
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2315625,
+            "mirror_accuracy": 0.22826388888888888,
+            "matched_view_accuracy": 0.11906250000000002,
+            "agreement": 0.4492013888888889
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2692361111111111,
+            "mirror_accuracy": 0.26864583333333336,
+            "matched_view_accuracy": 0.17447916666666669,
+            "agreement": 0.5542708333333334
+          },
+          "teacher": {
+            "clean_accuracy": 0.27003472222222225,
+            "mirror_accuracy": 0.2695486111111111,
+            "matched_view_accuracy": 0.17972222222222223,
+            "agreement": 0.5755902777777777
+          },
+          "student": {
+            "clean_accuracy": 0.26888888888888884,
+            "mirror_accuracy": 0.26840277777777777,
+            "matched_view_accuracy": 0.23548611111111112,
+            "agreement": 0.8342361111111111
+          },
+          "joint": {
+            "clean_accuracy": 0.2706944444444444,
+            "mirror_accuracy": 0.26937500000000003,
+            "matched_view_accuracy": 0.1798263888888889,
+            "agreement": 0.5758333333333333
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2700694444444444,
+            "mirror_accuracy": 0.2696527777777778,
+            "matched_view_accuracy": 0.17965277777777777,
+            "agreement": 0.5752430555555555
+          },
+          "two_view": {
+            "clean_accuracy": 0.284375,
+            "mirror_accuracy": 0.284375,
+            "matched_view_accuracy": 0.284375,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.25621527777777775,
+            "mirror_accuracy": 0.2524652777777778,
+            "matched_view_accuracy": 0.11624999999999999,
+            "agreement": 0.3451388888888889
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.2736805555555556,
+            "mirror_accuracy": 0.27243055555555556,
+            "matched_view_accuracy": 0.2098611111111111,
+            "agreement": 0.7029513888888889
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.26958333333333334,
+            "mirror_accuracy": 0.26850694444444445,
+            "matched_view_accuracy": 0.1746875,
+            "agreement": 0.5540972222222222
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2714930555555556,
+            "mirror_accuracy": 0.27065972222222223,
+            "matched_view_accuracy": 0.23006944444444444,
+            "agreement": 0.8020833333333333
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.26979166666666665,
+            "mirror_accuracy": 0.26861111111111113,
+            "matched_view_accuracy": 0.17482638888888888,
+            "agreement": 0.5540972222222222
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.26888888888888884,
+            "mirror_accuracy": 0.26840277777777777,
+            "matched_view_accuracy": 0.23548611111111112,
+            "agreement": 0.8342361111111111
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.2696875,
+            "mirror_accuracy": 0.26861111111111113,
+            "matched_view_accuracy": 0.17482638888888888,
+            "agreement": 0.5540277777777778
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.26774305555555555,
+            "mirror_accuracy": 0.26711805555555557,
+            "matched_view_accuracy": 0.23868055555555556,
+            "agreement": 0.8519791666666667
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2698263888888889,
+            "mirror_accuracy": 0.2685416666666667,
+            "matched_view_accuracy": 0.17486111111111113,
+            "agreement": 0.5540277777777778
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.26736111111111116,
+            "mirror_accuracy": 0.26607638888888885,
+            "matched_view_accuracy": 0.243125,
+            "agreement": 0.8711805555555555
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.26972222222222225,
+            "mirror_accuracy": 0.26868055555555553,
+            "matched_view_accuracy": 0.17479166666666668,
+            "agreement": 0.5539583333333333
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.27940972222222227,
+            "mirror_accuracy": 0.2776388888888889,
+            "matched_view_accuracy": 0.19131944444444446,
+            "agreement": 0.5996180555555556
+          },
+          "teacher": {
+            "clean_accuracy": 0.2793402777777778,
+            "mirror_accuracy": 0.27725694444444443,
+            "matched_view_accuracy": 0.19364583333333335,
+            "agreement": 0.6118402777777778
+          },
+          "student": {
+            "clean_accuracy": 0.2768055555555555,
+            "mirror_accuracy": 0.27489583333333334,
+            "matched_view_accuracy": 0.23100694444444442,
+            "agreement": 0.7916319444444444
+          },
+          "joint": {
+            "clean_accuracy": 0.27881944444444445,
+            "mirror_accuracy": 0.2774305555555555,
+            "matched_view_accuracy": 0.19440972222222225,
+            "agreement": 0.6154861111111112
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2793055555555556,
+            "mirror_accuracy": 0.27729166666666666,
+            "matched_view_accuracy": 0.19361111111111112,
+            "agreement": 0.6114236111111111
+          },
+          "two_view": {
+            "clean_accuracy": 0.2938541666666667,
+            "mirror_accuracy": 0.2938541666666667,
+            "matched_view_accuracy": 0.2938541666666667,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2800347222222222,
+            "mirror_accuracy": 0.2742361111111111,
+            "matched_view_accuracy": 0.1474652777777778,
+            "agreement": 0.42302083333333335
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.2779166666666667,
+            "mirror_accuracy": 0.2772569444444445,
+            "matched_view_accuracy": 0.20586805555555554,
+            "agreement": 0.6678819444444444
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.2793055555555556,
+            "mirror_accuracy": 0.2773263888888889,
+            "matched_view_accuracy": 0.19097222222222224,
+            "agreement": 0.5993402777777778
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.27749999999999997,
+            "mirror_accuracy": 0.27600694444444446,
+            "matched_view_accuracy": 0.2226736111111111,
+            "agreement": 0.7507986111111111
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2793055555555556,
+            "mirror_accuracy": 0.27729166666666666,
+            "matched_view_accuracy": 0.19114583333333335,
+            "agreement": 0.5997222222222223
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.2768055555555555,
+            "mirror_accuracy": 0.27489583333333334,
+            "matched_view_accuracy": 0.23100694444444442,
+            "agreement": 0.7916319444444444
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.27923611111111113,
+            "mirror_accuracy": 0.27739583333333334,
+            "matched_view_accuracy": 0.19118055555555558,
+            "agreement": 0.5995833333333334
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.2743402777777778,
+            "mirror_accuracy": 0.2728125,
+            "matched_view_accuracy": 0.23548611111111112,
+            "agreement": 0.818888888888889
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.27927083333333336,
+            "mirror_accuracy": 0.2775347222222222,
+            "matched_view_accuracy": 0.1912152777777778,
+            "agreement": 0.5996527777777778
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.27086805555555554,
+            "mirror_accuracy": 0.27027777777777773,
+            "matched_view_accuracy": 0.24100694444444445,
+            "agreement": 0.8528819444444444
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2793402777777778,
+            "mirror_accuracy": 0.2775347222222222,
+            "matched_view_accuracy": 0.19118055555555558,
+            "agreement": 0.5993402777777778
+          }
+        }
+      }
+    },
+    {
+      "seed": 34,
+      "teacher_probe_accuracy": 0.69140625,
+      "latent_width": 88,
+      "teacher_odd_count": 34,
+      "student_orbit_spectrum": [
+        1.4420149260120794e-15,
+        2.429603876374567e-15,
+        2.5492188776470482e-15,
+        2.9465906705502225e-15,
+        3.2400410030150685e-15,
+        3.818581427436247e-15,
+        4.483346313563255e-15,
+        4.6432564763222455e-15,
+        4.986855962150428e-15,
+        5.131184521652065e-15,
+        6.28514773812898e-15,
+        6.6896804086463346e-15,
+        7.072103984532675e-15,
+        7.541132213341522e-15,
+        8.3561984249926e-15,
+        8.75617774346115e-15,
+        9.359175711077998e-15,
+        9.956406582389631e-15,
+        1.0420594807688494e-14,
+        1.1586225484774704e-14,
+        1.3168974530890898e-14,
+        1.4177815940142766e-14,
+        1.482819829655175e-14,
+        1.5323268087370176e-14,
+        1.6154261322908583e-14,
+        1.8206034668767255e-14,
+        1.9659403195864354e-14,
+        2.0087692469098483e-14,
+        2.2053072303262896e-14,
+        2.302603950084582e-14,
+        2.520486380899809e-14,
+        2.6286357980463636e-14,
+        2.8389552557192108e-14,
+        2.885906225230371e-14,
+        3.298913700413113e-14,
+        3.704638436304438e-14,
+        4.2273246215694913e-14,
+        4.72874054236052e-14,
+        4.791046661117106e-14,
+        6.343816589521392e-14,
+        7.401894806109749e-14,
+        1.0085252025923615e-13,
+        5.588663679907673e-13,
+        1.1143459621071067e-12,
+        3.369941947441326e-12,
+        6.404238543716466e-12,
+        1.9014926745953158e-11,
+        5.1877229123178906e-11,
+        1.1486774191824696e-10,
+        2.476123732771031e-10,
+        4.485158191989033e-10,
+        6.743196640423209e-10,
+        1.2854704845435292e-09,
+        3.890714373896777e-09,
+        1.2494010532631962e-08,
+        6.374254980730747e-08,
+        1.5566976183220497e-07,
+        3.2607533797749544e-07,
+        4.3318070813103715e-07,
+        8.532217287565367e-07,
+        1.2357139071127037e-06,
+        3.001997314048193e-06,
+        4.905126311755477e-06,
+        5.966409011199631e-06,
+        1.2320466825468297e-05,
+        2.369686428673272e-05,
+        3.097414007657212e-05,
+        7.782109216817934e-05,
+        0.0001486065246518093,
+        0.00023245587329476307,
+        0.0003139972795667946,
+        0.0005301203725651462,
+        0.000882174418059349,
+        0.0010347880434827968,
+        0.0021276146454318507,
+        0.002315560339183075,
+        0.004982536455310239,
+        0.007227397776585204,
+        0.010589274827783835,
+        0.016160753526646025,
+        0.03415901911137645,
+        0.08631031136448053,
+        0.3012407225641181,
+        0.4505044756271383,
+        0.7463593328093687,
+        2.253251043429537,
+        38.12784177887984,
+        45.95362626319283
+      ],
+      "source_even_flip_mse": 0.015341447666287422,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.25378472222222226,
+            "mirror_accuracy": 0.25229166666666664,
+            "matched_view_accuracy": 0.13895833333333332,
+            "agreement": 0.4776736111111111
+          },
+          "teacher": {
+            "clean_accuracy": 0.2670138888888889,
+            "mirror_accuracy": 0.2656597222222222,
+            "matched_view_accuracy": 0.2,
+            "agreement": 0.6963194444444445
+          },
+          "student": {
+            "clean_accuracy": 0.2684375,
+            "mirror_accuracy": 0.2720486111111111,
+            "matched_view_accuracy": 0.23770833333333335,
+            "agreement": 0.8551041666666667
+          },
+          "joint": {
+            "clean_accuracy": 0.2695833333333333,
+            "mirror_accuracy": 0.27013888888888893,
+            "matched_view_accuracy": 0.20625,
+            "agreement": 0.7180208333333333
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2671527777777778,
+            "mirror_accuracy": 0.26579861111111114,
+            "matched_view_accuracy": 0.19892361111111112,
+            "agreement": 0.6924999999999999
+          },
+          "two_view": {
+            "clean_accuracy": 0.27211805555555557,
+            "mirror_accuracy": 0.27211805555555557,
+            "matched_view_accuracy": 0.27211805555555557,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.19996527777777778,
+            "mirror_accuracy": 0.20444444444444446,
+            "matched_view_accuracy": 0.026493055555555554,
+            "agreement": 0.09506944444444446
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.2668402777777778,
+            "mirror_accuracy": 0.26722222222222225,
+            "matched_view_accuracy": 0.21815972222222224,
+            "agreement": 0.782326388888889
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.2535763888888889,
+            "mirror_accuracy": 0.2520486111111111,
+            "matched_view_accuracy": 0.13927083333333334,
+            "agreement": 0.4779861111111111
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.268125,
+            "mirror_accuracy": 0.27163194444444444,
+            "matched_view_accuracy": 0.23364583333333333,
+            "agreement": 0.8392361111111111
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2536111111111111,
+            "mirror_accuracy": 0.25211805555555555,
+            "matched_view_accuracy": 0.13923611111111112,
+            "agreement": 0.47753472222222226
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.2684375,
+            "mirror_accuracy": 0.2720486111111111,
+            "matched_view_accuracy": 0.23770833333333335,
+            "agreement": 0.8551041666666667
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.2535763888888889,
+            "mirror_accuracy": 0.2521875,
+            "matched_view_accuracy": 0.13916666666666666,
+            "agreement": 0.4774652777777778
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.2684722222222222,
+            "mirror_accuracy": 0.27211805555555557,
+            "matched_view_accuracy": 0.24027777777777776,
+            "agreement": 0.8679861111111111
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2534375,
+            "mirror_accuracy": 0.2523958333333334,
+            "matched_view_accuracy": 0.13927083333333334,
+            "agreement": 0.4775694444444445
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2687847222222222,
+            "mirror_accuracy": 0.27076388888888886,
+            "matched_view_accuracy": 0.2427777777777778,
+            "agreement": 0.8810416666666667
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.25354166666666667,
+            "mirror_accuracy": 0.25260416666666663,
+            "matched_view_accuracy": 0.1388888888888889,
+            "agreement": 0.47663194444444446
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.3125,
+            "mirror_accuracy": 0.3167361111111111,
+            "matched_view_accuracy": 0.20309027777777777,
+            "agreement": 0.5518055555555555
+          },
+          "teacher": {
+            "clean_accuracy": 0.3210763888888889,
+            "mirror_accuracy": 0.3267013888888889,
+            "matched_view_accuracy": 0.23951388888888886,
+            "agreement": 0.6630208333333334
+          },
+          "student": {
+            "clean_accuracy": 0.3280902777777778,
+            "mirror_accuracy": 0.3335416666666666,
+            "matched_view_accuracy": 0.2881597222222222,
+            "agreement": 0.8271527777777778
+          },
+          "joint": {
+            "clean_accuracy": 0.3251388888888889,
+            "mirror_accuracy": 0.33076388888888886,
+            "matched_view_accuracy": 0.2492361111111111,
+            "agreement": 0.6879861111111111
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.32135416666666666,
+            "mirror_accuracy": 0.3264583333333333,
+            "matched_view_accuracy": 0.239375,
+            "agreement": 0.6616666666666666
+          },
+          "two_view": {
+            "clean_accuracy": 0.3318055555555556,
+            "mirror_accuracy": 0.3318055555555556,
+            "matched_view_accuracy": 0.3318055555555556,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.23899305555555556,
+            "mirror_accuracy": 0.24097222222222223,
+            "matched_view_accuracy": 0.059791666666666674,
+            "agreement": 0.15562499999999999
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.3236805555555556,
+            "mirror_accuracy": 0.33125000000000004,
+            "matched_view_accuracy": 0.26,
+            "agreement": 0.7303124999999999
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.3125,
+            "mirror_accuracy": 0.31697916666666665,
+            "matched_view_accuracy": 0.20309027777777777,
+            "agreement": 0.551875
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.328125,
+            "mirror_accuracy": 0.33239583333333333,
+            "matched_view_accuracy": 0.28256944444444443,
+            "agreement": 0.8064236111111112
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.31256944444444446,
+            "mirror_accuracy": 0.3170138888888889,
+            "matched_view_accuracy": 0.2032986111111111,
+            "agreement": 0.5526736111111111
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.3280902777777778,
+            "mirror_accuracy": 0.3335416666666666,
+            "matched_view_accuracy": 0.2881597222222222,
+            "agreement": 0.8271527777777778
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.3123611111111111,
+            "mirror_accuracy": 0.3170138888888889,
+            "matched_view_accuracy": 0.20336805555555554,
+            "agreement": 0.5531250000000001
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.3282638888888889,
+            "mirror_accuracy": 0.33243055555555556,
+            "matched_view_accuracy": 0.29170138888888886,
+            "agreement": 0.8450347222222223
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.3125347222222222,
+            "mirror_accuracy": 0.3168402777777778,
+            "matched_view_accuracy": 0.20329861111111108,
+            "agreement": 0.5530208333333334
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.32611111111111113,
+            "mirror_accuracy": 0.33197916666666666,
+            "matched_view_accuracy": 0.2970138888888889,
+            "agreement": 0.8706944444444444
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.3123611111111111,
+            "mirror_accuracy": 0.3167361111111111,
+            "matched_view_accuracy": 0.20305555555555554,
+            "agreement": 0.5526388888888889
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.3379861111111111,
+            "mirror_accuracy": 0.3416666666666667,
+            "matched_view_accuracy": 0.24440972222222224,
+            "agreement": 0.635
+          },
+          "teacher": {
+            "clean_accuracy": 0.3425,
+            "mirror_accuracy": 0.3477430555555555,
+            "matched_view_accuracy": 0.26187499999999997,
+            "agreement": 0.6828472222222222
+          },
+          "student": {
+            "clean_accuracy": 0.34753472222222226,
+            "mirror_accuracy": 0.3509027777777778,
+            "matched_view_accuracy": 0.30284722222222227,
+            "agreement": 0.8208680555555556
+          },
+          "joint": {
+            "clean_accuracy": 0.34430555555555553,
+            "mirror_accuracy": 0.34857638888888887,
+            "matched_view_accuracy": 0.2703819444444444,
+            "agreement": 0.7104166666666667
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3425694444444445,
+            "mirror_accuracy": 0.34715277777777775,
+            "matched_view_accuracy": 0.26177083333333334,
+            "agreement": 0.6828124999999999
+          },
+          "two_view": {
+            "clean_accuracy": 0.35822916666666665,
+            "mirror_accuracy": 0.35822916666666665,
+            "matched_view_accuracy": 0.35822916666666665,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.3043402777777778,
+            "mirror_accuracy": 0.30722222222222223,
+            "matched_view_accuracy": 0.14298611111111112,
+            "agreement": 0.3476388888888889
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.3419097222222222,
+            "mirror_accuracy": 0.3471180555555555,
+            "matched_view_accuracy": 0.2704861111111111,
+            "agreement": 0.7146527777777778
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.33819444444444446,
+            "mirror_accuracy": 0.34225694444444443,
+            "matched_view_accuracy": 0.2448611111111111,
+            "agreement": 0.6358333333333334
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.3457986111111111,
+            "mirror_accuracy": 0.3496527777777778,
+            "matched_view_accuracy": 0.29364583333333333,
+            "agreement": 0.790625
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.3380902777777778,
+            "mirror_accuracy": 0.3425694444444444,
+            "matched_view_accuracy": 0.245,
+            "agreement": 0.6353819444444445
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.34753472222222226,
+            "mirror_accuracy": 0.3509027777777778,
+            "matched_view_accuracy": 0.30284722222222227,
+            "agreement": 0.8208680555555556
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.3382291666666667,
+            "mirror_accuracy": 0.3425,
+            "matched_view_accuracy": 0.24503472222222222,
+            "agreement": 0.6353819444444444
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.348125,
+            "mirror_accuracy": 0.3523263888888889,
+            "matched_view_accuracy": 0.30937499999999996,
+            "agreement": 0.8415625
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.3382291666666667,
+            "mirror_accuracy": 0.3423263888888889,
+            "matched_view_accuracy": 0.245,
+            "agreement": 0.6353819444444444
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.3469097222222222,
+            "mirror_accuracy": 0.350625,
+            "matched_view_accuracy": 0.3132638888888889,
+            "agreement": 0.8639583333333334
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.3380902777777778,
+            "mirror_accuracy": 0.3423263888888889,
+            "matched_view_accuracy": 0.24493055555555554,
+            "agreement": 0.6350694444444445
+          }
+        }
+      }
+    },
+    {
+      "seed": 35,
+      "teacher_probe_accuracy": 0.688281238079071,
+      "latent_width": 87,
+      "teacher_odd_count": 34,
+      "student_orbit_spectrum": [
+        1.3913240913857903e-15,
+        2.508402725584437e-15,
+        2.521805647650041e-15,
+        2.9961861595853303e-15,
+        3.099648674102592e-15,
+        3.743613950964213e-15,
+        4.314421798555472e-15,
+        4.484105153388923e-15,
+        4.959594723642806e-15,
+        5.303421375421831e-15,
+        5.498994619722289e-15,
+        6.300094726725552e-15,
+        6.882670122415289e-15,
+        7.535215488225388e-15,
+        8.132415799993132e-15,
+        8.280885811378745e-15,
+        9.153385187482748e-15,
+        1.0100106936318841e-14,
+        1.064753205114966e-14,
+        1.161814756109553e-14,
+        1.1706102070650559e-14,
+        1.285727450470654e-14,
+        1.4677148360145626e-14,
+        1.612195921814098e-14,
+        1.6687194094870252e-14,
+        1.9129227216710043e-14,
+        2.152400772995764e-14,
+        2.322248715400938e-14,
+        2.5700187678351945e-14,
+        2.6462595665854024e-14,
+        3.0742390476916073e-14,
+        3.164206366031448e-14,
+        3.5089717890683056e-14,
+        3.9200757463399825e-14,
+        4.1434962870415096e-14,
+        5.0441156955498353e-14,
+        6.009698300998271e-14,
+        9.641639308579272e-14,
+        1.149797622671939e-13,
+        1.8196674775673346e-13,
+        3.942159546909036e-13,
+        5.926670983479826e-13,
+        8.696496005102252e-13,
+        2.138185702340881e-12,
+        3.4343821812505283e-12,
+        4.169377040052492e-12,
+        1.0613648156447437e-11,
+        1.9654444787209124e-11,
+        3.894278335846097e-11,
+        4.910429825471483e-11,
+        1.3767144541876337e-10,
+        2.5253902701038497e-10,
+        5.907781294003608e-10,
+        9.175888060890648e-10,
+        1.5782075273346702e-09,
+        2.207924967493201e-09,
+        4.66406137842198e-09,
+        5.589560481469318e-09,
+        2.1635904773371387e-08,
+        2.6965189405048255e-08,
+        3.256516710180809e-08,
+        6.494652433824187e-08,
+        1.0120912543558139e-07,
+        1.0791492224825497e-07,
+        2.1432370913232755e-07,
+        4.2387044445844315e-07,
+        6.326990086838387e-07,
+        1.1278375219792744e-06,
+        2.1835625896736045e-06,
+        2.6677272316487464e-06,
+        1.3748656959050099e-05,
+        3.430349893493145e-05,
+        0.00010753385700615453,
+        0.00013147871847170417,
+        0.001387169450311721,
+        0.0024322293928028343,
+        0.0026875966982613593,
+        0.014452641790878773,
+        0.02440257986377095,
+        0.05741818606701557,
+        0.16701006129212195,
+        0.23109395679119096,
+        0.3486742567844603,
+        0.3945593005297019,
+        23.722538598183803,
+        28.954749479049237,
+        33.078299258048474
+      ],
+      "source_even_flip_mse": 0.02282620221376419,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.20750000000000002,
+            "mirror_accuracy": 0.20618055555555556,
+            "matched_view_accuracy": 0.07868055555555556,
+            "agreement": 0.3426041666666667
+          },
+          "teacher": {
+            "clean_accuracy": 0.21555555555555556,
+            "mirror_accuracy": 0.21100694444444443,
+            "matched_view_accuracy": 0.1371875,
+            "agreement": 0.6137152777777778
+          },
+          "student": {
+            "clean_accuracy": 0.21538194444444445,
+            "mirror_accuracy": 0.21288194444444444,
+            "matched_view_accuracy": 0.1901736111111111,
+            "agreement": 0.8766319444444445
+          },
+          "joint": {
+            "clean_accuracy": 0.21583333333333332,
+            "mirror_accuracy": 0.2125,
+            "matched_view_accuracy": 0.14684027777777778,
+            "agreement": 0.6582986111111111
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.21538194444444447,
+            "mirror_accuracy": 0.21052083333333332,
+            "matched_view_accuracy": 0.13739583333333333,
+            "agreement": 0.6150694444444444
+          },
+          "two_view": {
+            "clean_accuracy": 0.2295486111111111,
+            "mirror_accuracy": 0.2295486111111111,
+            "matched_view_accuracy": 0.2295486111111111,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.18788194444444445,
+            "mirror_accuracy": 0.18166666666666667,
+            "matched_view_accuracy": 0.014374999999999999,
+            "agreement": 0.059166666666666666
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.2124652777777778,
+            "mirror_accuracy": 0.21229166666666668,
+            "matched_view_accuracy": 0.16447916666666668,
+            "agreement": 0.7533680555555555
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.2067013888888889,
+            "mirror_accuracy": 0.20586805555555554,
+            "matched_view_accuracy": 0.07840277777777778,
+            "agreement": 0.3417013888888889
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2143402777777778,
+            "mirror_accuracy": 0.2117013888888889,
+            "matched_view_accuracy": 0.18527777777777776,
+            "agreement": 0.8571875
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2070486111111111,
+            "mirror_accuracy": 0.20552083333333332,
+            "matched_view_accuracy": 0.07850694444444445,
+            "agreement": 0.3421527777777778
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.21538194444444445,
+            "mirror_accuracy": 0.21288194444444444,
+            "matched_view_accuracy": 0.1901736111111111,
+            "agreement": 0.8766319444444445
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.2071527777777778,
+            "mirror_accuracy": 0.2054513888888889,
+            "matched_view_accuracy": 0.07836805555555555,
+            "agreement": 0.3424652777777778
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.2156597222222222,
+            "mirror_accuracy": 0.2140277777777778,
+            "matched_view_accuracy": 0.19361111111111112,
+            "agreement": 0.8854166666666666
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.20729166666666665,
+            "mirror_accuracy": 0.20534722222222224,
+            "matched_view_accuracy": 0.07819444444444444,
+            "agreement": 0.3427430555555555
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2179861111111111,
+            "mirror_accuracy": 0.21760416666666665,
+            "matched_view_accuracy": 0.19725694444444447,
+            "agreement": 0.8927430555555556
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.20753472222222222,
+            "mirror_accuracy": 0.20545138888888886,
+            "matched_view_accuracy": 0.07871527777777779,
+            "agreement": 0.3436458333333333
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2564236111111111,
+            "mirror_accuracy": 0.24878472222222223,
+            "matched_view_accuracy": 0.12708333333333333,
+            "agreement": 0.42409722222222224
+          },
+          "teacher": {
+            "clean_accuracy": 0.2631944444444444,
+            "mirror_accuracy": 0.25753472222222223,
+            "matched_view_accuracy": 0.16149305555555554,
+            "agreement": 0.5469097222222223
+          },
+          "student": {
+            "clean_accuracy": 0.2618055555555555,
+            "mirror_accuracy": 0.2619097222222222,
+            "matched_view_accuracy": 0.22447916666666667,
+            "agreement": 0.8241666666666667
+          },
+          "joint": {
+            "clean_accuracy": 0.2653472222222222,
+            "mirror_accuracy": 0.2595138888888889,
+            "matched_view_accuracy": 0.17274305555555555,
+            "agreement": 0.5848958333333333
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2631597222222222,
+            "mirror_accuracy": 0.25711805555555556,
+            "matched_view_accuracy": 0.16125,
+            "agreement": 0.5464930555555556
+          },
+          "two_view": {
+            "clean_accuracy": 0.29555555555555557,
+            "mirror_accuracy": 0.29555555555555557,
+            "matched_view_accuracy": 0.29555555555555557,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2189236111111111,
+            "mirror_accuracy": 0.21003472222222222,
+            "matched_view_accuracy": 0.035555555555555556,
+            "agreement": 0.11225694444444445
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.26309027777777777,
+            "mirror_accuracy": 0.2571527777777778,
+            "matched_view_accuracy": 0.18079861111111112,
+            "agreement": 0.6330208333333334
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.25635416666666666,
+            "mirror_accuracy": 0.2485416666666667,
+            "matched_view_accuracy": 0.12697916666666664,
+            "agreement": 0.42496527777777776
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2627777777777778,
+            "mirror_accuracy": 0.2612847222222222,
+            "matched_view_accuracy": 0.21489583333333334,
+            "agreement": 0.7804166666666666
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.25649305555555557,
+            "mirror_accuracy": 0.24822916666666667,
+            "matched_view_accuracy": 0.1270486111111111,
+            "agreement": 0.42489583333333336
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.2618055555555555,
+            "mirror_accuracy": 0.2619097222222222,
+            "matched_view_accuracy": 0.22447916666666667,
+            "agreement": 0.8241666666666667
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.25635416666666666,
+            "mirror_accuracy": 0.24833333333333335,
+            "matched_view_accuracy": 0.12687500000000002,
+            "agreement": 0.4248263888888889
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.2612847222222222,
+            "mirror_accuracy": 0.2602083333333334,
+            "matched_view_accuracy": 0.22777777777777777,
+            "agreement": 0.84625
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.25645833333333334,
+            "mirror_accuracy": 0.2482638888888889,
+            "matched_view_accuracy": 0.1270138888888889,
+            "agreement": 0.4250694444444444
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2598611111111111,
+            "mirror_accuracy": 0.2617361111111111,
+            "matched_view_accuracy": 0.2326736111111111,
+            "agreement": 0.8676388888888888
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2563888888888889,
+            "mirror_accuracy": 0.24850694444444443,
+            "matched_view_accuracy": 0.12729166666666666,
+            "agreement": 0.4252083333333333
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.2813888888888889,
+            "mirror_accuracy": 0.2782638888888889,
+            "matched_view_accuracy": 0.14677083333333335,
+            "agreement": 0.4268402777777778
+          },
+          "teacher": {
+            "clean_accuracy": 0.28642361111111114,
+            "mirror_accuracy": 0.2840625,
+            "matched_view_accuracy": 0.16670138888888889,
+            "agreement": 0.4940277777777778
+          },
+          "student": {
+            "clean_accuracy": 0.2885416666666667,
+            "mirror_accuracy": 0.2865972222222222,
+            "matched_view_accuracy": 0.22885416666666666,
+            "agreement": 0.7509027777777777
+          },
+          "joint": {
+            "clean_accuracy": 0.28784722222222225,
+            "mirror_accuracy": 0.2853472222222222,
+            "matched_view_accuracy": 0.17552083333333335,
+            "agreement": 0.5258333333333334
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2865625,
+            "mirror_accuracy": 0.28427083333333336,
+            "matched_view_accuracy": 0.16642361111111112,
+            "agreement": 0.4929861111111111
+          },
+          "two_view": {
+            "clean_accuracy": 0.3317361111111111,
+            "mirror_accuracy": 0.3317361111111111,
+            "matched_view_accuracy": 0.3317361111111111,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.24885416666666668,
+            "mirror_accuracy": 0.24020833333333333,
+            "matched_view_accuracy": 0.06621527777777778,
+            "agreement": 0.17677083333333332
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.2863888888888889,
+            "mirror_accuracy": 0.2853819444444445,
+            "matched_view_accuracy": 0.17510416666666667,
+            "agreement": 0.5294444444444444
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.28145833333333337,
+            "mirror_accuracy": 0.2782638888888889,
+            "matched_view_accuracy": 0.14666666666666667,
+            "agreement": 0.4268402777777778
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2882986111111111,
+            "mirror_accuracy": 0.286875,
+            "matched_view_accuracy": 0.21076388888888892,
+            "agreement": 0.6746875
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2812847222222222,
+            "mirror_accuracy": 0.2785763888888889,
+            "matched_view_accuracy": 0.14666666666666667,
+            "agreement": 0.426875
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.2885416666666667,
+            "mirror_accuracy": 0.2865972222222222,
+            "matched_view_accuracy": 0.22885416666666666,
+            "agreement": 0.7509027777777777
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.2811458333333333,
+            "mirror_accuracy": 0.2784375,
+            "matched_view_accuracy": 0.14652777777777776,
+            "agreement": 0.4269791666666667
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.28736111111111107,
+            "mirror_accuracy": 0.28645833333333337,
+            "matched_view_accuracy": 0.23979166666666668,
+            "agreement": 0.8006944444444445
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2812847222222222,
+            "mirror_accuracy": 0.27847222222222223,
+            "matched_view_accuracy": 0.14684027777777778,
+            "agreement": 0.42708333333333337
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.28489583333333335,
+            "mirror_accuracy": 0.28378472222222223,
+            "matched_view_accuracy": 0.24920138888888888,
+            "agreement": 0.8489236111111111
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2815277777777778,
+            "mirror_accuracy": 0.27850694444444446,
+            "matched_view_accuracy": 0.14694444444444443,
+            "agreement": 0.4270138888888889
+          }
+        }
+      }
+    },
+    {
+      "seed": 36,
+      "teacher_probe_accuracy": 0.690625011920929,
+      "latent_width": 71,
+      "teacher_odd_count": 27,
+      "student_orbit_spectrum": [
+        1.1231601044959111e-14,
+        1.3974501328167298e-14,
+        1.459671580478988e-14,
+        2.006563326804935e-14,
+        2.1373104001060713e-14,
+        2.38625688931747e-14,
+        2.4695677784771567e-14,
+        2.606175733296743e-14,
+        2.652894381582227e-14,
+        3.0505375989423603e-14,
+        3.2906610736647243e-14,
+        3.450209431768361e-14,
+        4.370298849186332e-14,
+        4.8292683847958235e-14,
+        5.212718658790619e-14,
+        6.305424246264707e-14,
+        7.206980897755511e-14,
+        7.627073636179569e-14,
+        2.0929446945271956e-13,
+        3.0187745267480333e-13,
+        4.3020684348645456e-13,
+        8.531283671037182e-13,
+        1.5328494525921752e-12,
+        2.89091792233366e-12,
+        3.668807408609292e-12,
+        8.366340154339197e-12,
+        2.8000350686996206e-11,
+        4.4264463201233096e-11,
+        1.6093161831333806e-10,
+        2.3645847953306407e-10,
+        5.461577370643556e-10,
+        1.1685503165981852e-09,
+        1.3700797803501221e-09,
+        2.7013008827116965e-09,
+        3.4051488912544316e-09,
+        5.688401605457677e-09,
+        2.1644091934751875e-08,
+        5.730791023982333e-08,
+        1.4962701285226564e-07,
+        2.0620125479305294e-07,
+        4.3783010606276187e-07,
+        5.306011410874578e-07,
+        9.458887982650461e-07,
+        3.245884835709107e-06,
+        5.876442774494311e-06,
+        1.1689278859369315e-05,
+        4.5834849777388785e-05,
+        9.676177162627621e-05,
+        0.00019394927680641978,
+        0.0002649380701159,
+        0.0003783373612815838,
+        0.0007734103320331304,
+        0.0011649758938161294,
+        0.00353162413251618,
+        0.004191456028186077,
+        0.005793570993193466,
+        0.010897977299753317,
+        0.015141082352050752,
+        0.02943142663511176,
+        0.0317184884806289,
+        0.043237126203025604,
+        0.058084713036806984,
+        0.06832916894598873,
+        0.10947120317843881,
+        0.1259968551102672,
+        0.21738375560553871,
+        0.29877942409309066,
+        1.4270951200338842,
+        9.856419526125705,
+        28.570166291413422,
+        30.12138980670196
+      ],
+      "source_even_flip_mse": 0.023934541270136833,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2693055555555556,
+            "mirror_accuracy": 0.2698611111111111,
+            "matched_view_accuracy": 0.15444444444444444,
+            "agreement": 0.4921527777777778
+          },
+          "teacher": {
+            "clean_accuracy": 0.2772569444444445,
+            "mirror_accuracy": 0.2783680555555556,
+            "matched_view_accuracy": 0.22854166666666667,
+            "agreement": 0.773263888888889
+          },
+          "student": {
+            "clean_accuracy": 0.28222222222222226,
+            "mirror_accuracy": 0.2813541666666667,
+            "matched_view_accuracy": 0.260625,
+            "agreement": 0.9052777777777778
+          },
+          "joint": {
+            "clean_accuracy": 0.2837152777777778,
+            "mirror_accuracy": 0.28260416666666666,
+            "matched_view_accuracy": 0.2492361111111111,
+            "agreement": 0.8451736111111111
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2776388888888889,
+            "mirror_accuracy": 0.2777777777777778,
+            "matched_view_accuracy": 0.22833333333333333,
+            "agreement": 0.7724305555555555
+          },
+          "two_view": {
+            "clean_accuracy": 0.28618055555555555,
+            "mirror_accuracy": 0.28618055555555555,
+            "matched_view_accuracy": 0.28618055555555555,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.21309027777777778,
+            "mirror_accuracy": 0.2139236111111111,
+            "matched_view_accuracy": 0.03076388888888889,
+            "agreement": 0.08465277777777777
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.2804861111111111,
+            "mirror_accuracy": 0.28145833333333337,
+            "matched_view_accuracy": 0.239375,
+            "agreement": 0.8101041666666666
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.26927083333333335,
+            "mirror_accuracy": 0.270625,
+            "matched_view_accuracy": 0.15437499999999998,
+            "agreement": 0.4887152777777778
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.28180555555555553,
+            "mirror_accuracy": 0.28125,
+            "matched_view_accuracy": 0.25659722222222225,
+            "agreement": 0.8864930555555556
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.26979166666666665,
+            "mirror_accuracy": 0.2710416666666666,
+            "matched_view_accuracy": 0.15475694444444443,
+            "agreement": 0.49006944444444445
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.28222222222222226,
+            "mirror_accuracy": 0.2813541666666667,
+            "matched_view_accuracy": 0.260625,
+            "agreement": 0.9052777777777778
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.2693055555555556,
+            "mirror_accuracy": 0.27020833333333333,
+            "matched_view_accuracy": 0.15447916666666667,
+            "agreement": 0.4907986111111111
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.28375000000000006,
+            "mirror_accuracy": 0.28336805555555555,
+            "matched_view_accuracy": 0.26493055555555556,
+            "agreement": 0.9158680555555555
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2692013888888889,
+            "mirror_accuracy": 0.2698611111111111,
+            "matched_view_accuracy": 0.15434027777777778,
+            "agreement": 0.4911111111111111
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2821527777777778,
+            "mirror_accuracy": 0.28434027777777776,
+            "matched_view_accuracy": 0.2682638888888889,
+            "agreement": 0.9296875
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.26902777777777775,
+            "mirror_accuracy": 0.27003472222222225,
+            "matched_view_accuracy": 0.155625,
+            "agreement": 0.495
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.31708333333333333,
+            "mirror_accuracy": 0.3202083333333333,
+            "matched_view_accuracy": 0.2193402777777778,
+            "agreement": 0.5993402777777778
+          },
+          "teacher": {
+            "clean_accuracy": 0.32458333333333333,
+            "mirror_accuracy": 0.32503472222222224,
+            "matched_view_accuracy": 0.2635763888888889,
+            "agreement": 0.747638888888889
+          },
+          "student": {
+            "clean_accuracy": 0.3231597222222222,
+            "mirror_accuracy": 0.32347222222222216,
+            "matched_view_accuracy": 0.29597222222222225,
+            "agreement": 0.8861111111111111
+          },
+          "joint": {
+            "clean_accuracy": 0.32586805555555554,
+            "mirror_accuracy": 0.32628472222222227,
+            "matched_view_accuracy": 0.27993055555555557,
+            "agreement": 0.8092013888888888
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3242013888888889,
+            "mirror_accuracy": 0.32534722222222223,
+            "matched_view_accuracy": 0.2631597222222222,
+            "agreement": 0.746875
+          },
+          "two_view": {
+            "clean_accuracy": 0.3315972222222222,
+            "mirror_accuracy": 0.3315972222222222,
+            "matched_view_accuracy": 0.3315972222222222,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2872222222222222,
+            "mirror_accuracy": 0.2857986111111111,
+            "matched_view_accuracy": 0.12090277777777778,
+            "agreement": 0.3045833333333333
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.3232291666666667,
+            "mirror_accuracy": 0.32534722222222223,
+            "matched_view_accuracy": 0.2643402777777778,
+            "agreement": 0.7534722222222222
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.3167361111111111,
+            "mirror_accuracy": 0.3201736111111111,
+            "matched_view_accuracy": 0.21944444444444444,
+            "agreement": 0.5986805555555555
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.32461805555555556,
+            "mirror_accuracy": 0.3259722222222222,
+            "matched_view_accuracy": 0.29027777777777775,
+            "agreement": 0.8554861111111111
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.31628472222222226,
+            "mirror_accuracy": 0.3202083333333333,
+            "matched_view_accuracy": 0.2192361111111111,
+            "agreement": 0.5985416666666667
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.3231597222222222,
+            "mirror_accuracy": 0.32347222222222216,
+            "matched_view_accuracy": 0.29597222222222225,
+            "agreement": 0.8861111111111111
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.3159375,
+            "mirror_accuracy": 0.3203125,
+            "matched_view_accuracy": 0.21927083333333333,
+            "agreement": 0.5986111111111111
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.32135416666666666,
+            "mirror_accuracy": 0.32211805555555556,
+            "matched_view_accuracy": 0.2984375,
+            "agreement": 0.9022222222222223
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.3160763888888889,
+            "mirror_accuracy": 0.320625,
+            "matched_view_accuracy": 0.21937500000000001,
+            "agreement": 0.5984375
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.3169444444444445,
+            "mirror_accuracy": 0.31680555555555556,
+            "matched_view_accuracy": 0.2985069444444445,
+            "agreement": 0.9203819444444444
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.31638888888888883,
+            "mirror_accuracy": 0.3206597222222222,
+            "matched_view_accuracy": 0.21965277777777778,
+            "agreement": 0.5995833333333334
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.35173611111111114,
+            "mirror_accuracy": 0.3532638888888889,
+            "matched_view_accuracy": 0.26555555555555554,
+            "agreement": 0.6644097222222223
+          },
+          "teacher": {
+            "clean_accuracy": 0.3563541666666667,
+            "mirror_accuracy": 0.35614583333333333,
+            "matched_view_accuracy": 0.28625,
+            "agreement": 0.7298958333333333
+          },
+          "student": {
+            "clean_accuracy": 0.35736111111111113,
+            "mirror_accuracy": 0.35670138888888886,
+            "matched_view_accuracy": 0.3179861111111111,
+            "agreement": 0.8460069444444445
+          },
+          "joint": {
+            "clean_accuracy": 0.35805555555555557,
+            "mirror_accuracy": 0.35784722222222226,
+            "matched_view_accuracy": 0.3025347222222222,
+            "agreement": 0.7867013888888889
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.35673611111111114,
+            "mirror_accuracy": 0.3553125,
+            "matched_view_accuracy": 0.2864236111111111,
+            "agreement": 0.7305208333333333
+          },
+          "two_view": {
+            "clean_accuracy": 0.36739583333333337,
+            "mirror_accuracy": 0.36739583333333337,
+            "matched_view_accuracy": 0.36739583333333337,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.3427430555555555,
+            "mirror_accuracy": 0.3412152777777778,
+            "matched_view_accuracy": 0.2284375,
+            "agreement": 0.5615625000000001
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.3557986111111111,
+            "mirror_accuracy": 0.35559027777777774,
+            "matched_view_accuracy": 0.2845486111111111,
+            "agreement": 0.7236111111111111
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.3511458333333333,
+            "mirror_accuracy": 0.3529861111111111,
+            "matched_view_accuracy": 0.2652083333333334,
+            "agreement": 0.6645486111111112
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.3565625,
+            "mirror_accuracy": 0.35756944444444444,
+            "matched_view_accuracy": 0.3073611111111111,
+            "agreement": 0.8039236111111111
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.3510763888888889,
+            "mirror_accuracy": 0.3529513888888889,
+            "matched_view_accuracy": 0.2653472222222222,
+            "agreement": 0.6649652777777777
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.35736111111111113,
+            "mirror_accuracy": 0.35670138888888886,
+            "matched_view_accuracy": 0.3179861111111111,
+            "agreement": 0.8460069444444445
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.3511458333333333,
+            "mirror_accuracy": 0.35288194444444443,
+            "matched_view_accuracy": 0.2654861111111111,
+            "agreement": 0.6650347222222222
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.35659722222222223,
+            "mirror_accuracy": 0.3560069444444445,
+            "matched_view_accuracy": 0.32559027777777777,
+            "agreement": 0.8780902777777777
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.35086805555555556,
+            "mirror_accuracy": 0.3530902777777778,
+            "matched_view_accuracy": 0.26545138888888886,
+            "agreement": 0.6652083333333333
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.35184027777777777,
+            "mirror_accuracy": 0.3504513888888889,
+            "matched_view_accuracy": 0.3297569444444445,
+            "agreement": 0.9117361111111111
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.3510763888888889,
+            "mirror_accuracy": 0.3532291666666667,
+            "matched_view_accuracy": 0.26600694444444445,
+            "agreement": 0.666423611111111
+          }
+        }
+      }
+    },
+    {
+      "seed": 37,
+      "teacher_probe_accuracy": 0.6656250357627869,
+      "latent_width": 69,
+      "teacher_odd_count": 26,
+      "student_orbit_spectrum": [
+        6.6534608267417565e-15,
+        7.25005902811489e-15,
+        7.429338513918373e-15,
+        8.790187736041822e-15,
+        1.0680774725443944e-14,
+        1.1461414011931574e-14,
+        1.2859746302683727e-14,
+        1.4660470537521044e-14,
+        1.5729786276995175e-14,
+        1.761559692067624e-14,
+        1.816001506894826e-14,
+        2.0151546642996236e-14,
+        2.1332495479733366e-14,
+        2.253064468630645e-14,
+        2.3128873616746118e-14,
+        2.6614638577640287e-14,
+        2.849156876817158e-14,
+        3.1261147223700707e-14,
+        3.475082583812439e-14,
+        3.546528389999352e-14,
+        4.70218972239998e-14,
+        6.017473063510332e-14,
+        7.124819770293139e-14,
+        9.713370923827178e-14,
+        1.4668069600413183e-13,
+        2.2140108277149465e-13,
+        1.2109570802664223e-12,
+        1.319986167440044e-12,
+        2.399876567106891e-12,
+        3.182562651140705e-12,
+        4.516699431478785e-12,
+        1.2242568305133729e-11,
+        3.327635682919253e-11,
+        4.5673908847827296e-11,
+        8.752028334723693e-11,
+        1.5709062101401144e-10,
+        2.3172324149250768e-10,
+        4.831224593377938e-10,
+        7.192372046010733e-10,
+        1.5405871644040094e-09,
+        4.4232591977840345e-09,
+        5.962317228137478e-09,
+        9.267066602203064e-09,
+        1.2194660928131718e-08,
+        3.18444992443295e-08,
+        1.278208038182236e-07,
+        1.9103031214345972e-07,
+        1.5802310350393722e-06,
+        2.2674312469720513e-06,
+        1.0426407424368875e-05,
+        4.582192374085516e-05,
+        6.328121977194543e-05,
+        0.0001207386005908455,
+        0.00013696191024060186,
+        0.0014658345788303257,
+        0.0031769557314439813,
+        0.004323781234356086,
+        0.03081451902523635,
+        0.037429206781463005,
+        0.07942044878976805,
+        0.10491086547025827,
+        0.13704061484521315,
+        0.18541153082696205,
+        0.23016045009813513,
+        0.3175268221223595,
+        1.7755722411337835,
+        15.184630326713712,
+        21.959272862415045,
+        28.948462076642326
+      ],
+      "source_even_flip_mse": 0.04208497703075409,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2479513888888889,
+            "mirror_accuracy": 0.24864583333333332,
+            "matched_view_accuracy": 0.1340972222222222,
+            "agreement": 0.46802083333333333
+          },
+          "teacher": {
+            "clean_accuracy": 0.2558680555555556,
+            "mirror_accuracy": 0.2580208333333333,
+            "matched_view_accuracy": 0.17343750000000002,
+            "agreement": 0.6180208333333332
+          },
+          "student": {
+            "clean_accuracy": 0.24680555555555556,
+            "mirror_accuracy": 0.2473611111111111,
+            "matched_view_accuracy": 0.21961805555555558,
+            "agreement": 0.8739236111111112
+          },
+          "joint": {
+            "clean_accuracy": 0.2524652777777778,
+            "mirror_accuracy": 0.25697916666666665,
+            "matched_view_accuracy": 0.18055555555555555,
+            "agreement": 0.6644791666666667
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.25687499999999996,
+            "mirror_accuracy": 0.2595138888888889,
+            "matched_view_accuracy": 0.17593749999999997,
+            "agreement": 0.625
+          },
+          "two_view": {
+            "clean_accuracy": 0.2835416666666667,
+            "mirror_accuracy": 0.2835416666666667,
+            "matched_view_accuracy": 0.2835416666666667,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.20694444444444446,
+            "mirror_accuracy": 0.21065972222222223,
+            "matched_view_accuracy": 0.036770833333333336,
+            "agreement": 0.12711805555555555
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.2552083333333333,
+            "mirror_accuracy": 0.2570486111111111,
+            "matched_view_accuracy": 0.20347222222222222,
+            "agreement": 0.7577083333333333
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.24822916666666667,
+            "mirror_accuracy": 0.24774305555555556,
+            "matched_view_accuracy": 0.13354166666666667,
+            "agreement": 0.4692361111111111
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.24940972222222224,
+            "mirror_accuracy": 0.25024305555555554,
+            "matched_view_accuracy": 0.21791666666666668,
+            "agreement": 0.8512500000000001
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2484722222222222,
+            "mirror_accuracy": 0.24826388888888887,
+            "matched_view_accuracy": 0.13399305555555557,
+            "agreement": 0.4697569444444445
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.24680555555555556,
+            "mirror_accuracy": 0.2473611111111111,
+            "matched_view_accuracy": 0.21961805555555558,
+            "agreement": 0.8739236111111112
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.24864583333333332,
+            "mirror_accuracy": 0.2485763888888889,
+            "matched_view_accuracy": 0.1340625,
+            "agreement": 0.4701736111111111
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.24291666666666667,
+            "mirror_accuracy": 0.24357638888888888,
+            "matched_view_accuracy": 0.21958333333333332,
+            "agreement": 0.8883680555555555
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.24864583333333334,
+            "mirror_accuracy": 0.24850694444444446,
+            "matched_view_accuracy": 0.13434027777777777,
+            "agreement": 0.47034722222222225
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2362152777777778,
+            "mirror_accuracy": 0.23743055555555553,
+            "matched_view_accuracy": 0.2173263888888889,
+            "agreement": 0.9070138888888888
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2495486111111111,
+            "mirror_accuracy": 0.2487847222222222,
+            "matched_view_accuracy": 0.13489583333333333,
+            "agreement": 0.4721180555555556
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.31777777777777777,
+            "mirror_accuracy": 0.3238888888888889,
+            "matched_view_accuracy": 0.2054513888888889,
+            "agreement": 0.5412847222222223
+          },
+          "teacher": {
+            "clean_accuracy": 0.32114583333333335,
+            "mirror_accuracy": 0.3270138888888889,
+            "matched_view_accuracy": 0.22739583333333335,
+            "agreement": 0.615173611111111
+          },
+          "student": {
+            "clean_accuracy": 0.3203472222222222,
+            "mirror_accuracy": 0.3206597222222222,
+            "matched_view_accuracy": 0.28069444444444447,
+            "agreement": 0.8374652777777778
+          },
+          "joint": {
+            "clean_accuracy": 0.32121527777777775,
+            "mirror_accuracy": 0.3263541666666666,
+            "matched_view_accuracy": 0.23520833333333332,
+            "agreement": 0.6495486111111111
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.32180555555555557,
+            "mirror_accuracy": 0.32743055555555556,
+            "matched_view_accuracy": 0.22843750000000002,
+            "agreement": 0.6179861111111111
+          },
+          "two_view": {
+            "clean_accuracy": 0.3539583333333334,
+            "mirror_accuracy": 0.3539583333333334,
+            "matched_view_accuracy": 0.3539583333333334,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2839583333333333,
+            "mirror_accuracy": 0.28861111111111115,
+            "matched_view_accuracy": 0.11645833333333333,
+            "agreement": 0.28118055555555554
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.32142361111111106,
+            "mirror_accuracy": 0.32590277777777776,
+            "matched_view_accuracy": 0.24434027777777778,
+            "agreement": 0.6855902777777778
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.31756944444444446,
+            "mirror_accuracy": 0.32375,
+            "matched_view_accuracy": 0.20555555555555555,
+            "agreement": 0.5415972222222223
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.3223611111111111,
+            "mirror_accuracy": 0.3232291666666667,
+            "matched_view_accuracy": 0.2724652777777778,
+            "agreement": 0.7971527777777778
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.31753472222222223,
+            "mirror_accuracy": 0.3239930555555556,
+            "matched_view_accuracy": 0.20555555555555555,
+            "agreement": 0.5415277777777778
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.3203472222222222,
+            "mirror_accuracy": 0.3206597222222222,
+            "matched_view_accuracy": 0.28069444444444447,
+            "agreement": 0.8374652777777778
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.3176736111111111,
+            "mirror_accuracy": 0.3239930555555556,
+            "matched_view_accuracy": 0.20552083333333332,
+            "agreement": 0.5407638888888888
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.3169791666666667,
+            "mirror_accuracy": 0.3179166666666667,
+            "matched_view_accuracy": 0.28447916666666667,
+            "agreement": 0.8630902777777778
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.31809027777777776,
+            "mirror_accuracy": 0.3239236111111111,
+            "matched_view_accuracy": 0.20552083333333332,
+            "agreement": 0.540486111111111
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.30666666666666664,
+            "mirror_accuracy": 0.3057638888888889,
+            "matched_view_accuracy": 0.2813541666666667,
+            "agreement": 0.8944097222222223
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.31833333333333336,
+            "mirror_accuracy": 0.3240277777777778,
+            "matched_view_accuracy": 0.20565972222222223,
+            "agreement": 0.5404166666666667
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.3454513888888888,
+            "mirror_accuracy": 0.3504513888888889,
+            "matched_view_accuracy": 0.23413194444444443,
+            "agreement": 0.5585069444444444
+          },
+          "teacher": {
+            "clean_accuracy": 0.34635416666666663,
+            "mirror_accuracy": 0.3536458333333333,
+            "matched_view_accuracy": 0.2459375,
+            "agreement": 0.5980902777777778
+          },
+          "student": {
+            "clean_accuracy": 0.3524305555555556,
+            "mirror_accuracy": 0.3541319444444444,
+            "matched_view_accuracy": 0.2969791666666667,
+            "agreement": 0.7781597222222222
+          },
+          "joint": {
+            "clean_accuracy": 0.3475347222222222,
+            "mirror_accuracy": 0.35399305555555555,
+            "matched_view_accuracy": 0.25552083333333336,
+            "agreement": 0.6294444444444445
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3463194444444444,
+            "mirror_accuracy": 0.35434027777777777,
+            "matched_view_accuracy": 0.24628472222222222,
+            "agreement": 0.5977083333333333
+          },
+          "two_view": {
+            "clean_accuracy": 0.39041666666666663,
+            "mirror_accuracy": 0.39041666666666663,
+            "matched_view_accuracy": 0.39041666666666663,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.3311111111111111,
+            "mirror_accuracy": 0.3360763888888889,
+            "matched_view_accuracy": 0.18604166666666666,
+            "agreement": 0.42010416666666667
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.34739583333333335,
+            "mirror_accuracy": 0.35416666666666663,
+            "matched_view_accuracy": 0.25381944444444443,
+            "agreement": 0.6219444444444444
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.34555555555555556,
+            "mirror_accuracy": 0.3505902777777778,
+            "matched_view_accuracy": 0.2341666666666667,
+            "agreement": 0.558125
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.3504513888888889,
+            "mirror_accuracy": 0.3560416666666667,
+            "matched_view_accuracy": 0.28284722222222225,
+            "agreement": 0.7252430555555556
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.3455902777777778,
+            "mirror_accuracy": 0.35055555555555556,
+            "matched_view_accuracy": 0.2342361111111111,
+            "agreement": 0.5583333333333333
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.3524305555555556,
+            "mirror_accuracy": 0.3541319444444444,
+            "matched_view_accuracy": 0.2969791666666667,
+            "agreement": 0.7781597222222222
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.34545138888888893,
+            "mirror_accuracy": 0.3506597222222222,
+            "matched_view_accuracy": 0.23420138888888892,
+            "agreement": 0.5580555555555555
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.35006944444444443,
+            "mirror_accuracy": 0.3509375,
+            "matched_view_accuracy": 0.3048611111111111,
+            "agreement": 0.8192708333333334
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.34555555555555556,
+            "mirror_accuracy": 0.3509375,
+            "matched_view_accuracy": 0.23440972222222223,
+            "agreement": 0.5584375
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.3435763888888889,
+            "mirror_accuracy": 0.3417013888888889,
+            "matched_view_accuracy": 0.3104861111111111,
+            "agreement": 0.8710763888888888
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.34586805555555555,
+            "mirror_accuracy": 0.3512847222222222,
+            "matched_view_accuracy": 0.2351388888888889,
+            "agreement": 0.5594791666666666
+          }
+        }
+      }
+    },
+    {
+      "seed": 38,
+      "teacher_probe_accuracy": 0.7085937857627869,
+      "latent_width": 83,
+      "teacher_odd_count": 32,
+      "student_orbit_spectrum": [
+        2.0264080282518678e-15,
+        2.6601306970187297e-15,
+        3.3574950484750293e-15,
+        3.821254863442916e-15,
+        4.072436949678443e-15,
+        4.799889545669967e-15,
+        5.188340104183223e-15,
+        6.106990659346701e-15,
+        6.315846357189024e-15,
+        6.8075659817851846e-15,
+        7.319790873915428e-15,
+        7.528119472779037e-15,
+        8.657943870814566e-15,
+        9.30464638047365e-15,
+        1.0153094753074689e-14,
+        1.1035874277504596e-14,
+        1.189704512677192e-14,
+        1.2134663824189721e-14,
+        1.3151752814248121e-14,
+        1.4119053261491014e-14,
+        1.4941733970996062e-14,
+        1.539439823280993e-14,
+        1.6774096874972932e-14,
+        1.84164721858346e-14,
+        1.8699227842820205e-14,
+        1.934764139042318e-14,
+        2.1137282765540892e-14,
+        2.1282710047582827e-14,
+        2.5088181098336393e-14,
+        2.6369606192810874e-14,
+        2.8075867627098304e-14,
+        3.1960494288581945e-14,
+        3.314029432083397e-14,
+        3.7095931928642433e-14,
+        4.027383279548916e-14,
+        4.4642179802966134e-14,
+        5.293762803319126e-14,
+        6.30462985044489e-14,
+        6.54628803197674e-14,
+        6.711001726838957e-14,
+        7.37042714535933e-14,
+        7.922114249049124e-14,
+        8.80599242056466e-14,
+        1.0486293995150736e-13,
+        1.195565845933979e-13,
+        2.7556181752695654e-13,
+        4.682064797799939e-13,
+        1.1940642919631985e-12,
+        1.7825511286185211e-12,
+        1.2464170350512551e-11,
+        3.168449121851462e-11,
+        3.8930417494533655e-11,
+        8.86923818980375e-11,
+        2.496666203097749e-10,
+        4.442625405124074e-10,
+        6.464909253386608e-10,
+        1.3946741962062445e-09,
+        2.2567599021446936e-09,
+        6.8576553680830874e-09,
+        2.3637228040524357e-08,
+        3.9640235166084415e-08,
+        8.093671047806099e-08,
+        1.7207925983522377e-07,
+        3.3446717974236687e-07,
+        7.106756078982342e-07,
+        8.956260842797252e-07,
+        3.49905598111377e-06,
+        4.88522791676348e-06,
+        7.821664332942212e-05,
+        0.00014223190933889378,
+        0.0008695006064740313,
+        0.0009302428433715747,
+        0.003261628701000745,
+        0.005344608282069004,
+        0.011208868593354696,
+        0.013701642833451788,
+        0.032284400919300196,
+        0.08739986053544693,
+        0.33769089345143327,
+        0.547434951779002,
+        2.035066694538698,
+        4.858017044480789,
+        75.06655856051044
+      ],
+      "source_even_flip_mse": 0.020178304985165596,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.21555555555555556,
+            "mirror_accuracy": 0.21375,
+            "matched_view_accuracy": 0.13642361111111112,
+            "agreement": 0.5780208333333333
+          },
+          "teacher": {
+            "clean_accuracy": 0.2176736111111111,
+            "mirror_accuracy": 0.21430555555555558,
+            "matched_view_accuracy": 0.14868055555555557,
+            "agreement": 0.6332986111111112
+          },
+          "student": {
+            "clean_accuracy": 0.22392361111111111,
+            "mirror_accuracy": 0.22239583333333335,
+            "matched_view_accuracy": 0.19434027777777776,
+            "agreement": 0.8403472222222222
+          },
+          "joint": {
+            "clean_accuracy": 0.21666666666666667,
+            "mirror_accuracy": 0.21458333333333332,
+            "matched_view_accuracy": 0.131875,
+            "agreement": 0.5486458333333333
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.21836805555555555,
+            "mirror_accuracy": 0.2148263888888889,
+            "matched_view_accuracy": 0.15003472222222222,
+            "agreement": 0.6371875
+          },
+          "two_view": {
+            "clean_accuracy": 0.2240625,
+            "mirror_accuracy": 0.2240625,
+            "matched_view_accuracy": 0.2240625,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.20666666666666667,
+            "mirror_accuracy": 0.20333333333333334,
+            "matched_view_accuracy": 0.08701388888888889,
+            "agreement": 0.38232638888888887
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.22086805555555555,
+            "mirror_accuracy": 0.21965277777777778,
+            "matched_view_accuracy": 0.18510416666666665,
+            "agreement": 0.8013194444444445
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.21541666666666665,
+            "mirror_accuracy": 0.21375,
+            "matched_view_accuracy": 0.13701388888888888,
+            "agreement": 0.5800694444444445
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.22322916666666665,
+            "mirror_accuracy": 0.22288194444444445,
+            "matched_view_accuracy": 0.19274305555555554,
+            "agreement": 0.8302777777777779
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.21541666666666667,
+            "mirror_accuracy": 0.21378472222222222,
+            "matched_view_accuracy": 0.13708333333333333,
+            "agreement": 0.5799652777777777
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.22392361111111111,
+            "mirror_accuracy": 0.22239583333333335,
+            "matched_view_accuracy": 0.19434027777777776,
+            "agreement": 0.8403472222222222
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.21534722222222225,
+            "mirror_accuracy": 0.21375,
+            "matched_view_accuracy": 0.13711805555555556,
+            "agreement": 0.5801736111111112
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.22590277777777779,
+            "mirror_accuracy": 0.22236111111111112,
+            "matched_view_accuracy": 0.1948611111111111,
+            "agreement": 0.8434722222222222
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.21520833333333333,
+            "mirror_accuracy": 0.2138888888888889,
+            "matched_view_accuracy": 0.13711805555555556,
+            "agreement": 0.5798958333333334
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.22743055555555555,
+            "mirror_accuracy": 0.2242013888888889,
+            "matched_view_accuracy": 0.19645833333333335,
+            "agreement": 0.8471875
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2153125,
+            "mirror_accuracy": 0.21413194444444444,
+            "matched_view_accuracy": 0.13697916666666665,
+            "agreement": 0.5794791666666667
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2631597222222222,
+            "mirror_accuracy": 0.26402777777777775,
+            "matched_view_accuracy": 0.19114583333333335,
+            "agreement": 0.6444444444444444
+          },
+          "teacher": {
+            "clean_accuracy": 0.26430555555555557,
+            "mirror_accuracy": 0.2653472222222222,
+            "matched_view_accuracy": 0.19458333333333333,
+            "agreement": 0.6582638888888889
+          },
+          "student": {
+            "clean_accuracy": 0.26125,
+            "mirror_accuracy": 0.2623611111111111,
+            "matched_view_accuracy": 0.22805555555555557,
+            "agreement": 0.8306944444444444
+          },
+          "joint": {
+            "clean_accuracy": 0.2625694444444444,
+            "mirror_accuracy": 0.26361111111111113,
+            "matched_view_accuracy": 0.18638888888888888,
+            "agreement": 0.6300694444444443
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2648263888888889,
+            "mirror_accuracy": 0.2657638888888889,
+            "matched_view_accuracy": 0.19548611111111108,
+            "agreement": 0.6610416666666666
+          },
+          "two_view": {
+            "clean_accuracy": 0.2726388888888889,
+            "mirror_accuracy": 0.2726388888888889,
+            "matched_view_accuracy": 0.2726388888888889,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.25927083333333334,
+            "mirror_accuracy": 0.2575694444444444,
+            "matched_view_accuracy": 0.13621527777777778,
+            "agreement": 0.4386805555555556
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.26496527777777773,
+            "mirror_accuracy": 0.2671875,
+            "matched_view_accuracy": 0.22440972222222222,
+            "agreement": 0.7870138888888889
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.26350694444444445,
+            "mirror_accuracy": 0.2640972222222222,
+            "matched_view_accuracy": 0.19190972222222222,
+            "agreement": 0.6470486111111111
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2634375,
+            "mirror_accuracy": 0.26434027777777774,
+            "matched_view_accuracy": 0.22850694444444444,
+            "agreement": 0.8196875
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2637152777777778,
+            "mirror_accuracy": 0.26413194444444443,
+            "matched_view_accuracy": 0.19194444444444442,
+            "agreement": 0.6465972222222223
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.26125,
+            "mirror_accuracy": 0.2623611111111111,
+            "matched_view_accuracy": 0.22805555555555557,
+            "agreement": 0.8306944444444444
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.2639236111111111,
+            "mirror_accuracy": 0.2642361111111111,
+            "matched_view_accuracy": 0.19215277777777778,
+            "agreement": 0.6465972222222223
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.26069444444444445,
+            "mirror_accuracy": 0.25972222222222224,
+            "matched_view_accuracy": 0.2288888888888889,
+            "agreement": 0.8413194444444445
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.26378472222222227,
+            "mirror_accuracy": 0.2642013888888889,
+            "matched_view_accuracy": 0.19215277777777778,
+            "agreement": 0.6467013888888888
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2588888888888889,
+            "mirror_accuracy": 0.2581597222222222,
+            "matched_view_accuracy": 0.22864583333333333,
+            "agreement": 0.8508333333333333
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2637847222222222,
+            "mirror_accuracy": 0.2642361111111111,
+            "matched_view_accuracy": 0.19194444444444445,
+            "agreement": 0.6456597222222222
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.2890972222222222,
+            "mirror_accuracy": 0.28520833333333334,
+            "matched_view_accuracy": 0.21947916666666667,
+            "agreement": 0.6783333333333333
+          },
+          "teacher": {
+            "clean_accuracy": 0.29093749999999996,
+            "mirror_accuracy": 0.28774305555555557,
+            "matched_view_accuracy": 0.22100694444444446,
+            "agreement": 0.6783333333333333
+          },
+          "student": {
+            "clean_accuracy": 0.2886458333333334,
+            "mirror_accuracy": 0.2867361111111111,
+            "matched_view_accuracy": 0.24618055555555557,
+            "agreement": 0.8013194444444445
+          },
+          "joint": {
+            "clean_accuracy": 0.29208333333333336,
+            "mirror_accuracy": 0.2885069444444444,
+            "matched_view_accuracy": 0.22159722222222222,
+            "agreement": 0.6766319444444444
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.29090277777777773,
+            "mirror_accuracy": 0.288125,
+            "matched_view_accuracy": 0.22128472222222223,
+            "agreement": 0.679375
+          },
+          "two_view": {
+            "clean_accuracy": 0.29215277777777776,
+            "mirror_accuracy": 0.29215277777777776,
+            "matched_view_accuracy": 0.29215277777777776,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2949305555555556,
+            "mirror_accuracy": 0.2963541666666667,
+            "matched_view_accuracy": 0.1928125,
+            "agreement": 0.5346527777777779
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.2888194444444444,
+            "mirror_accuracy": 0.28704861111111113,
+            "matched_view_accuracy": 0.23642361111111113,
+            "agreement": 0.7497222222222222
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.2890972222222222,
+            "mirror_accuracy": 0.2849305555555556,
+            "matched_view_accuracy": 0.21979166666666666,
+            "agreement": 0.6796180555555555
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.28784722222222225,
+            "mirror_accuracy": 0.28770833333333334,
+            "matched_view_accuracy": 0.24302083333333335,
+            "agreement": 0.786701388888889
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.28885416666666663,
+            "mirror_accuracy": 0.2849305555555556,
+            "matched_view_accuracy": 0.21968749999999998,
+            "agreement": 0.6794097222222223
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.2886458333333334,
+            "mirror_accuracy": 0.2867361111111111,
+            "matched_view_accuracy": 0.24618055555555557,
+            "agreement": 0.8013194444444445
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.28878472222222223,
+            "mirror_accuracy": 0.2849652777777778,
+            "matched_view_accuracy": 0.2197222222222222,
+            "agreement": 0.6793055555555556
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.2879166666666667,
+            "mirror_accuracy": 0.28576388888888893,
+            "matched_view_accuracy": 0.24861111111111112,
+            "agreement": 0.8149652777777778
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2886805555555556,
+            "mirror_accuracy": 0.2846875,
+            "matched_view_accuracy": 0.21965277777777778,
+            "agreement": 0.6793750000000001
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2875347222222222,
+            "mirror_accuracy": 0.2846180555555556,
+            "matched_view_accuracy": 0.25364583333333335,
+            "agreement": 0.8427430555555556
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2882986111111111,
+            "mirror_accuracy": 0.284375,
+            "matched_view_accuracy": 0.21913194444444445,
+            "agreement": 0.6788888888888889
+          }
+        }
+      }
+    },
+    {
+      "seed": 39,
+      "teacher_probe_accuracy": 0.6742187738418579,
+      "latent_width": 76,
+      "teacher_odd_count": 29,
+      "student_orbit_spectrum": [
+        1.3922049109032506e-15,
+        2.0462313835773957e-15,
+        3.893488939330763e-15,
+        4.05069712992861e-15,
+        4.6950341378995325e-15,
+        5.140881170286293e-15,
+        5.471046800250272e-15,
+        5.8756778791498655e-15,
+        6.3771167598503456e-15,
+        7.262517579855167e-15,
+        7.839748227787262e-15,
+        8.644858059676644e-15,
+        9.45172611419662e-15,
+        9.686184767245793e-15,
+        1.0527675853864103e-14,
+        1.0628782652334898e-14,
+        1.1664772437496659e-14,
+        1.2298808697809081e-14,
+        1.3031870582416126e-14,
+        1.4600375397084374e-14,
+        1.4795907286968692e-14,
+        1.598669585326741e-14,
+        1.8178805412350673e-14,
+        1.8944616910423233e-14,
+        2.0480080593431145e-14,
+        2.2032055411608036e-14,
+        2.343527345772769e-14,
+        2.6548615916584094e-14,
+        2.6823161157986778e-14,
+        2.9050350239791015e-14,
+        3.059139728391112e-14,
+        3.6906917963186124e-14,
+        3.919455358269625e-14,
+        4.2856293481980904e-14,
+        4.404309879148698e-14,
+        5.044151323114442e-14,
+        5.337048761837319e-14,
+        6.988439541177258e-14,
+        7.288636591397619e-14,
+        8.207565036534712e-14,
+        8.995035600878694e-14,
+        1.4451087703815688e-13,
+        2.00142196821376e-13,
+        2.824948598658539e-13,
+        5.490011107831099e-13,
+        8.638640020212668e-13,
+        1.4156048242299551e-12,
+        3.5316032095093356e-12,
+        1.440090548925185e-11,
+        9.164201211955154e-11,
+        1.7962332156559707e-10,
+        6.56779950036476e-10,
+        7.488154209556415e-10,
+        2.537615143880795e-09,
+        8.21154635023007e-09,
+        1.70929951483705e-08,
+        3.284889647659996e-08,
+        9.885380729706846e-08,
+        4.2457030963808507e-07,
+        6.513290315674605e-07,
+        8.218995424630434e-07,
+        1.071860193309688e-06,
+        4.252607677446627e-06,
+        1.5445066521370096e-05,
+        2.2365065551870993e-05,
+        8.283614221117607e-05,
+        0.00021356219548970427,
+        0.0011124521599637973,
+        0.01955409156869796,
+        0.4609542489119754,
+        0.5877274954698511,
+        0.9472036504559256,
+        2.0066652652993153,
+        3.340837498977882,
+        9.988990662546339,
+        58.646613042629454
+      ],
+      "source_even_flip_mse": 0.024780629202723503,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.24302083333333332,
+            "mirror_accuracy": 0.2439236111111111,
+            "matched_view_accuracy": 0.1623263888888889,
+            "agreement": 0.6158333333333333
+          },
+          "teacher": {
+            "clean_accuracy": 0.24569444444444444,
+            "mirror_accuracy": 0.24711805555555558,
+            "matched_view_accuracy": 0.18079861111111112,
+            "agreement": 0.6903819444444445
+          },
+          "student": {
+            "clean_accuracy": 0.24472222222222223,
+            "mirror_accuracy": 0.24444444444444444,
+            "matched_view_accuracy": 0.22031250000000002,
+            "agreement": 0.8809722222222223
+          },
+          "joint": {
+            "clean_accuracy": 0.24628472222222222,
+            "mirror_accuracy": 0.24899305555555556,
+            "matched_view_accuracy": 0.18854166666666666,
+            "agreement": 0.7152777777777778
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2463888888888889,
+            "mirror_accuracy": 0.24784722222222225,
+            "matched_view_accuracy": 0.18180555555555555,
+            "agreement": 0.6932291666666667
+          },
+          "two_view": {
+            "clean_accuracy": 0.2551041666666667,
+            "mirror_accuracy": 0.2551041666666667,
+            "matched_view_accuracy": 0.2551041666666667,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.21538194444444445,
+            "mirror_accuracy": 0.22427083333333334,
+            "matched_view_accuracy": 0.08,
+            "agreement": 0.2904861111111111
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.24854166666666666,
+            "mirror_accuracy": 0.24687499999999998,
+            "matched_view_accuracy": 0.2082638888888889,
+            "agreement": 0.8156597222222222
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.2424652777777778,
+            "mirror_accuracy": 0.24482638888888889,
+            "matched_view_accuracy": 0.16253472222222223,
+            "agreement": 0.6169444444444444
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.24552083333333335,
+            "mirror_accuracy": 0.24555555555555555,
+            "matched_view_accuracy": 0.21819444444444444,
+            "agreement": 0.8689930555555556
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.24232638888888886,
+            "mirror_accuracy": 0.24454861111111115,
+            "matched_view_accuracy": 0.16256944444444443,
+            "agreement": 0.6167708333333334
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.24472222222222223,
+            "mirror_accuracy": 0.24444444444444444,
+            "matched_view_accuracy": 0.22031250000000002,
+            "agreement": 0.8809722222222223
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.24246527777777777,
+            "mirror_accuracy": 0.24427083333333333,
+            "matched_view_accuracy": 0.16229166666666667,
+            "agreement": 0.6168055555555556
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.24243055555555554,
+            "mirror_accuracy": 0.24267361111111113,
+            "matched_view_accuracy": 0.22003472222222223,
+            "agreement": 0.8894097222222223
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2422222222222222,
+            "mirror_accuracy": 0.24430555555555555,
+            "matched_view_accuracy": 0.16208333333333333,
+            "agreement": 0.6167708333333333
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.23850694444444442,
+            "mirror_accuracy": 0.2390972222222222,
+            "matched_view_accuracy": 0.21819444444444444,
+            "agreement": 0.8971875
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.24225694444444446,
+            "mirror_accuracy": 0.24409722222222224,
+            "matched_view_accuracy": 0.161875,
+            "agreement": 0.6159722222222221
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.27545138888888887,
+            "mirror_accuracy": 0.27454861111111106,
+            "matched_view_accuracy": 0.1920486111111111,
+            "agreement": 0.6034375000000001
+          },
+          "teacher": {
+            "clean_accuracy": 0.2774652777777778,
+            "mirror_accuracy": 0.2763888888888889,
+            "matched_view_accuracy": 0.206875,
+            "agreement": 0.6655902777777778
+          },
+          "student": {
+            "clean_accuracy": 0.2712847222222222,
+            "mirror_accuracy": 0.27249999999999996,
+            "matched_view_accuracy": 0.2413888888888889,
+            "agreement": 0.8569097222222222
+          },
+          "joint": {
+            "clean_accuracy": 0.2766319444444445,
+            "mirror_accuracy": 0.2754861111111111,
+            "matched_view_accuracy": 0.2104861111111111,
+            "agreement": 0.6852430555555555
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2770486111111111,
+            "mirror_accuracy": 0.2768402777777778,
+            "matched_view_accuracy": 0.20732638888888888,
+            "agreement": 0.6664930555555555
+          },
+          "two_view": {
+            "clean_accuracy": 0.28927083333333337,
+            "mirror_accuracy": 0.28927083333333337,
+            "matched_view_accuracy": 0.28927083333333337,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.24972222222222223,
+            "mirror_accuracy": 0.2526041666666667,
+            "matched_view_accuracy": 0.11361111111111111,
+            "agreement": 0.34291666666666665
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.27937500000000004,
+            "mirror_accuracy": 0.2764930555555556,
+            "matched_view_accuracy": 0.22531249999999997,
+            "agreement": 0.7494791666666667
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.27569444444444446,
+            "mirror_accuracy": 0.27437500000000004,
+            "matched_view_accuracy": 0.19197916666666667,
+            "agreement": 0.6030208333333333
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.27586805555555555,
+            "mirror_accuracy": 0.27437500000000004,
+            "matched_view_accuracy": 0.23857638888888888,
+            "agreement": 0.8275694444444445
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2760069444444444,
+            "mirror_accuracy": 0.27427083333333335,
+            "matched_view_accuracy": 0.19170138888888888,
+            "agreement": 0.6025347222222222
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.2712847222222222,
+            "mirror_accuracy": 0.27249999999999996,
+            "matched_view_accuracy": 0.2413888888888889,
+            "agreement": 0.8569097222222222
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.27597222222222223,
+            "mirror_accuracy": 0.2742013888888889,
+            "matched_view_accuracy": 0.19166666666666665,
+            "agreement": 0.6025347222222222
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.2675,
+            "mirror_accuracy": 0.2683333333333333,
+            "matched_view_accuracy": 0.24166666666666667,
+            "agreement": 0.8761111111111111
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2758680555555556,
+            "mirror_accuracy": 0.27416666666666667,
+            "matched_view_accuracy": 0.19159722222222222,
+            "agreement": 0.6027083333333334
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.26239583333333333,
+            "mirror_accuracy": 0.2625,
+            "matched_view_accuracy": 0.23934027777777778,
+            "agreement": 0.8939583333333334
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2758333333333333,
+            "mirror_accuracy": 0.2743055555555556,
+            "matched_view_accuracy": 0.1915277777777778,
+            "agreement": 0.6022569444444444
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.3063194444444445,
+            "mirror_accuracy": 0.3054861111111111,
+            "matched_view_accuracy": 0.22802083333333334,
+            "agreement": 0.6507291666666666
+          },
+          "teacher": {
+            "clean_accuracy": 0.30656249999999996,
+            "mirror_accuracy": 0.30618055555555557,
+            "matched_view_accuracy": 0.23510416666666667,
+            "agreement": 0.6792013888888889
+          },
+          "student": {
+            "clean_accuracy": 0.3010763888888889,
+            "mirror_accuracy": 0.30225694444444445,
+            "matched_view_accuracy": 0.2646527777777778,
+            "agreement": 0.8299652777777777
+          },
+          "joint": {
+            "clean_accuracy": 0.30666666666666664,
+            "mirror_accuracy": 0.3078472222222222,
+            "matched_view_accuracy": 0.2390625,
+            "agreement": 0.6935069444444445
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.30645833333333333,
+            "mirror_accuracy": 0.3063194444444445,
+            "matched_view_accuracy": 0.23506944444444444,
+            "agreement": 0.6788541666666666
+          },
+          "two_view": {
+            "clean_accuracy": 0.31451388888888887,
+            "mirror_accuracy": 0.31451388888888887,
+            "matched_view_accuracy": 0.31451388888888887,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2963888888888889,
+            "mirror_accuracy": 0.2937152777777778,
+            "matched_view_accuracy": 0.18604166666666666,
+            "agreement": 0.5080555555555556
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.3051041666666667,
+            "mirror_accuracy": 0.30694444444444446,
+            "matched_view_accuracy": 0.2467361111111111,
+            "agreement": 0.733298611111111
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.3056944444444445,
+            "mirror_accuracy": 0.3051041666666667,
+            "matched_view_accuracy": 0.22770833333333332,
+            "agreement": 0.6510763888888889
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.30298611111111107,
+            "mirror_accuracy": 0.3035069444444444,
+            "matched_view_accuracy": 0.2595486111111111,
+            "agreement": 0.7993750000000001
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.30565972222222226,
+            "mirror_accuracy": 0.3052083333333333,
+            "matched_view_accuracy": 0.22774305555555557,
+            "agreement": 0.6515277777777777
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.3010763888888889,
+            "mirror_accuracy": 0.30225694444444445,
+            "matched_view_accuracy": 0.2646527777777778,
+            "agreement": 0.8299652777777777
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.3055902777777778,
+            "mirror_accuracy": 0.30517361111111113,
+            "matched_view_accuracy": 0.22770833333333335,
+            "agreement": 0.651875
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.29913194444444446,
+            "mirror_accuracy": 0.2998263888888889,
+            "matched_view_accuracy": 0.2680208333333334,
+            "agreement": 0.8553819444444445
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.30541666666666667,
+            "mirror_accuracy": 0.3051736111111111,
+            "matched_view_accuracy": 0.22767361111111112,
+            "agreement": 0.6519791666666667
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2935763888888889,
+            "mirror_accuracy": 0.2922916666666666,
+            "matched_view_accuracy": 0.2684722222222222,
+            "agreement": 0.8880208333333333
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.3054861111111111,
+            "mirror_accuracy": 0.3050694444444444,
+            "matched_view_accuracy": 0.22770833333333335,
+            "agreement": 0.6519791666666667
+          }
+        }
+      }
+    },
+    {
+      "seed": 40,
+      "teacher_probe_accuracy": 0.7015625238418579,
+      "latent_width": 78,
+      "teacher_odd_count": 30,
+      "student_orbit_spectrum": [
+        2.643727729013654e-15,
+        3.271619271435928e-15,
+        3.4821271061004564e-15,
+        4.247680624257901e-15,
+        6.1425045259361806e-15,
+        6.358798070856986e-15,
+        6.993628163718582e-15,
+        7.392899382402765e-15,
+        8.663481140226404e-15,
+        9.16419518417649e-15,
+        1.0840063106063384e-14,
+        1.1698682496589714e-14,
+        1.2626563578600814e-14,
+        1.3009650956530103e-14,
+        1.495130702671101e-14,
+        1.682483625001659e-14,
+        1.968462713627109e-14,
+        2.068289536235388e-14,
+        2.1442709657402315e-14,
+        2.3662199317167518e-14,
+        2.73912546600593e-14,
+        3.33148828657778e-14,
+        3.78695893220414e-14,
+        3.933237778578358e-14,
+        5.010559288102258e-14,
+        6.261523173617273e-14,
+        1.0742418134259266e-13,
+        1.5998437004437498e-13,
+        2.6110669253240245e-13,
+        4.222041748074271e-13,
+        1.1712829540802553e-12,
+        1.3314221096467835e-12,
+        4.599467845143288e-12,
+        5.408677565957494e-12,
+        1.0012357540235542e-11,
+        1.922863454321987e-11,
+        4.554219578338141e-11,
+        1.0194636979790435e-10,
+        1.558314214164003e-10,
+        2.501155498175534e-10,
+        5.472762710597994e-10,
+        7.50539468774911e-10,
+        1.7309478261842119e-09,
+        3.0315986855699043e-09,
+        7.953854985202711e-09,
+        1.5436434289680582e-08,
+        3.6575161502367826e-08,
+        6.82539529914066e-08,
+        1.9884827569778606e-07,
+        4.3712196135692407e-07,
+        4.7178319426211964e-07,
+        9.346789765526205e-07,
+        9.985643653555913e-07,
+        1.5855271487170533e-06,
+        2.589963045687037e-06,
+        8.271728373999643e-06,
+        3.162617920393707e-05,
+        4.8352586772987106e-05,
+        0.00015078519429493026,
+        0.0002580308408307591,
+        0.0005998133600825379,
+        0.000977380147412791,
+        0.0019148501509144446,
+        0.0027828345085244063,
+        0.0034282822905810804,
+        0.004671943240243877,
+        0.012444142524395756,
+        0.014848136704139116,
+        0.01817034504341916,
+        0.04014327141227558,
+        0.07493568310922054,
+        0.2978767208306216,
+        0.6046270276963027,
+        1.049964168628239,
+        1.8252103984065502,
+        2.9288688129697227,
+        16.3240062103607,
+        54.79402556072388
+      ],
+      "source_even_flip_mse": 0.02534501813352108,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2738194444444444,
+            "mirror_accuracy": 0.27399305555555553,
+            "matched_view_accuracy": 0.1592361111111111,
+            "agreement": 0.4906597222222222
+          },
+          "teacher": {
+            "clean_accuracy": 0.2801736111111111,
+            "mirror_accuracy": 0.2800694444444444,
+            "matched_view_accuracy": 0.20364583333333333,
+            "agreement": 0.6640972222222222
+          },
+          "student": {
+            "clean_accuracy": 0.28631944444444446,
+            "mirror_accuracy": 0.28593749999999996,
+            "matched_view_accuracy": 0.24840277777777778,
+            "agreement": 0.8360069444444445
+          },
+          "joint": {
+            "clean_accuracy": 0.2854861111111111,
+            "mirror_accuracy": 0.2877777777777778,
+            "matched_view_accuracy": 0.21395833333333333,
+            "agreement": 0.6899305555555555
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2799652777777778,
+            "mirror_accuracy": 0.27965277777777775,
+            "matched_view_accuracy": 0.2023611111111111,
+            "agreement": 0.6606944444444445
+          },
+          "two_view": {
+            "clean_accuracy": 0.2889236111111111,
+            "mirror_accuracy": 0.2889236111111111,
+            "matched_view_accuracy": 0.2889236111111111,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.21427083333333333,
+            "mirror_accuracy": 0.21649305555555556,
+            "matched_view_accuracy": 0.04642361111111111,
+            "agreement": 0.1686111111111111
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.288125,
+            "mirror_accuracy": 0.28746527777777775,
+            "matched_view_accuracy": 0.2338888888888889,
+            "agreement": 0.7670138888888889
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.2737847222222222,
+            "mirror_accuracy": 0.27447916666666666,
+            "matched_view_accuracy": 0.15944444444444444,
+            "agreement": 0.4922916666666667
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.28729166666666667,
+            "mirror_accuracy": 0.2867708333333333,
+            "matched_view_accuracy": 0.24576388888888887,
+            "agreement": 0.820625
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.27322916666666663,
+            "mirror_accuracy": 0.27326388888888886,
+            "matched_view_accuracy": 0.1579861111111111,
+            "agreement": 0.4898611111111111
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.28631944444444446,
+            "mirror_accuracy": 0.28593749999999996,
+            "matched_view_accuracy": 0.24840277777777778,
+            "agreement": 0.8360069444444445
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.2733333333333333,
+            "mirror_accuracy": 0.2726388888888889,
+            "matched_view_accuracy": 0.1575347222222222,
+            "agreement": 0.4887152777777778
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.2846180555555555,
+            "mirror_accuracy": 0.2851041666666667,
+            "matched_view_accuracy": 0.24920138888888888,
+            "agreement": 0.8460069444444445
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.27305555555555555,
+            "mirror_accuracy": 0.27239583333333334,
+            "matched_view_accuracy": 0.15718749999999998,
+            "agreement": 0.4874305555555556
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.28270833333333334,
+            "mirror_accuracy": 0.2835416666666667,
+            "matched_view_accuracy": 0.2501388888888889,
+            "agreement": 0.8572916666666668
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.2725694444444444,
+            "mirror_accuracy": 0.27194444444444443,
+            "matched_view_accuracy": 0.15628472222222223,
+            "agreement": 0.4861805555555556
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.3167361111111111,
+            "mirror_accuracy": 0.31527777777777777,
+            "matched_view_accuracy": 0.21159722222222221,
+            "agreement": 0.5789236111111111
+          },
+          "teacher": {
+            "clean_accuracy": 0.32163194444444443,
+            "mirror_accuracy": 0.32180555555555557,
+            "matched_view_accuracy": 0.23996527777777776,
+            "agreement": 0.6675
+          },
+          "student": {
+            "clean_accuracy": 0.32513888888888887,
+            "mirror_accuracy": 0.3252777777777778,
+            "matched_view_accuracy": 0.2832986111111111,
+            "agreement": 0.8262499999999999
+          },
+          "joint": {
+            "clean_accuracy": 0.32586805555555554,
+            "mirror_accuracy": 0.32576388888888885,
+            "matched_view_accuracy": 0.25222222222222224,
+            "agreement": 0.7012152777777778
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3222222222222222,
+            "mirror_accuracy": 0.32177083333333334,
+            "matched_view_accuracy": 0.24052083333333335,
+            "agreement": 0.6680208333333333
+          },
+          "two_view": {
+            "clean_accuracy": 0.3247569444444445,
+            "mirror_accuracy": 0.3247569444444445,
+            "matched_view_accuracy": 0.3247569444444445,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2768055555555555,
+            "mirror_accuracy": 0.2819097222222222,
+            "matched_view_accuracy": 0.1035763888888889,
+            "agreement": 0.27361111111111114
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.32708333333333334,
+            "mirror_accuracy": 0.3254166666666667,
+            "matched_view_accuracy": 0.26416666666666666,
+            "agreement": 0.7460069444444444
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.3166319444444445,
+            "mirror_accuracy": 0.31503472222222223,
+            "matched_view_accuracy": 0.21125,
+            "agreement": 0.5795486111111111
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.3259375,
+            "mirror_accuracy": 0.32590277777777776,
+            "matched_view_accuracy": 0.2788888888888889,
+            "agreement": 0.8069097222222221
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.31614583333333335,
+            "mirror_accuracy": 0.3149652777777778,
+            "matched_view_accuracy": 0.21118055555555554,
+            "agreement": 0.579375
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.32513888888888887,
+            "mirror_accuracy": 0.3252777777777778,
+            "matched_view_accuracy": 0.2832986111111111,
+            "agreement": 0.8262499999999999
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.31614583333333335,
+            "mirror_accuracy": 0.31475694444444446,
+            "matched_view_accuracy": 0.21118055555555557,
+            "agreement": 0.5795486111111111
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.3243055555555555,
+            "mirror_accuracy": 0.32677083333333334,
+            "matched_view_accuracy": 0.28625,
+            "agreement": 0.838298611111111
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.3160763888888889,
+            "mirror_accuracy": 0.3147916666666667,
+            "matched_view_accuracy": 0.21131944444444445,
+            "agreement": 0.579375
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.32375,
+            "mirror_accuracy": 0.3243055555555555,
+            "matched_view_accuracy": 0.2890277777777778,
+            "agreement": 0.8553124999999999
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.3157986111111111,
+            "mirror_accuracy": 0.3145833333333333,
+            "matched_view_accuracy": 0.21104166666666668,
+            "agreement": 0.5792708333333334
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.3471875,
+            "mirror_accuracy": 0.34586805555555555,
+            "matched_view_accuracy": 0.25322916666666667,
+            "agreement": 0.6397222222222223
+          },
+          "teacher": {
+            "clean_accuracy": 0.3484027777777778,
+            "mirror_accuracy": 0.34822916666666665,
+            "matched_view_accuracy": 0.26274305555555555,
+            "agreement": 0.6685763888888889
+          },
+          "student": {
+            "clean_accuracy": 0.3509375,
+            "mirror_accuracy": 0.3540625,
+            "matched_view_accuracy": 0.29916666666666664,
+            "agreement": 0.7884375
+          },
+          "joint": {
+            "clean_accuracy": 0.35045138888888894,
+            "mirror_accuracy": 0.3507638888888889,
+            "matched_view_accuracy": 0.2696180555555555,
+            "agreement": 0.6856597222222223
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3482291666666667,
+            "mirror_accuracy": 0.3486458333333333,
+            "matched_view_accuracy": 0.2628125,
+            "agreement": 0.6685763888888889
+          },
+          "two_view": {
+            "clean_accuracy": 0.35822916666666665,
+            "mirror_accuracy": 0.35822916666666665,
+            "matched_view_accuracy": 0.35822916666666665,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.32493055555555556,
+            "mirror_accuracy": 0.3257291666666666,
+            "matched_view_accuracy": 0.1814236111111111,
+            "agreement": 0.44006944444444446
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.34958333333333336,
+            "mirror_accuracy": 0.3492013888888889,
+            "matched_view_accuracy": 0.27413194444444444,
+            "agreement": 0.7087847222222222
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.3471875,
+            "mirror_accuracy": 0.34649305555555554,
+            "matched_view_accuracy": 0.2534722222222222,
+            "agreement": 0.6401736111111112
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.34996527777777775,
+            "mirror_accuracy": 0.35309027777777774,
+            "matched_view_accuracy": 0.2907638888888889,
+            "agreement": 0.7615624999999999
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.3471875,
+            "mirror_accuracy": 0.3459375,
+            "matched_view_accuracy": 0.2533680555555556,
+            "agreement": 0.6403819444444445
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.3509375,
+            "mirror_accuracy": 0.3540625,
+            "matched_view_accuracy": 0.29916666666666664,
+            "agreement": 0.7884375
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.3470486111111111,
+            "mirror_accuracy": 0.34611111111111115,
+            "matched_view_accuracy": 0.2535763888888889,
+            "agreement": 0.6405555555555555
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.3510416666666667,
+            "mirror_accuracy": 0.3551736111111111,
+            "matched_view_accuracy": 0.30409722222222224,
+            "agreement": 0.8039236111111112
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.3470138888888889,
+            "mirror_accuracy": 0.34600694444444446,
+            "matched_view_accuracy": 0.2534722222222222,
+            "agreement": 0.6405208333333334
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.35329861111111116,
+            "mirror_accuracy": 0.3548611111111111,
+            "matched_view_accuracy": 0.3123611111111111,
+            "agreement": 0.8348958333333333
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.3468055555555556,
+            "mirror_accuracy": 0.3462152777777778,
+            "matched_view_accuracy": 0.2535763888888889,
+            "agreement": 0.6405555555555555
+          }
+        }
+      }
+    },
+    {
+      "seed": 41,
+      "teacher_probe_accuracy": 0.6890625357627869,
+      "latent_width": 89,
+      "teacher_odd_count": 35,
+      "student_orbit_spectrum": [
+        7.897790032192207e-15,
+        1.3207107377471298e-14,
+        1.609719450222965e-14,
+        2.1709058491529684e-14,
+        2.5405872075238897e-14,
+        2.6749051776476736e-14,
+        3.7465246826994285e-14,
+        4.1480057329093805e-14,
+        5.5107122487350453e-14,
+        6.29146128382858e-14,
+        7.378452340394371e-14,
+        8.439608948847085e-14,
+        9.698519486574658e-14,
+        1.0590040546502077e-13,
+        1.2533857787282456e-13,
+        1.3152261476474276e-13,
+        1.4015999846008861e-13,
+        1.7995278698255135e-13,
+        2.1612094728736906e-13,
+        2.302466123687762e-13,
+        2.414179290483176e-13,
+        2.525880106026854e-13,
+        2.864897216563888e-13,
+        3.076186742829692e-13,
+        3.241045493689298e-13,
+        3.916414708074388e-13,
+        4.296963766308261e-13,
+        4.628901303059092e-13,
+        5.343837169632405e-13,
+        6.033188004301315e-13,
+        6.06514614647816e-13,
+        6.324983062245608e-13,
+        8.10384434485557e-13,
+        9.281431999837205e-13,
+        1.3202251095020272e-12,
+        1.4346161049438998e-12,
+        2.0447105450051575e-12,
+        2.351247887322798e-12,
+        3.4136138141256294e-12,
+        3.9476814229125306e-12,
+        4.761254252041712e-12,
+        5.9926702076034146e-12,
+        7.740765749028375e-12,
+        8.631133863199496e-12,
+        1.4831849736948772e-11,
+        1.8120280244279768e-11,
+        3.22634933900784e-11,
+        5.191572224158412e-11,
+        1.6421384643284837e-10,
+        2.3906769882766377e-10,
+        3.761854573038307e-10,
+        5.503756965497936e-10,
+        9.413686452880258e-10,
+        1.5584293017763033e-09,
+        2.582264798083996e-09,
+        5.27872856100528e-09,
+        7.426288884950025e-09,
+        1.1841594437296885e-08,
+        2.017621969231953e-08,
+        4.1205998887421845e-08,
+        8.634759523951904e-08,
+        1.38087717418393e-07,
+        2.1361059181350557e-07,
+        3.523888516028304e-07,
+        4.7157859844489266e-07,
+        9.638515103310572e-07,
+        1.6981334704659109e-06,
+        5.3263985883234166e-06,
+        9.386181668103969e-06,
+        1.8447700962881165e-05,
+        3.81398654556439e-05,
+        5.339606093966555e-05,
+        8.998748832882665e-05,
+        0.00013921224258595192,
+        0.00020136893125917123,
+        0.0003693781788215576,
+        0.0005316674577455355,
+        0.0009518611845107628,
+        0.0015689326345478026,
+        0.005497826155048476,
+        0.007293546828934661,
+        0.010001019568477171,
+        0.017915433313938037,
+        0.03675413257106508,
+        0.22387875468028245,
+        0.3794135933643382,
+        0.8254234122189188,
+        11.22303586982444,
+        76.2668052906428
+      ],
+      "source_even_flip_mse": 0.00014204511535353959,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.20847222222222223,
+            "mirror_accuracy": 0.21163194444444444,
+            "matched_view_accuracy": 0.1951736111111111,
+            "agreement": 0.9263194444444445
+          },
+          "teacher": {
+            "clean_accuracy": 0.20972222222222223,
+            "mirror_accuracy": 0.21336805555555555,
+            "matched_view_accuracy": 0.19666666666666668,
+            "agreement": 0.9234722222222222
+          },
+          "student": {
+            "clean_accuracy": 0.2107986111111111,
+            "mirror_accuracy": 0.2111458333333333,
+            "matched_view_accuracy": 0.19364583333333332,
+            "agreement": 0.9125
+          },
+          "joint": {
+            "clean_accuracy": 0.21305555555555555,
+            "mirror_accuracy": 0.21357638888888889,
+            "matched_view_accuracy": 0.19538194444444446,
+            "agreement": 0.9115972222222222
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.20993055555555556,
+            "mirror_accuracy": 0.21284722222222224,
+            "matched_view_accuracy": 0.19635416666666666,
+            "agreement": 0.9228819444444445
+          },
+          "two_view": {
+            "clean_accuracy": 0.20958333333333334,
+            "mirror_accuracy": 0.20958333333333334,
+            "matched_view_accuracy": 0.20958333333333334,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2169097222222222,
+            "mirror_accuracy": 0.21809027777777779,
+            "matched_view_accuracy": 0.19604166666666667,
+            "agreement": 0.8959027777777777
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.21038194444444447,
+            "mirror_accuracy": 0.21135416666666668,
+            "matched_view_accuracy": 0.194375,
+            "agreement": 0.9175694444444444
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.20895833333333333,
+            "mirror_accuracy": 0.2119097222222222,
+            "matched_view_accuracy": 0.195625,
+            "agreement": 0.9263541666666667
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.210625,
+            "mirror_accuracy": 0.21152777777777776,
+            "matched_view_accuracy": 0.19350694444444444,
+            "agreement": 0.9144097222222223
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2089236111111111,
+            "mirror_accuracy": 0.21173611111111112,
+            "matched_view_accuracy": 0.19555555555555557,
+            "agreement": 0.9259375000000001
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.2107986111111111,
+            "mirror_accuracy": 0.2111458333333333,
+            "matched_view_accuracy": 0.19364583333333332,
+            "agreement": 0.9125
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.20892361111111113,
+            "mirror_accuracy": 0.21159722222222221,
+            "matched_view_accuracy": 0.19541666666666666,
+            "agreement": 0.9259375000000001
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.21104166666666668,
+            "mirror_accuracy": 0.21072916666666666,
+            "matched_view_accuracy": 0.19305555555555554,
+            "agreement": 0.9114930555555556
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.20899305555555556,
+            "mirror_accuracy": 0.2115277777777778,
+            "matched_view_accuracy": 0.19541666666666668,
+            "agreement": 0.9261111111111111
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2096875,
+            "mirror_accuracy": 0.21020833333333333,
+            "matched_view_accuracy": 0.19465277777777779,
+            "agreement": 0.923888888888889
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.20878472222222222,
+            "mirror_accuracy": 0.21142361111111113,
+            "matched_view_accuracy": 0.1951388888888889,
+            "agreement": 0.9256249999999999
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2264236111111111,
+            "mirror_accuracy": 0.22659722222222223,
+            "matched_view_accuracy": 0.21003472222222222,
+            "agreement": 0.9163541666666667
+          },
+          "teacher": {
+            "clean_accuracy": 0.22812500000000002,
+            "mirror_accuracy": 0.22961805555555556,
+            "matched_view_accuracy": 0.211875,
+            "agreement": 0.9172222222222223
+          },
+          "student": {
+            "clean_accuracy": 0.22822916666666668,
+            "mirror_accuracy": 0.22920138888888889,
+            "matched_view_accuracy": 0.21243055555555557,
+            "agreement": 0.9214236111111112
+          },
+          "joint": {
+            "clean_accuracy": 0.22961805555555553,
+            "mirror_accuracy": 0.2323263888888889,
+            "matched_view_accuracy": 0.21375,
+            "agreement": 0.9146180555555555
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.22812500000000002,
+            "mirror_accuracy": 0.23017361111111112,
+            "matched_view_accuracy": 0.2121875,
+            "agreement": 0.9165277777777778
+          },
+          "two_view": {
+            "clean_accuracy": 0.22649305555555557,
+            "mirror_accuracy": 0.22649305555555557,
+            "matched_view_accuracy": 0.22649305555555557,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.2263888888888889,
+            "mirror_accuracy": 0.22722222222222221,
+            "matched_view_accuracy": 0.20899305555555556,
+            "agreement": 0.9078124999999999
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.22531250000000003,
+            "mirror_accuracy": 0.22722222222222221,
+            "matched_view_accuracy": 0.21024305555555556,
+            "agreement": 0.9196180555555555
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.2265625,
+            "mirror_accuracy": 0.2263888888888889,
+            "matched_view_accuracy": 0.2098611111111111,
+            "agreement": 0.9153472222222222
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2276388888888889,
+            "mirror_accuracy": 0.22836805555555556,
+            "matched_view_accuracy": 0.21194444444444446,
+            "agreement": 0.9196527777777779
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.22649305555555554,
+            "mirror_accuracy": 0.22604166666666667,
+            "matched_view_accuracy": 0.20993055555555556,
+            "agreement": 0.9158333333333333
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.22822916666666668,
+            "mirror_accuracy": 0.22920138888888889,
+            "matched_view_accuracy": 0.21243055555555557,
+            "agreement": 0.9214236111111112
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.22652777777777777,
+            "mirror_accuracy": 0.22604166666666667,
+            "matched_view_accuracy": 0.21010416666666668,
+            "agreement": 0.9158680555555555
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.22635416666666666,
+            "mirror_accuracy": 0.22895833333333332,
+            "matched_view_accuracy": 0.21170138888888887,
+            "agreement": 0.9241319444444445
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2263541666666667,
+            "mirror_accuracy": 0.22597222222222224,
+            "matched_view_accuracy": 0.2099652777777778,
+            "agreement": 0.9160069444444444
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.22225694444444444,
+            "mirror_accuracy": 0.22392361111111111,
+            "matched_view_accuracy": 0.20697916666666666,
+            "agreement": 0.9215625000000001
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.22645833333333334,
+            "mirror_accuracy": 0.22607638888888887,
+            "matched_view_accuracy": 0.21000000000000002,
+            "agreement": 0.9163541666666667
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.2409027777777778,
+            "mirror_accuracy": 0.24239583333333334,
+            "matched_view_accuracy": 0.22243055555555558,
+            "agreement": 0.9104861111111111
+          },
+          "teacher": {
+            "clean_accuracy": 0.2426736111111111,
+            "mirror_accuracy": 0.24503472222222222,
+            "matched_view_accuracy": 0.2243402777777778,
+            "agreement": 0.9079513888888888
+          },
+          "student": {
+            "clean_accuracy": 0.23527777777777778,
+            "mirror_accuracy": 0.2382638888888889,
+            "matched_view_accuracy": 0.21902777777777777,
+            "agreement": 0.9184027777777779
+          },
+          "joint": {
+            "clean_accuracy": 0.23881944444444445,
+            "mirror_accuracy": 0.24041666666666667,
+            "matched_view_accuracy": 0.2209722222222222,
+            "agreement": 0.913125
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2424652777777778,
+            "mirror_accuracy": 0.24503472222222222,
+            "matched_view_accuracy": 0.22399305555555554,
+            "agreement": 0.9068402777777778
+          },
+          "two_view": {
+            "clean_accuracy": 0.24260416666666668,
+            "mirror_accuracy": 0.24260416666666668,
+            "matched_view_accuracy": 0.24260416666666668,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.23756944444444444,
+            "mirror_accuracy": 0.2359722222222222,
+            "matched_view_accuracy": 0.21687499999999998,
+            "agreement": 0.900798611111111
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.23673611111111112,
+            "mirror_accuracy": 0.24027777777777776,
+            "matched_view_accuracy": 0.2195138888888889,
+            "agreement": 0.9115277777777777
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.24097222222222223,
+            "mirror_accuracy": 0.2428125,
+            "matched_view_accuracy": 0.22277777777777777,
+            "agreement": 0.9107638888888889
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2353472222222222,
+            "mirror_accuracy": 0.23788194444444444,
+            "matched_view_accuracy": 0.21826388888888887,
+            "agreement": 0.916423611111111
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2411111111111111,
+            "mirror_accuracy": 0.24246527777777777,
+            "matched_view_accuracy": 0.22260416666666666,
+            "agreement": 0.9106944444444445
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.23527777777777778,
+            "mirror_accuracy": 0.2382638888888889,
+            "matched_view_accuracy": 0.21902777777777777,
+            "agreement": 0.9184027777777779
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.24118055555555556,
+            "mirror_accuracy": 0.24222222222222223,
+            "matched_view_accuracy": 0.22249999999999998,
+            "agreement": 0.9107291666666666
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.23503472222222221,
+            "mirror_accuracy": 0.23739583333333336,
+            "matched_view_accuracy": 0.21809027777777779,
+            "agreement": 0.9190972222222222
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2412152777777778,
+            "mirror_accuracy": 0.24229166666666668,
+            "matched_view_accuracy": 0.22260416666666666,
+            "agreement": 0.9107291666666667
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.23336805555555556,
+            "mirror_accuracy": 0.23506944444444444,
+            "matched_view_accuracy": 0.21815972222222224,
+            "agreement": 0.9249305555555556
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.24118055555555556,
+            "mirror_accuracy": 0.2423263888888889,
+            "matched_view_accuracy": 0.22253472222222223,
+            "agreement": 0.9103819444444445
+          }
+        }
+      }
+    },
+    {
+      "seed": 42,
+      "teacher_probe_accuracy": 0.6976562738418579,
+      "latent_width": 75,
+      "teacher_odd_count": 27,
+      "student_orbit_spectrum": [
+        1.4801264561365741e-15,
+        2.03928825295363e-15,
+        2.528511707428191e-15,
+        2.8748339636700636e-15,
+        3.269580429923221e-15,
+        4.126824646417286e-15,
+        4.429556080303823e-15,
+        4.8862961340375365e-15,
+        5.292707721791828e-15,
+        5.731022906097754e-15,
+        6.019786903372004e-15,
+        6.600835397545002e-15,
+        7.611046936097047e-15,
+        8.247651398593001e-15,
+        8.86238009109034e-15,
+        9.17575860447609e-15,
+        1.0329273908319823e-14,
+        1.0539162074781538e-14,
+        1.0907427618226624e-14,
+        1.1148873181917924e-14,
+        1.164346299136296e-14,
+        1.2131552822618987e-14,
+        1.2554848145305751e-14,
+        1.3154506483931511e-14,
+        1.458377581266991e-14,
+        1.5666217000209888e-14,
+        1.7544676478559642e-14,
+        1.8683378184822452e-14,
+        2.002689739454388e-14,
+        2.1036697062017675e-14,
+        2.2530661426831842e-14,
+        2.5486537072121368e-14,
+        2.6270747083037275e-14,
+        2.856210601481642e-14,
+        3.045342807366495e-14,
+        3.562086778380251e-14,
+        4.118170245897713e-14,
+        4.2371680453905025e-14,
+        5.987183648084773e-14,
+        1.0389060908737248e-13,
+        3.802537956372583e-13,
+        6.642407921991667e-13,
+        1.3094308140012816e-12,
+        4.1203630180268284e-12,
+        1.3807173722585338e-11,
+        2.1700161262526088e-11,
+        4.708430007496308e-11,
+        6.1268445096383e-11,
+        2.452463032271099e-10,
+        6.224898213960577e-10,
+        9.141174151923947e-10,
+        1.408769002533036e-09,
+        2.927636703328923e-09,
+        5.630967310124444e-08,
+        1.019700254843142e-07,
+        1.398318213433261e-07,
+        1.736871628759807e-07,
+        4.046588847317537e-07,
+        6.498600366798749e-07,
+        1.847440810964521e-06,
+        1.2679457585552056e-05,
+        0.00011591563554069039,
+        0.0002197818466828781,
+        0.00039427318782802635,
+        0.0005658198827083911,
+        0.0011328533078355189,
+        0.002814812023414809,
+        0.07113709329842596,
+        0.13402250236405894,
+        0.2221448123526662,
+        0.24818114567340704,
+        2.3815284547683637,
+        21.57500228069472,
+        24.928341805803345,
+        25.43438238967574
+      ],
+      "source_even_flip_mse": 0.015944303944706917,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.23659722222222224,
+            "mirror_accuracy": 0.23600694444444445,
+            "matched_view_accuracy": 0.10340277777777777,
+            "agreement": 0.36697916666666663
+          },
+          "teacher": {
+            "clean_accuracy": 0.244375,
+            "mirror_accuracy": 0.24097222222222223,
+            "matched_view_accuracy": 0.1826736111111111,
+            "agreement": 0.7057291666666667
+          },
+          "student": {
+            "clean_accuracy": 0.23621527777777776,
+            "mirror_accuracy": 0.2340625,
+            "matched_view_accuracy": 0.20878472222222222,
+            "agreement": 0.8648611111111111
+          },
+          "joint": {
+            "clean_accuracy": 0.2384375,
+            "mirror_accuracy": 0.23697916666666666,
+            "matched_view_accuracy": 0.1937847222222222,
+            "agreement": 0.7836805555555555
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.24590277777777775,
+            "mirror_accuracy": 0.241875,
+            "matched_view_accuracy": 0.18375000000000002,
+            "agreement": 0.7051041666666666
+          },
+          "two_view": {
+            "clean_accuracy": 0.2481597222222222,
+            "mirror_accuracy": 0.2481597222222222,
+            "matched_view_accuracy": 0.2481597222222222,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.1893402777777778,
+            "mirror_accuracy": 0.19124999999999998,
+            "matched_view_accuracy": 0.006562500000000001,
+            "agreement": 0.023194444444444445
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.24184027777777778,
+            "mirror_accuracy": 0.23906249999999998,
+            "matched_view_accuracy": 0.18006944444444445,
+            "agreement": 0.7052430555555556
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.23680555555555555,
+            "mirror_accuracy": 0.23645833333333333,
+            "matched_view_accuracy": 0.10298611111111111,
+            "agreement": 0.36246527777777776
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.238125,
+            "mirror_accuracy": 0.23597222222222222,
+            "matched_view_accuracy": 0.20256944444444444,
+            "agreement": 0.8293402777777779
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.2370833333333333,
+            "mirror_accuracy": 0.23711805555555554,
+            "matched_view_accuracy": 0.10322916666666668,
+            "agreement": 0.3628472222222222
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.23621527777777776,
+            "mirror_accuracy": 0.2340625,
+            "matched_view_accuracy": 0.20878472222222222,
+            "agreement": 0.8648611111111111
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.23729166666666668,
+            "mirror_accuracy": 0.2370138888888889,
+            "matched_view_accuracy": 0.10333333333333333,
+            "agreement": 0.36315972222222226
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.23538194444444444,
+            "mirror_accuracy": 0.23225694444444445,
+            "matched_view_accuracy": 0.21131944444444445,
+            "agreement": 0.885173611111111
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2374652777777778,
+            "mirror_accuracy": 0.23715277777777777,
+            "matched_view_accuracy": 0.10364583333333334,
+            "agreement": 0.3642013888888889
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.2304513888888889,
+            "mirror_accuracy": 0.22972222222222222,
+            "matched_view_accuracy": 0.21045138888888887,
+            "agreement": 0.8992361111111111
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.23756944444444444,
+            "mirror_accuracy": 0.23732638888888888,
+            "matched_view_accuracy": 0.10402777777777777,
+            "agreement": 0.3652777777777778
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.28597222222222224,
+            "mirror_accuracy": 0.28822916666666665,
+            "matched_view_accuracy": 0.16062500000000002,
+            "agreement": 0.45871527777777776
+          },
+          "teacher": {
+            "clean_accuracy": 0.2922222222222222,
+            "mirror_accuracy": 0.29250000000000004,
+            "matched_view_accuracy": 0.20826388888888886,
+            "agreement": 0.6363194444444444
+          },
+          "student": {
+            "clean_accuracy": 0.29142361111111115,
+            "mirror_accuracy": 0.2898263888888889,
+            "matched_view_accuracy": 0.24902777777777776,
+            "agreement": 0.8118402777777778
+          },
+          "joint": {
+            "clean_accuracy": 0.2925,
+            "mirror_accuracy": 0.29038194444444443,
+            "matched_view_accuracy": 0.22864583333333333,
+            "agreement": 0.7267708333333334
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.29281250000000003,
+            "mirror_accuracy": 0.2934375,
+            "matched_view_accuracy": 0.2094097222222222,
+            "agreement": 0.6368402777777777
+          },
+          "two_view": {
+            "clean_accuracy": 0.30618055555555557,
+            "mirror_accuracy": 0.30618055555555557,
+            "matched_view_accuracy": 0.30618055555555557,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.22680555555555554,
+            "mirror_accuracy": 0.23038194444444443,
+            "matched_view_accuracy": 0.03951388888888889,
+            "agreement": 0.10149305555555556
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.29104166666666664,
+            "mirror_accuracy": 0.29180555555555554,
+            "matched_view_accuracy": 0.20145833333333335,
+            "agreement": 0.6125
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.28628472222222223,
+            "mirror_accuracy": 0.2886805555555555,
+            "matched_view_accuracy": 0.1607986111111111,
+            "agreement": 0.4578819444444444
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.2920138888888889,
+            "mirror_accuracy": 0.2911458333333333,
+            "matched_view_accuracy": 0.2348263888888889,
+            "agreement": 0.7508333333333334
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.28628472222222223,
+            "mirror_accuracy": 0.2886111111111111,
+            "matched_view_accuracy": 0.16104166666666667,
+            "agreement": 0.4583680555555556
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.29142361111111115,
+            "mirror_accuracy": 0.2898263888888889,
+            "matched_view_accuracy": 0.24902777777777776,
+            "agreement": 0.8118402777777778
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.28642361111111114,
+            "mirror_accuracy": 0.2886111111111111,
+            "matched_view_accuracy": 0.16121527777777778,
+            "agreement": 0.4588888888888889
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.2899305555555556,
+            "mirror_accuracy": 0.2877777777777778,
+            "matched_view_accuracy": 0.2573611111111111,
+            "agreement": 0.8562152777777778
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.2866666666666667,
+            "mirror_accuracy": 0.2887152777777778,
+            "matched_view_accuracy": 0.1613541666666667,
+            "agreement": 0.45958333333333334
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.28350694444444446,
+            "mirror_accuracy": 0.28152777777777777,
+            "matched_view_accuracy": 0.2611805555555555,
+            "agreement": 0.901875
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.286875,
+            "mirror_accuracy": 0.28875,
+            "matched_view_accuracy": 0.1614236111111111,
+            "agreement": 0.45972222222222225
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.31517361111111114,
+            "mirror_accuracy": 0.31375,
+            "matched_view_accuracy": 0.2146875,
+            "agreement": 0.5864583333333333
+          },
+          "teacher": {
+            "clean_accuracy": 0.3186805555555555,
+            "mirror_accuracy": 0.3171527777777778,
+            "matched_view_accuracy": 0.2373263888888889,
+            "agreement": 0.6626736111111111
+          },
+          "student": {
+            "clean_accuracy": 0.3220138888888889,
+            "mirror_accuracy": 0.3199652777777778,
+            "matched_view_accuracy": 0.27,
+            "agreement": 0.7831944444444445
+          },
+          "joint": {
+            "clean_accuracy": 0.3197916666666667,
+            "mirror_accuracy": 0.31885416666666666,
+            "matched_view_accuracy": 0.2549652777777778,
+            "agreement": 0.7288194444444445
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3184027777777778,
+            "mirror_accuracy": 0.31729166666666664,
+            "matched_view_accuracy": 0.23694444444444443,
+            "agreement": 0.6623263888888888
+          },
+          "two_view": {
+            "clean_accuracy": 0.3371875,
+            "mirror_accuracy": 0.3371875,
+            "matched_view_accuracy": 0.3371875,
+            "agreement": 1.0
+          },
+          "between": {
+            "clean_accuracy": 0.28913194444444446,
+            "mirror_accuracy": 0.2922222222222222,
+            "matched_view_accuracy": 0.14305555555555555,
+            "agreement": 0.3601388888888889
+          },
+          "orbit_strength_0.5": {
+            "clean_accuracy": 0.3179861111111111,
+            "mirror_accuracy": 0.31600694444444444,
+            "matched_view_accuracy": 0.23190972222222223,
+            "agreement": 0.6470138888888889
+          },
+          "rotated_strength_0.5": {
+            "clean_accuracy": 0.3153125,
+            "mirror_accuracy": 0.31343750000000004,
+            "matched_view_accuracy": 0.2145138888888889,
+            "agreement": 0.586875
+          },
+          "orbit_strength_2": {
+            "clean_accuracy": 0.320625,
+            "mirror_accuracy": 0.32052083333333337,
+            "matched_view_accuracy": 0.25635416666666666,
+            "agreement": 0.7332638888888889
+          },
+          "rotated_strength_2": {
+            "clean_accuracy": 0.3151041666666667,
+            "mirror_accuracy": 0.31343750000000004,
+            "matched_view_accuracy": 0.21437499999999998,
+            "agreement": 0.5866319444444444
+          },
+          "orbit_strength_4": {
+            "clean_accuracy": 0.3220138888888889,
+            "mirror_accuracy": 0.3199652777777778,
+            "matched_view_accuracy": 0.27,
+            "agreement": 0.7831944444444445
+          },
+          "rotated_strength_4": {
+            "clean_accuracy": 0.31527777777777777,
+            "mirror_accuracy": 0.31347222222222226,
+            "matched_view_accuracy": 0.21444444444444444,
+            "agreement": 0.5864930555555555
+          },
+          "orbit_strength_8": {
+            "clean_accuracy": 0.32052083333333337,
+            "mirror_accuracy": 0.31843750000000004,
+            "matched_view_accuracy": 0.2798611111111111,
+            "agreement": 0.8264930555555555
+          },
+          "rotated_strength_8": {
+            "clean_accuracy": 0.3153472222222222,
+            "mirror_accuracy": 0.3134027777777778,
+            "matched_view_accuracy": 0.21444444444444444,
+            "agreement": 0.5863888888888888
+          },
+          "orbit_strength_32": {
+            "clean_accuracy": 0.3144097222222222,
+            "mirror_accuracy": 0.31128472222222225,
+            "matched_view_accuracy": 0.2861111111111111,
+            "agreement": 0.8854166666666667
+          },
+          "rotated_strength_32": {
+            "clean_accuracy": 0.31524305555555554,
+            "mirror_accuracy": 0.31347222222222226,
+            "matched_view_accuracy": 0.21444444444444444,
+            "agreement": 0.5864236111111111
+          }
+        }
+      }
+    }
+  ],
+  "elapsed_seconds": 84.50134070101194
+}
