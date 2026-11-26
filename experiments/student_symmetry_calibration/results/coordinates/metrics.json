@@ -1,0 +1,5198 @@
+{
+  "config": {
+    "data": "/tmp/ibt-cifar-data",
+    "output": "experiments/student_symmetry_calibration/results/coordinates/metrics.json",
+    "device": "cuda",
+    "seeds": [
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      72
+    ],
+    "shots": [
+      5,
+      20,
+      60
+    ],
+    "teacher_epochs": 26,
+    "student_epochs": 22,
+    "source_examples": 1400,
+    "probe_examples": 320,
+    "target_pool": 600,
+    "test_per_class": 600,
+    "batch_size": 128,
+    "episodes": 8,
+    "noise": 0.45,
+    "strength": 4.0,
+    "precision_strengths": null,
+    "gauge_check": true,
+    "vary_classes": false,
+    "odd_ratio": 0.02,
+    "reference_ridge": 0.0001
+  },
+  "device_name": "NVIDIA GeForce RTX 3070 Laptop GPU",
+  "torch_version": "2.14.0+cu130",
+  "source_classes": [
+    0,
+    2,
+    6,
+    8
+  ],
+  "target_classes": [
+    1,
+    3,
+    4,
+    5,
+    7,
+    9
+  ],
+  "runs": [
+    {
+      "seed": 61,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.7054687738418579,
+      "latent_width": 89,
+      "teacher_odd_count": 35,
+      "student_orbit_spectrum": [
+        3.225457833293908e-15,
+        5.22791992356026e-15,
+        6.232167067679848e-15,
+        6.766177289745726e-15,
+        7.723766384350493e-15,
+        8.467689733597949e-15,
+        8.965168239391485e-15,
+        9.506496453969766e-15,
+        1.0372280163714997e-14,
+        1.0778141756091681e-14,
+        1.1278685940465414e-14,
+        1.200548052452664e-14,
+        1.2208264545110508e-14,
+        1.2664354439435103e-14,
+        1.3190312266934257e-14,
+        1.3385608905450919e-14,
+        1.476979878158437e-14,
+        1.5585875145086756e-14,
+        1.568188595114363e-14,
+        1.7541860277263536e-14,
+        1.8406875301099172e-14,
+        1.882131920219874e-14,
+        2.0069827823687224e-14,
+        2.0677148959176097e-14,
+        2.1385182974432454e-14,
+        2.245099945054624e-14,
+        2.372327279530984e-14,
+        2.474389568248408e-14,
+        2.55334950356633e-14,
+        2.750334384182796e-14,
+        2.9214442296117266e-14,
+        3.009268933213404e-14,
+        3.03015720873468e-14,
+        3.429894810745062e-14,
+        3.5578539649522645e-14,
+        3.821359262111621e-14,
+        4.1708864095346395e-14,
+        4.346751331334135e-14,
+        4.764429910614239e-14,
+        4.9697796432495463e-14,
+        5.5204313684465976e-14,
+        5.791986610044959e-14,
+        5.920106080092192e-14,
+        6.902793340668801e-14,
+        9.06611410488832e-14,
+        9.892458307764119e-14,
+        2.3699041800115065e-13,
+        1.040713550605265e-12,
+        1.4637075049257168e-12,
+        2.7737207231769138e-12,
+        4.632512922607143e-12,
+        1.4276142194010396e-11,
+        3.4337424116223335e-11,
+        6.744289194755748e-11,
+        1.6438602515465668e-10,
+        2.2951941189050235e-10,
+        6.666047115428523e-10,
+        1.083485114323871e-09,
+        2.4406408563926344e-09,
+        6.360926640264334e-09,
+        9.874763137590448e-09,
+        1.672653522970423e-08,
+        8.811843260957308e-08,
+        2.836769670848014e-07,
+        6.562023220905136e-07,
+        1.438241097402185e-06,
+        1.827585225324269e-06,
+        5.144560397983984e-06,
+        8.861493569431438e-06,
+        2.4317857900065628e-05,
+        5.535931083693098e-05,
+        0.0002504520792387759,
+        0.0006936512639298148,
+        0.0012957624674723317,
+        0.004516355579186712,
+        0.006995327190529131,
+        0.016079144852860192,
+        0.04093850332697012,
+        0.05587108657069015,
+        0.10858689176596309,
+        0.21067454710823968,
+        0.2796323346120191,
+        0.350029364015573,
+        0.5490992207429122,
+        1.1904572568553875,
+        7.214549113069467,
+        9.602426604014894,
+        29.502718962817696,
+        39.86508740694589
+      ],
+      "source_even_flip_mse": 0.03686470538377762,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2456597222222222,
+            "mirror_accuracy": 0.24843749999999998,
+            "matched_view_accuracy": 0.13975694444444445,
+            "agreement": 0.48624999999999996
+          },
+          "teacher": {
+            "clean_accuracy": 0.25451388888888893,
+            "mirror_accuracy": 0.253125,
+            "matched_view_accuracy": 0.17708333333333331,
+            "agreement": 0.6371875
+          },
+          "student": {
+            "clean_accuracy": 0.24663194444444445,
+            "mirror_accuracy": 0.24708333333333332,
+            "matched_view_accuracy": 0.22121527777777777,
+            "agreement": 0.8779513888888888
+          },
+          "joint": {
+            "clean_accuracy": 0.25236111111111115,
+            "mirror_accuracy": 0.24993055555555554,
+            "matched_view_accuracy": 0.19069444444444444,
+            "agreement": 0.7095833333333333
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2539236111111111,
+            "mirror_accuracy": 0.2539236111111111,
+            "matched_view_accuracy": 0.1776388888888889,
+            "agreement": 0.6401736111111112
+          },
+          "two_view": {
+            "clean_accuracy": 0.2626736111111111,
+            "mirror_accuracy": 0.2626736111111111,
+            "matched_view_accuracy": 0.2626736111111111,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.29517361111111107,
+            "mirror_accuracy": 0.2929861111111111,
+            "matched_view_accuracy": 0.17083333333333334,
+            "agreement": 0.49628472222222225
+          },
+          "teacher": {
+            "clean_accuracy": 0.3003472222222222,
+            "mirror_accuracy": 0.29788194444444444,
+            "matched_view_accuracy": 0.19545138888888888,
+            "agreement": 0.579201388888889
+          },
+          "student": {
+            "clean_accuracy": 0.28326388888888887,
+            "mirror_accuracy": 0.2849652777777778,
+            "matched_view_accuracy": 0.2397222222222222,
+            "agreement": 0.8182291666666667
+          },
+          "joint": {
+            "clean_accuracy": 0.2995833333333333,
+            "mirror_accuracy": 0.2972222222222222,
+            "matched_view_accuracy": 0.20600694444444445,
+            "agreement": 0.6267361111111112
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3,
+            "mirror_accuracy": 0.2968402777777778,
+            "matched_view_accuracy": 0.19458333333333333,
+            "agreement": 0.579375
+          },
+          "two_view": {
+            "clean_accuracy": 0.3224652777777778,
+            "mirror_accuracy": 0.3224652777777778,
+            "matched_view_accuracy": 0.3224652777777778,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.3311458333333333,
+            "mirror_accuracy": 0.3305208333333333,
+            "matched_view_accuracy": 0.2207638888888889,
+            "agreement": 0.5706597222222223
+          },
+          "teacher": {
+            "clean_accuracy": 0.33079861111111114,
+            "mirror_accuracy": 0.33034722222222224,
+            "matched_view_accuracy": 0.2292361111111111,
+            "agreement": 0.6012847222222222
+          },
+          "student": {
+            "clean_accuracy": 0.3260763888888889,
+            "mirror_accuracy": 0.3257986111111111,
+            "matched_view_accuracy": 0.2661458333333333,
+            "agreement": 0.7676736111111111
+          },
+          "joint": {
+            "clean_accuracy": 0.3312847222222222,
+            "mirror_accuracy": 0.33114583333333336,
+            "matched_view_accuracy": 0.23586805555555554,
+            "agreement": 0.6270833333333333
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3303125,
+            "mirror_accuracy": 0.33034722222222224,
+            "matched_view_accuracy": 0.22871527777777778,
+            "agreement": 0.6014583333333333
+          },
+          "two_view": {
+            "clean_accuracy": 0.3604513888888889,
+            "mirror_accuracy": 0.3604513888888889,
+            "matched_view_accuracy": 0.3604513888888889,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23677083333333332,
+              "mirror_accuracy": 0.2334027777777778,
+              "matched_view_accuracy": 0.11697916666666666,
+              "agreement": 0.4362152777777778
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.23020833333333335,
+              "mirror_accuracy": 0.22864583333333333,
+              "matched_view_accuracy": 0.2017013888888889,
+              "agreement": 0.8652430555555556
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.22802083333333334,
+              "mirror_accuracy": 0.2264236111111111,
+              "matched_view_accuracy": 0.09902777777777777,
+              "agreement": 0.3826736111111111
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.235,
+              "mirror_accuracy": 0.23177083333333331,
+              "matched_view_accuracy": 0.1343402777777778,
+              "agreement": 0.5287847222222222
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.22850694444444444,
+              "mirror_accuracy": 0.2259722222222222,
+              "matched_view_accuracy": 0.09927083333333334,
+              "agreement": 0.3836805555555556
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.29576388888888894,
+              "mirror_accuracy": 0.29218750000000004,
+              "matched_view_accuracy": 0.17076388888888888,
+              "agreement": 0.48906249999999996
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2870486111111111,
+              "mirror_accuracy": 0.2854513888888889,
+              "matched_view_accuracy": 0.24447916666666666,
+              "agreement": 0.8222569444444445
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.28625,
+              "mirror_accuracy": 0.28246527777777775,
+              "matched_view_accuracy": 0.1547222222222222,
+              "agreement": 0.45524305555555555
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2889583333333333,
+              "mirror_accuracy": 0.286875,
+              "matched_view_accuracy": 0.17059027777777777,
+              "agreement": 0.5087847222222222
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.28625,
+              "mirror_accuracy": 0.28194444444444444,
+              "matched_view_accuracy": 0.15489583333333334,
+              "agreement": 0.4557986111111111
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.3318402777777778,
+              "mirror_accuracy": 0.3294097222222222,
+              "matched_view_accuracy": 0.22229166666666667,
+              "agreement": 0.5722569444444444
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.3287847222222222,
+              "mirror_accuracy": 0.3263194444444445,
+              "matched_view_accuracy": 0.27131944444444445,
+              "agreement": 0.775173611111111
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.33329861111111114,
+              "mirror_accuracy": 0.32958333333333334,
+              "matched_view_accuracy": 0.21503472222222222,
+              "agreement": 0.5420138888888888
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.33395833333333336,
+              "mirror_accuracy": 0.33038194444444446,
+              "matched_view_accuracy": 0.22079861111111113,
+              "agreement": 0.5617708333333333
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.33364583333333336,
+              "mirror_accuracy": 0.3297569444444445,
+              "matched_view_accuracy": 0.2148263888888889,
+              "agreement": 0.5413888888888889
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23680555555555555,
+              "mirror_accuracy": 0.23277777777777775,
+              "matched_view_accuracy": 0.11913194444444444,
+              "agreement": 0.4476041666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.23444444444444443,
+              "mirror_accuracy": 0.23222222222222222,
+              "matched_view_accuracy": 0.19934027777777777,
+              "agreement": 0.8398958333333333
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.22802083333333334,
+              "mirror_accuracy": 0.2264236111111111,
+              "matched_view_accuracy": 0.09902777777777777,
+              "agreement": 0.3826736111111111
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.235,
+              "mirror_accuracy": 0.23177083333333331,
+              "matched_view_accuracy": 0.1343402777777778,
+              "agreement": 0.5287847222222222
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.22850694444444444,
+              "mirror_accuracy": 0.2259722222222222,
+              "matched_view_accuracy": 0.09927083333333334,
+              "agreement": 0.3836805555555556
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.296875,
+              "mirror_accuracy": 0.2919097222222222,
+              "matched_view_accuracy": 0.17163194444444446,
+              "agreement": 0.4929861111111111
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.29413194444444446,
+              "mirror_accuracy": 0.2909722222222222,
+              "matched_view_accuracy": 0.23697916666666669,
+              "agreement": 0.7671180555555556
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.28625,
+              "mirror_accuracy": 0.28246527777777775,
+              "matched_view_accuracy": 0.1547222222222222,
+              "agreement": 0.45524305555555555
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2889583333333333,
+              "mirror_accuracy": 0.286875,
+              "matched_view_accuracy": 0.17059027777777777,
+              "agreement": 0.5087847222222222
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.28625,
+              "mirror_accuracy": 0.28194444444444444,
+              "matched_view_accuracy": 0.15489583333333334,
+              "agreement": 0.4557986111111111
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.3321527777777778,
+              "mirror_accuracy": 0.32986111111111116,
+              "matched_view_accuracy": 0.2234375,
+              "agreement": 0.5743750000000001
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.33295138888888887,
+              "mirror_accuracy": 0.3302083333333333,
+              "matched_view_accuracy": 0.2584375,
+              "agreement": 0.7088194444444444
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.33329861111111114,
+              "mirror_accuracy": 0.32958333333333334,
+              "matched_view_accuracy": 0.21503472222222222,
+              "agreement": 0.5420138888888888
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.33395833333333336,
+              "mirror_accuracy": 0.33038194444444446,
+              "matched_view_accuracy": 0.22079861111111113,
+              "agreement": 0.5617708333333333
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.33364583333333336,
+              "mirror_accuracy": 0.3297569444444445,
+              "matched_view_accuracy": 0.2148263888888889,
+              "agreement": 0.5413888888888889
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 16.000000000000007,
+        "source_feature_rank": 89,
+        "latent_width": 89,
+        "transported_reference_ridge": 1.0550265852369582e-05,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 2.317117579187243,
+          "ordinary_orbit": 1.667119766163521,
+          "natural_iso": 5.0921418779852267e-11,
+          "natural_orbit": 6.738722038332588e-11,
+          "natural_rotated": 6.331073038828674e-11
+        }
+      }
+    },
+    {
+      "seed": 62,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.6937500238418579,
+      "latent_width": 88,
+      "teacher_odd_count": 35,
+      "student_orbit_spectrum": [
+        -1.5859679011396086e-16,
+        1.5478752254468616e-15,
+        1.865572854797912e-15,
+        2.1454458861639786e-15,
+        2.471933253212666e-15,
+        3.250832804649411e-15,
+        3.389455517651651e-15,
+        3.708529323700034e-15,
+        4.218444664876612e-15,
+        4.618636604530345e-15,
+        5.4463377166248125e-15,
+        5.7624832140011285e-15,
+        6.3151402382461305e-15,
+        7.006313488155511e-15,
+        7.82493499541837e-15,
+        8.629947543554762e-15,
+        9.418717799889427e-15,
+        1.0060652143829853e-14,
+        1.1357083385928442e-14,
+        1.2180816486232277e-14,
+        1.3445388551408845e-14,
+        1.4939209549174217e-14,
+        1.7129101658940843e-14,
+        1.9469668438235165e-14,
+        2.0723778061469083e-14,
+        2.2359146217956545e-14,
+        2.3712246280848086e-14,
+        2.5166805609925662e-14,
+        2.6341174639252622e-14,
+        3.0544648220247514e-14,
+        3.076391240732202e-14,
+        3.287145966439384e-14,
+        3.95247355294624e-14,
+        4.123031129384458e-14,
+        4.346033564210512e-14,
+        5.001056849509257e-14,
+        5.512928342173988e-14,
+        5.651852205650136e-14,
+        6.34768754115517e-14,
+        6.857438983819053e-14,
+        7.745989871430085e-14,
+        8.538818833626265e-14,
+        9.926354948103974e-14,
+        1.0756591082767571e-13,
+        1.2929423086395403e-13,
+        1.541559638150789e-13,
+        1.7020622772538786e-13,
+        2.0910433258448657e-13,
+        2.2699936262019762e-13,
+        2.62060068076246e-13,
+        2.6979540350438453e-13,
+        3.176630411890347e-13,
+        3.3788941537103496e-13,
+        3.9410404753999916e-13,
+        4.1187152620552003e-13,
+        5.243141972792221e-13,
+        5.741180662192481e-13,
+        6.417624956870435e-13,
+        7.524856939899447e-13,
+        1.5272040200944152e-12,
+        6.4818641662996004e-12,
+        1.2657859512945648e-11,
+        2.466455495299117e-11,
+        7.541469929781532e-11,
+        1.8197722963780262e-10,
+        5.040567261627442e-10,
+        1.3817891795110491e-09,
+        3.277712520098961e-09,
+        3.484744435239124e-08,
+        5.485941586038505e-08,
+        3.4423995178269905e-07,
+        4.6022559393344554e-07,
+        1.502988754903762e-06,
+        4.770715301385311e-06,
+        8.635143860715901e-06,
+        1.3981042807590218e-05,
+        4.256057494371077e-05,
+        5.375858139985459e-05,
+        0.00027201804104007505,
+        0.0004338761685084452,
+        0.0012069020414065736,
+        0.0018999828345976453,
+        0.010005556741655909,
+        0.0316789592628202,
+        0.12086658138822229,
+        0.5765925355901269,
+        7.698726332936016,
+        79.55819114630329
+      ],
+      "source_even_flip_mse": 0.002882366767153144,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.23385416666666664,
+            "mirror_accuracy": 0.23354166666666665,
+            "matched_view_accuracy": 0.19982638888888887,
+            "agreement": 0.8176041666666667
+          },
+          "teacher": {
+            "clean_accuracy": 0.23538194444444444,
+            "mirror_accuracy": 0.23506944444444444,
+            "matched_view_accuracy": 0.2010763888888889,
+            "agreement": 0.8157291666666666
+          },
+          "student": {
+            "clean_accuracy": 0.226875,
+            "mirror_accuracy": 0.225625,
+            "matched_view_accuracy": 0.21013888888888888,
+            "agreement": 0.9092708333333333
+          },
+          "joint": {
+            "clean_accuracy": 0.22944444444444445,
+            "mirror_accuracy": 0.22868055555555555,
+            "matched_view_accuracy": 0.19791666666666666,
+            "agreement": 0.8276041666666667
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.23538194444444446,
+            "mirror_accuracy": 0.23489583333333333,
+            "matched_view_accuracy": 0.20118055555555556,
+            "agreement": 0.8163888888888888
+          },
+          "two_view": {
+            "clean_accuracy": 0.2423611111111111,
+            "mirror_accuracy": 0.2423611111111111,
+            "matched_view_accuracy": 0.2423611111111111,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2578125,
+            "mirror_accuracy": 0.2569097222222222,
+            "matched_view_accuracy": 0.2300347222222222,
+            "agreement": 0.8421527777777778
+          },
+          "teacher": {
+            "clean_accuracy": 0.25881944444444444,
+            "mirror_accuracy": 0.25763888888888886,
+            "matched_view_accuracy": 0.2304861111111111,
+            "agreement": 0.8401388888888889
+          },
+          "student": {
+            "clean_accuracy": 0.24819444444444444,
+            "mirror_accuracy": 0.2470486111111111,
+            "matched_view_accuracy": 0.23541666666666666,
+            "agreement": 0.9268749999999999
+          },
+          "joint": {
+            "clean_accuracy": 0.2597222222222222,
+            "mirror_accuracy": 0.2592361111111111,
+            "matched_view_accuracy": 0.23267361111111112,
+            "agreement": 0.8510069444444445
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.25864583333333335,
+            "mirror_accuracy": 0.2575694444444444,
+            "matched_view_accuracy": 0.23031249999999998,
+            "agreement": 0.8400694444444444
+          },
+          "two_view": {
+            "clean_accuracy": 0.25625,
+            "mirror_accuracy": 0.25625,
+            "matched_view_accuracy": 0.25625,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.2671875,
+            "mirror_accuracy": 0.26732638888888893,
+            "matched_view_accuracy": 0.240625,
+            "agreement": 0.8438194444444445
+          },
+          "teacher": {
+            "clean_accuracy": 0.2689236111111111,
+            "mirror_accuracy": 0.2686805555555556,
+            "matched_view_accuracy": 0.24208333333333332,
+            "agreement": 0.8434375
+          },
+          "student": {
+            "clean_accuracy": 0.2594444444444445,
+            "mirror_accuracy": 0.2577083333333333,
+            "matched_view_accuracy": 0.2484375,
+            "agreement": 0.9381944444444444
+          },
+          "joint": {
+            "clean_accuracy": 0.27013888888888893,
+            "mirror_accuracy": 0.26958333333333334,
+            "matched_view_accuracy": 0.2448263888888889,
+            "agreement": 0.8541319444444444
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.26881944444444444,
+            "mirror_accuracy": 0.26878472222222227,
+            "matched_view_accuracy": 0.24208333333333332,
+            "agreement": 0.8431249999999999
+          },
+          "two_view": {
+            "clean_accuracy": 0.2695138888888889,
+            "mirror_accuracy": 0.2695138888888889,
+            "matched_view_accuracy": 0.2695138888888889,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2138888888888889,
+              "mirror_accuracy": 0.2120138888888889,
+              "matched_view_accuracy": 0.18229166666666666,
+              "agreement": 0.8315972222222222
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2160763888888889,
+              "mirror_accuracy": 0.211875,
+              "matched_view_accuracy": 0.19972222222222222,
+              "agreement": 0.9146527777777778
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2020486111111111,
+              "mirror_accuracy": 0.20628472222222222,
+              "matched_view_accuracy": 0.14128472222222221,
+              "agreement": 0.6567361111111112
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.20572916666666669,
+              "mirror_accuracy": 0.2069097222222222,
+              "matched_view_accuracy": 0.1462152777777778,
+              "agreement": 0.6734375
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.20225694444444448,
+              "mirror_accuracy": 0.20600694444444445,
+              "matched_view_accuracy": 0.1412152777777778,
+              "agreement": 0.6580208333333334
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23836805555555554,
+              "mirror_accuracy": 0.23868055555555556,
+              "matched_view_accuracy": 0.2070138888888889,
+              "agreement": 0.8290625
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.23729166666666668,
+              "mirror_accuracy": 0.23548611111111112,
+              "matched_view_accuracy": 0.2209375,
+              "agreement": 0.9152777777777779
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.24274305555555553,
+              "mirror_accuracy": 0.2392013888888889,
+              "matched_view_accuracy": 0.18375,
+              "agreement": 0.7166666666666667
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24354166666666666,
+              "mirror_accuracy": 0.23982638888888888,
+              "matched_view_accuracy": 0.18510416666666668,
+              "agreement": 0.7202777777777778
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.24256944444444445,
+              "mirror_accuracy": 0.23927083333333332,
+              "matched_view_accuracy": 0.18368055555555557,
+              "agreement": 0.7162152777777777
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2584375,
+              "mirror_accuracy": 0.2604513888888889,
+              "matched_view_accuracy": 0.23791666666666667,
+              "agreement": 0.8750694444444445
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.25288194444444445,
+              "mirror_accuracy": 0.24982638888888886,
+              "matched_view_accuracy": 0.24305555555555555,
+              "agreement": 0.9479513888888889
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.26611111111111113,
+              "mirror_accuracy": 0.2615277777777778,
+              "matched_view_accuracy": 0.22152777777777777,
+              "agreement": 0.7786805555555556
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2659027777777778,
+              "mirror_accuracy": 0.2616319444444445,
+              "matched_view_accuracy": 0.22215277777777778,
+              "agreement": 0.7809375000000001
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.26607638888888885,
+              "mirror_accuracy": 0.2615277777777778,
+              "matched_view_accuracy": 0.22159722222222222,
+              "agreement": 0.7789930555555555
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2119097222222222,
+              "mirror_accuracy": 0.21125,
+              "matched_view_accuracy": 0.1798611111111111,
+              "agreement": 0.8259027777777778
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2175347222222222,
+              "mirror_accuracy": 0.21364583333333334,
+              "matched_view_accuracy": 0.2009375,
+              "agreement": 0.9146527777777778
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2020486111111111,
+              "mirror_accuracy": 0.20628472222222222,
+              "matched_view_accuracy": 0.14128472222222221,
+              "agreement": 0.6567361111111112
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.20572916666666669,
+              "mirror_accuracy": 0.2069097222222222,
+              "matched_view_accuracy": 0.1462152777777778,
+              "agreement": 0.6734375
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.20225694444444448,
+              "mirror_accuracy": 0.20600694444444445,
+              "matched_view_accuracy": 0.1412152777777778,
+              "agreement": 0.6580208333333334
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23892361111111113,
+              "mirror_accuracy": 0.23909722222222224,
+              "matched_view_accuracy": 0.2071527777777778,
+              "agreement": 0.826875
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2382638888888889,
+              "mirror_accuracy": 0.23628472222222224,
+              "matched_view_accuracy": 0.22006944444444446,
+              "agreement": 0.9097222222222223
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.24274305555555553,
+              "mirror_accuracy": 0.2392013888888889,
+              "matched_view_accuracy": 0.18375,
+              "agreement": 0.7166666666666667
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24354166666666666,
+              "mirror_accuracy": 0.23982638888888888,
+              "matched_view_accuracy": 0.18510416666666668,
+              "agreement": 0.7202777777777778
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.24256944444444445,
+              "mirror_accuracy": 0.23927083333333332,
+              "matched_view_accuracy": 0.18368055555555557,
+              "agreement": 0.7162152777777777
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.25968749999999996,
+              "mirror_accuracy": 0.2610069444444445,
+              "matched_view_accuracy": 0.23822916666666666,
+              "agreement": 0.8755208333333333
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.255,
+              "mirror_accuracy": 0.2539583333333333,
+              "matched_view_accuracy": 0.24378472222222225,
+              "agreement": 0.9356249999999999
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.26611111111111113,
+              "mirror_accuracy": 0.2615277777777778,
+              "matched_view_accuracy": 0.22152777777777777,
+              "agreement": 0.7786805555555556
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2659027777777778,
+              "mirror_accuracy": 0.2616319444444445,
+              "matched_view_accuracy": 0.22215277777777778,
+              "agreement": 0.7809375000000001
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.26607638888888885,
+              "mirror_accuracy": 0.2615277777777778,
+              "matched_view_accuracy": 0.22159722222222222,
+              "agreement": 0.7789930555555555
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 16.0,
+        "source_feature_rank": 88,
+        "latent_width": 88,
+        "transported_reference_ridge": 2.2404539559351662e-06,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 1.910218024907738,
+          "ordinary_orbit": 1.908435196312619,
+          "natural_iso": 6.59296803910486e-11,
+          "natural_orbit": 6.570175806940888e-11,
+          "natural_rotated": 6.931868416785317e-11
+        }
+      }
+    },
+    {
+      "seed": 63,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.6820312738418579,
+      "latent_width": 92,
+      "teacher_odd_count": 38,
+      "student_orbit_spectrum": [
+        7.418376819189996e-16,
+        1.8580079810320746e-15,
+        1.9646239921183598e-15,
+        2.591609318489165e-15,
+        2.7297176852425993e-15,
+        2.8139705510884046e-15,
+        3.355801228051334e-15,
+        3.577543779429669e-15,
+        3.9875400969822435e-15,
+        4.3060049526678424e-15,
+        4.7023428882414745e-15,
+        5.109026741619229e-15,
+        5.8116980844704634e-15,
+        6.025518455101249e-15,
+        6.8536122646468295e-15,
+        7.444524237689903e-15,
+        7.997288829747518e-15,
+        9.231053841488571e-15,
+        9.670064707135095e-15,
+        1.0387288939841883e-14,
+        1.0797028313495413e-14,
+        1.201305844027471e-14,
+        1.2850723439106337e-14,
+        1.4287453434508177e-14,
+        1.581445833586047e-14,
+        1.8584945636191974e-14,
+        1.9924721153097146e-14,
+        2.2687274404671193e-14,
+        2.3892561807591706e-14,
+        2.6302790529347432e-14,
+        3.1033219640588417e-14,
+        3.563562274183362e-14,
+        4.233911584857159e-14,
+        5.2337672130089964e-14,
+        9.45415474843512e-14,
+        1.1860797614283242e-13,
+        1.8977612295299073e-13,
+        3.981577895566971e-13,
+        9.158951851308116e-13,
+        4.712876418543376e-12,
+        8.187965429714515e-12,
+        1.0375010018569994e-11,
+        1.7022511213141323e-11,
+        3.284341018622045e-11,
+        6.185572268856497e-11,
+        7.887599022576873e-11,
+        1.7076682847910795e-10,
+        1.9154102459257204e-10,
+        4.262997056013203e-10,
+        1.2347488310615673e-09,
+        3.418525975708048e-09,
+        5.7119171250616686e-09,
+        1.0317539491261357e-08,
+        1.504518372450473e-08,
+        2.9971692312519774e-08,
+        7.423045118806647e-08,
+        8.279959576487925e-08,
+        1.6463328388057506e-07,
+        2.474494533356534e-07,
+        3.702628802535185e-07,
+        4.904881397609596e-07,
+        5.52478223840689e-07,
+        1.2190423226107922e-06,
+        2.9917785922005297e-06,
+        4.000301548726219e-06,
+        5.055291131835315e-06,
+        1.0401423402149032e-05,
+        1.5370516170194996e-05,
+        2.6159206747938524e-05,
+        4.435458248811738e-05,
+        7.193619417182639e-05,
+        9.635648981600953e-05,
+        0.00010841694945959276,
+        0.0001375428897796033,
+        0.00015174386506106185,
+        0.00028694566417129477,
+        0.0003436495861177951,
+        0.0005030868018894381,
+        0.0010618668355481741,
+        0.0015770411062716089,
+        0.0018692639610527612,
+        0.0023793834264271858,
+        0.0031013826642766955,
+        0.005004557666790491,
+        0.010313286919730522,
+        0.026126167096859117,
+        0.04656980108287766,
+        0.06258059408840014,
+        0.5643057406286679,
+        0.9106611304294098,
+        4.055245669946019,
+        86.30739283451854
+      ],
+      "source_even_flip_mse": 0.017430022358894348,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.1884722222222222,
+            "mirror_accuracy": 0.1901388888888889,
+            "matched_view_accuracy": 0.09364583333333334,
+            "agreement": 0.46888888888888886
+          },
+          "teacher": {
+            "clean_accuracy": 0.18951388888888887,
+            "mirror_accuracy": 0.19427083333333334,
+            "matched_view_accuracy": 0.09923611111111111,
+            "agreement": 0.4909027777777778
+          },
+          "student": {
+            "clean_accuracy": 0.21024305555555556,
+            "mirror_accuracy": 0.20965277777777777,
+            "matched_view_accuracy": 0.1820138888888889,
+            "agreement": 0.8491319444444444
+          },
+          "joint": {
+            "clean_accuracy": 0.18965277777777778,
+            "mirror_accuracy": 0.19090277777777778,
+            "matched_view_accuracy": 0.09631944444444444,
+            "agreement": 0.4786111111111111
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.19048611111111108,
+            "mirror_accuracy": 0.19385416666666666,
+            "matched_view_accuracy": 0.09979166666666667,
+            "agreement": 0.49399305555555556
+          },
+          "two_view": {
+            "clean_accuracy": 0.21138888888888888,
+            "mirror_accuracy": 0.21138888888888888,
+            "matched_view_accuracy": 0.21138888888888888,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.21993055555555555,
+            "mirror_accuracy": 0.2250347222222222,
+            "matched_view_accuracy": 0.12322916666666667,
+            "agreement": 0.49868055555555557
+          },
+          "teacher": {
+            "clean_accuracy": 0.22329861111111113,
+            "mirror_accuracy": 0.22850694444444444,
+            "matched_view_accuracy": 0.13409722222222223,
+            "agreement": 0.5290277777777778
+          },
+          "student": {
+            "clean_accuracy": 0.2365625,
+            "mirror_accuracy": 0.23701388888888889,
+            "matched_view_accuracy": 0.20649305555555558,
+            "agreement": 0.8451041666666667
+          },
+          "joint": {
+            "clean_accuracy": 0.2229861111111111,
+            "mirror_accuracy": 0.2275,
+            "matched_view_accuracy": 0.12940972222222222,
+            "agreement": 0.5163888888888889
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.22319444444444442,
+            "mirror_accuracy": 0.22899305555555555,
+            "matched_view_accuracy": 0.1345486111111111,
+            "agreement": 0.5310416666666666
+          },
+          "two_view": {
+            "clean_accuracy": 0.2255902777777778,
+            "mirror_accuracy": 0.2255902777777778,
+            "matched_view_accuracy": 0.2255902777777778,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.2519444444444444,
+            "mirror_accuracy": 0.2579513888888889,
+            "matched_view_accuracy": 0.17125,
+            "agreement": 0.5776736111111112
+          },
+          "teacher": {
+            "clean_accuracy": 0.2554166666666666,
+            "mirror_accuracy": 0.2595138888888889,
+            "matched_view_accuracy": 0.17708333333333334,
+            "agreement": 0.5960763888888889
+          },
+          "student": {
+            "clean_accuracy": 0.2651736111111111,
+            "mirror_accuracy": 0.2621527777777778,
+            "matched_view_accuracy": 0.2307986111111111,
+            "agreement": 0.8395486111111112
+          },
+          "joint": {
+            "clean_accuracy": 0.25479166666666664,
+            "mirror_accuracy": 0.25993055555555555,
+            "matched_view_accuracy": 0.17288194444444444,
+            "agreement": 0.5831597222222222
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2555555555555556,
+            "mirror_accuracy": 0.26,
+            "matched_view_accuracy": 0.1779513888888889,
+            "agreement": 0.5987847222222222
+          },
+          "two_view": {
+            "clean_accuracy": 0.2640625,
+            "mirror_accuracy": 0.2640625,
+            "matched_view_accuracy": 0.2640625,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.19395833333333334,
+              "mirror_accuracy": 0.1963888888888889,
+              "matched_view_accuracy": 0.09965277777777777,
+              "agreement": 0.4647916666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2263888888888889,
+              "mirror_accuracy": 0.225,
+              "matched_view_accuracy": 0.1857638888888889,
+              "agreement": 0.7977777777777778
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2473263888888889,
+              "mirror_accuracy": 0.2511111111111112,
+              "matched_view_accuracy": 0.12003472222222222,
+              "agreement": 0.41024305555555557
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2571527777777778,
+              "mirror_accuracy": 0.2599652777777778,
+              "matched_view_accuracy": 0.14791666666666667,
+              "agreement": 0.5015625
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2464236111111111,
+              "mirror_accuracy": 0.24923611111111113,
+              "matched_view_accuracy": 0.11947916666666666,
+              "agreement": 0.4096875
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2232986111111111,
+              "mirror_accuracy": 0.2210763888888889,
+              "matched_view_accuracy": 0.12586805555555555,
+              "agreement": 0.4979166666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.24934027777777779,
+              "mirror_accuracy": 0.24881944444444445,
+              "matched_view_accuracy": 0.21034722222222224,
+              "agreement": 0.8056944444444445
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2931597222222222,
+              "mirror_accuracy": 0.2887847222222222,
+              "matched_view_accuracy": 0.16503472222222224,
+              "agreement": 0.4778125
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2970138888888889,
+              "mirror_accuracy": 0.29184027777777777,
+              "matched_view_accuracy": 0.17638888888888887,
+              "agreement": 0.5138194444444444
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.29270833333333335,
+              "mirror_accuracy": 0.28885416666666663,
+              "matched_view_accuracy": 0.1651388888888889,
+              "agreement": 0.4774652777777778
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2559027777777778,
+              "mirror_accuracy": 0.2592013888888889,
+              "matched_view_accuracy": 0.17236111111111113,
+              "agreement": 0.5869097222222222
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2690972222222222,
+              "mirror_accuracy": 0.266875,
+              "matched_view_accuracy": 0.23538194444444444,
+              "agreement": 0.8428472222222222
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.3271875,
+              "mirror_accuracy": 0.3250347222222222,
+              "matched_view_accuracy": 0.2115625,
+              "agreement": 0.5486458333333333
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.3279166666666667,
+              "mirror_accuracy": 0.32513888888888887,
+              "matched_view_accuracy": 0.21527777777777776,
+              "agreement": 0.5605208333333334
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.32718749999999996,
+              "mirror_accuracy": 0.325,
+              "matched_view_accuracy": 0.21184027777777778,
+              "agreement": 0.54875
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.19975694444444445,
+              "mirror_accuracy": 0.20211805555555556,
+              "matched_view_accuracy": 0.10260416666666666,
+              "agreement": 0.46166666666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.22993055555555555,
+              "mirror_accuracy": 0.2286111111111111,
+              "matched_view_accuracy": 0.18625,
+              "agreement": 0.7803125000000001
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2473263888888889,
+              "mirror_accuracy": 0.2511111111111112,
+              "matched_view_accuracy": 0.12003472222222222,
+              "agreement": 0.41024305555555557
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2571527777777778,
+              "mirror_accuracy": 0.2599652777777778,
+              "matched_view_accuracy": 0.14791666666666667,
+              "agreement": 0.5015625
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2464236111111111,
+              "mirror_accuracy": 0.24923611111111113,
+              "matched_view_accuracy": 0.11947916666666666,
+              "agreement": 0.4096875
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23177083333333331,
+              "mirror_accuracy": 0.23086805555555556,
+              "matched_view_accuracy": 0.13322916666666668,
+              "agreement": 0.5057986111111111
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.25600694444444444,
+              "mirror_accuracy": 0.25625,
+              "matched_view_accuracy": 0.21097222222222223,
+              "agreement": 0.7799305555555556
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2931597222222222,
+              "mirror_accuracy": 0.2887847222222222,
+              "matched_view_accuracy": 0.16503472222222224,
+              "agreement": 0.4778125
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2970138888888889,
+              "mirror_accuracy": 0.29184027777777777,
+              "matched_view_accuracy": 0.17638888888888887,
+              "agreement": 0.5138194444444444
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.29270833333333335,
+              "mirror_accuracy": 0.28885416666666663,
+              "matched_view_accuracy": 0.1651388888888889,
+              "agreement": 0.4774652777777778
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.26934027777777775,
+              "mirror_accuracy": 0.2724652777777778,
+              "matched_view_accuracy": 0.1864236111111111,
+              "agreement": 0.6041319444444444
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2812847222222222,
+              "mirror_accuracy": 0.27975694444444443,
+              "matched_view_accuracy": 0.23753472222222222,
+              "agreement": 0.8012847222222222
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.3271875,
+              "mirror_accuracy": 0.3250347222222222,
+              "matched_view_accuracy": 0.2115625,
+              "agreement": 0.5486458333333333
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.3279166666666667,
+              "mirror_accuracy": 0.32513888888888887,
+              "matched_view_accuracy": 0.21527777777777776,
+              "agreement": 0.5605208333333334
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.32718749999999996,
+              "mirror_accuracy": 0.325,
+              "matched_view_accuracy": 0.21184027777777778,
+              "agreement": 0.54875
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 15.999999999999988,
+        "source_feature_rank": 92,
+        "latent_width": 92,
+        "transported_reference_ridge": 2.918766213940267e-06,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 1.8891794544908291,
+          "ordinary_orbit": 1.8362276127644916,
+          "natural_iso": 1.2065036110608913e-10,
+          "natural_orbit": 1.3209176652410487e-10,
+          "natural_rotated": 9.444469562043302e-11
+        }
+      }
+    },
+    {
+      "seed": 64,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.690625011920929,
+      "latent_width": 78,
+      "teacher_odd_count": 29,
+      "student_orbit_spectrum": [
+        2.529217186622034e-15,
+        3.4061927381610545e-15,
+        3.558580704829461e-15,
+        4.1084343731811435e-15,
+        4.8463906075917995e-15,
+        5.037374619857186e-15,
+        5.929410944838949e-15,
+        6.136747886885146e-15,
+        7.15750914918078e-15,
+        7.587653325500715e-15,
+        7.843106817558395e-15,
+        8.964956446978385e-15,
+        1.0246190174183606e-14,
+        1.0639106484141622e-14,
+        1.1851894974224733e-14,
+        1.1890510149799786e-14,
+        1.2808913520505667e-14,
+        1.3794790218711012e-14,
+        1.49280521153242e-14,
+        1.523536455294436e-14,
+        1.7848208441158826e-14,
+        1.8706059558571574e-14,
+        2.0270027025112652e-14,
+        2.131202374248624e-14,
+        2.2041722522113474e-14,
+        2.314041722687654e-14,
+        2.654621142566911e-14,
+        2.835111710445124e-14,
+        3.298799607432035e-14,
+        3.3724246345408995e-14,
+        3.841565979811503e-14,
+        4.3167757604927346e-14,
+        6.004127448572039e-14,
+        6.760747348746108e-14,
+        9.333603047877425e-14,
+        1.325231523843028e-13,
+        2.490406509033325e-13,
+        7.820533701064947e-13,
+        1.3718971609618447e-12,
+        1.8070631112038453e-12,
+        3.460556914222442e-12,
+        4.92654164093466e-12,
+        2.4855380457512292e-11,
+        2.9751050423866383e-11,
+        5.706747398574763e-11,
+        1.3566094988084853e-10,
+        2.3823922643810277e-10,
+        1.3634313740457239e-09,
+        2.5698927275278074e-09,
+        3.9681539131397746e-09,
+        5.537914886160022e-09,
+        9.370191796310686e-09,
+        1.511397926701733e-08,
+        2.314119066264135e-08,
+        3.51452787770369e-08,
+        9.179243279735328e-08,
+        3.4240922290913035e-07,
+        4.660809487381268e-07,
+        6.591256273925757e-07,
+        1.5672380067188748e-06,
+        3.3853413023772004e-06,
+        8.04617351013735e-06,
+        1.5015898307464141e-05,
+        2.4970895829324116e-05,
+        2.7005551195838768e-05,
+        0.00013858486218378403,
+        0.0010500387293386447,
+        0.0012705546048479887,
+        0.002811073168701372,
+        0.007428087089940082,
+        0.011696321449906694,
+        0.015018084040282908,
+        0.13089749242400012,
+        0.5496328604233144,
+        0.8681874665900966,
+        0.9725866418761779,
+        9.925443338825433,
+        65.51375780870032
+      ],
+      "source_even_flip_mse": 0.022216463461518288,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2501736111111111,
+            "mirror_accuracy": 0.24767361111111114,
+            "matched_view_accuracy": 0.16315972222222225,
+            "agreement": 0.5905555555555555
+          },
+          "teacher": {
+            "clean_accuracy": 0.2510763888888889,
+            "mirror_accuracy": 0.24829861111111112,
+            "matched_view_accuracy": 0.1795138888888889,
+            "agreement": 0.6605208333333333
+          },
+          "student": {
+            "clean_accuracy": 0.24868055555555554,
+            "mirror_accuracy": 0.24784722222222222,
+            "matched_view_accuracy": 0.22625,
+            "agreement": 0.8861458333333333
+          },
+          "joint": {
+            "clean_accuracy": 0.25340277777777775,
+            "mirror_accuracy": 0.2509027777777778,
+            "matched_view_accuracy": 0.18420138888888887,
+            "agreement": 0.6677083333333333
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.25125,
+            "mirror_accuracy": 0.24875000000000003,
+            "matched_view_accuracy": 0.18041666666666667,
+            "agreement": 0.6625347222222222
+          },
+          "two_view": {
+            "clean_accuracy": 0.2575694444444444,
+            "mirror_accuracy": 0.2575694444444444,
+            "matched_view_accuracy": 0.2575694444444444,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.27913194444444445,
+            "mirror_accuracy": 0.2749652777777778,
+            "matched_view_accuracy": 0.19361111111111112,
+            "agreement": 0.6145486111111111
+          },
+          "teacher": {
+            "clean_accuracy": 0.28194444444444444,
+            "mirror_accuracy": 0.27815972222222224,
+            "matched_view_accuracy": 0.20256944444444444,
+            "agreement": 0.6412847222222222
+          },
+          "student": {
+            "clean_accuracy": 0.27565972222222224,
+            "mirror_accuracy": 0.27131944444444445,
+            "matched_view_accuracy": 0.24652777777777776,
+            "agreement": 0.8681597222222223
+          },
+          "joint": {
+            "clean_accuracy": 0.2809722222222222,
+            "mirror_accuracy": 0.2789236111111111,
+            "matched_view_accuracy": 0.20506944444444447,
+            "agreement": 0.6537152777777778
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.28180555555555553,
+            "mirror_accuracy": 0.2781944444444444,
+            "matched_view_accuracy": 0.2029166666666667,
+            "agreement": 0.6427777777777778
+          },
+          "two_view": {
+            "clean_accuracy": 0.2940625,
+            "mirror_accuracy": 0.2940625,
+            "matched_view_accuracy": 0.2940625,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.2959027777777778,
+            "mirror_accuracy": 0.2901388888888889,
+            "matched_view_accuracy": 0.2082986111111111,
+            "agreement": 0.6252430555555555
+          },
+          "teacher": {
+            "clean_accuracy": 0.29704861111111114,
+            "mirror_accuracy": 0.2902777777777778,
+            "matched_view_accuracy": 0.2115277777777778,
+            "agreement": 0.6362847222222222
+          },
+          "student": {
+            "clean_accuracy": 0.2889236111111111,
+            "mirror_accuracy": 0.2867708333333333,
+            "matched_view_accuracy": 0.2496875,
+            "agreement": 0.8227083333333334
+          },
+          "joint": {
+            "clean_accuracy": 0.2954513888888889,
+            "mirror_accuracy": 0.2894097222222222,
+            "matched_view_accuracy": 0.2123958333333333,
+            "agreement": 0.6453125
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2972916666666667,
+            "mirror_accuracy": 0.2900694444444445,
+            "matched_view_accuracy": 0.21187499999999998,
+            "agreement": 0.6375
+          },
+          "two_view": {
+            "clean_accuracy": 0.3100694444444444,
+            "mirror_accuracy": 0.3100694444444444,
+            "matched_view_accuracy": 0.3100694444444444,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23819444444444443,
+              "mirror_accuracy": 0.2334375,
+              "matched_view_accuracy": 0.13541666666666669,
+              "agreement": 0.5132291666666666
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.23850694444444442,
+              "mirror_accuracy": 0.23680555555555557,
+              "matched_view_accuracy": 0.2103472222222222,
+              "agreement": 0.8619444444444444
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.23781249999999998,
+              "mirror_accuracy": 0.2359027777777778,
+              "matched_view_accuracy": 0.12833333333333335,
+              "agreement": 0.47923611111111114
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24409722222222222,
+              "mirror_accuracy": 0.24170138888888887,
+              "matched_view_accuracy": 0.1527777777777778,
+              "agreement": 0.571388888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.23774305555555553,
+              "mirror_accuracy": 0.23531249999999998,
+              "matched_view_accuracy": 0.12861111111111112,
+              "agreement": 0.48163194444444446
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2903125,
+              "mirror_accuracy": 0.28232638888888895,
+              "matched_view_accuracy": 0.20559027777777777,
+              "agreement": 0.643125
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2821875,
+              "mirror_accuracy": 0.27805555555555556,
+              "matched_view_accuracy": 0.25288194444444445,
+              "agreement": 0.8675347222222222
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.28805555555555556,
+              "mirror_accuracy": 0.2861111111111111,
+              "matched_view_accuracy": 0.1893402777777778,
+              "agreement": 0.5645138888888889
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2903472222222222,
+              "mirror_accuracy": 0.2884722222222222,
+              "matched_view_accuracy": 0.20059027777777777,
+              "agreement": 0.6013541666666666
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.28774305555555557,
+              "mirror_accuracy": 0.2861111111111111,
+              "matched_view_accuracy": 0.18881944444444443,
+              "agreement": 0.5632986111111111
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.30604166666666666,
+              "mirror_accuracy": 0.3048611111111111,
+              "matched_view_accuracy": 0.2364236111111111,
+              "agreement": 0.6922222222222222
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2985069444444445,
+              "mirror_accuracy": 0.29517361111111107,
+              "matched_view_accuracy": 0.2628125,
+              "agreement": 0.8473263888888889
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.31642361111111117,
+              "mirror_accuracy": 0.30930555555555556,
+              "matched_view_accuracy": 0.23159722222222223,
+              "agreement": 0.6496180555555555
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.3170138888888889,
+              "mirror_accuracy": 0.30947916666666664,
+              "matched_view_accuracy": 0.23399305555555555,
+              "agreement": 0.6594791666666666
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3163194444444445,
+              "mirror_accuracy": 0.3090625,
+              "matched_view_accuracy": 0.2314236111111111,
+              "agreement": 0.6500347222222222
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2362152777777778,
+              "mirror_accuracy": 0.23020833333333335,
+              "matched_view_accuracy": 0.13427083333333334,
+              "agreement": 0.5157291666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.23739583333333333,
+              "mirror_accuracy": 0.23618055555555556,
+              "matched_view_accuracy": 0.2021875,
+              "agreement": 0.8246527777777777
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.23781249999999998,
+              "mirror_accuracy": 0.2359027777777778,
+              "matched_view_accuracy": 0.12833333333333335,
+              "agreement": 0.47923611111111114
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24409722222222222,
+              "mirror_accuracy": 0.24170138888888887,
+              "matched_view_accuracy": 0.1527777777777778,
+              "agreement": 0.571388888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.23774305555555553,
+              "mirror_accuracy": 0.23531249999999998,
+              "matched_view_accuracy": 0.12861111111111112,
+              "agreement": 0.48163194444444446
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.28888888888888886,
+              "mirror_accuracy": 0.2817361111111111,
+              "matched_view_accuracy": 0.20503472222222224,
+              "agreement": 0.644375
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2861111111111111,
+              "mirror_accuracy": 0.2838194444444444,
+              "matched_view_accuracy": 0.2456597222222222,
+              "agreement": 0.8202083333333334
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.28805555555555556,
+              "mirror_accuracy": 0.2861111111111111,
+              "matched_view_accuracy": 0.1893402777777778,
+              "agreement": 0.5645138888888889
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2903472222222222,
+              "mirror_accuracy": 0.2884722222222222,
+              "matched_view_accuracy": 0.20059027777777777,
+              "agreement": 0.6013541666666666
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.28774305555555557,
+              "mirror_accuracy": 0.2861111111111111,
+              "matched_view_accuracy": 0.18881944444444443,
+              "agreement": 0.5632986111111111
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.3072916666666667,
+              "mirror_accuracy": 0.30552083333333335,
+              "matched_view_accuracy": 0.23732638888888885,
+              "agreement": 0.6908333333333333
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.3049652777777778,
+              "mirror_accuracy": 0.30336805555555557,
+              "matched_view_accuracy": 0.2569444444444444,
+              "agreement": 0.78875
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.31642361111111117,
+              "mirror_accuracy": 0.30930555555555556,
+              "matched_view_accuracy": 0.23159722222222223,
+              "agreement": 0.6496180555555555
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.3170138888888889,
+              "mirror_accuracy": 0.30947916666666664,
+              "matched_view_accuracy": 0.23399305555555555,
+              "agreement": 0.6594791666666666
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3163194444444445,
+              "mirror_accuracy": 0.3090625,
+              "matched_view_accuracy": 0.2314236111111111,
+              "agreement": 0.6500347222222222
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 16.000000000000014,
+        "source_feature_rank": 78,
+        "latent_width": 78,
+        "transported_reference_ridge": 6.686738412338151e-06,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 2.8234620934929127,
+          "ordinary_orbit": 1.8595198427278676,
+          "natural_iso": 9.87599075484683e-11,
+          "natural_orbit": 1.3473180534819088e-10,
+          "natural_rotated": 1.0502034639837301e-10
+        }
+      }
+    },
+    {
+      "seed": 65,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.6734375357627869,
+      "latent_width": 76,
+      "teacher_odd_count": 28,
+      "student_orbit_spectrum": [
+        2.508463402322777e-15,
+        2.859586549916048e-15,
+        3.4947931251103174e-15,
+        3.906399755593268e-15,
+        4.000748561883909e-15,
+        4.463937610596906e-15,
+        4.786655654703124e-15,
+        5.200971557171294e-15,
+        5.483802461673746e-15,
+        5.834479085152623e-15,
+        6.7456000839648376e-15,
+        7.015527151343188e-15,
+        8.25588927678717e-15,
+        8.463566776238706e-15,
+        9.664922704811462e-15,
+        9.907775086442454e-15,
+        1.0333023673744333e-14,
+        1.1018962009033173e-14,
+        1.222838903505992e-14,
+        1.2505873210277853e-14,
+        1.3146354897985208e-14,
+        1.3629729743370717e-14,
+        1.4950989971767126e-14,
+        1.5976344424805012e-14,
+        1.673566486232095e-14,
+        1.9182333165440104e-14,
+        2.0027974013101446e-14,
+        2.0803861246293043e-14,
+        2.300736129254737e-14,
+        2.5163947906187316e-14,
+        2.5726283050849127e-14,
+        2.8595511262973605e-14,
+        3.163103060937478e-14,
+        3.477964176796172e-14,
+        4.265907415582827e-14,
+        4.389626406376857e-14,
+        4.8572648150012634e-14,
+        5.081625084651068e-14,
+        6.678285483844729e-14,
+        9.402468232751371e-14,
+        1.5910869761109954e-13,
+        3.715498390196996e-13,
+        8.098861502572971e-13,
+        1.7596074182548007e-12,
+        3.5433221132093723e-12,
+        5.891824163335791e-12,
+        1.749544923460091e-11,
+        2.5354344693538142e-11,
+        4.8215131799132976e-11,
+        8.516412029464582e-11,
+        1.3958373013598396e-10,
+        2.720376757589533e-10,
+        7.705118628754817e-10,
+        2.548841581217196e-09,
+        2.612983241301031e-09,
+        1.2703614211803973e-08,
+        1.5897151306316262e-08,
+        3.5386075420084816e-08,
+        2.376693587495602e-07,
+        1.1182580570739339e-06,
+        1.6484368191666133e-06,
+        1.9534678280681914e-06,
+        1.0131731336276681e-05,
+        1.8286942917213863e-05,
+        0.0003623856906013105,
+        0.012902344007631994,
+        0.12276245051854384,
+        0.15700601411747492,
+        0.20916806071810087,
+        0.24761680314783666,
+        0.34924867491092226,
+        0.4953520065253606,
+        3.2331079350461245,
+        18.728973454794648,
+        24.971570142812592,
+        27.471896280683474
+      ],
+      "source_even_flip_mse": 0.02237263135612011,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.24868055555555554,
+            "mirror_accuracy": 0.24788194444444445,
+            "matched_view_accuracy": 0.11090277777777777,
+            "agreement": 0.3689930555555555
+          },
+          "teacher": {
+            "clean_accuracy": 0.2617013888888889,
+            "mirror_accuracy": 0.26083333333333336,
+            "matched_view_accuracy": 0.1928125,
+            "agreement": 0.6812152777777778
+          },
+          "student": {
+            "clean_accuracy": 0.2529166666666667,
+            "mirror_accuracy": 0.2538888888888889,
+            "matched_view_accuracy": 0.21711805555555555,
+            "agreement": 0.8298958333333333
+          },
+          "joint": {
+            "clean_accuracy": 0.2595833333333334,
+            "mirror_accuracy": 0.2580902777777778,
+            "matched_view_accuracy": 0.20243055555555556,
+            "agreement": 0.7337847222222222
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.26177083333333334,
+            "mirror_accuracy": 0.26173611111111106,
+            "matched_view_accuracy": 0.19364583333333335,
+            "agreement": 0.683125
+          },
+          "two_view": {
+            "clean_accuracy": 0.26993055555555556,
+            "mirror_accuracy": 0.26993055555555556,
+            "matched_view_accuracy": 0.26993055555555556,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.28576388888888893,
+            "mirror_accuracy": 0.2913541666666667,
+            "matched_view_accuracy": 0.1519097222222222,
+            "agreement": 0.43399305555555556
+          },
+          "teacher": {
+            "clean_accuracy": 0.29909722222222224,
+            "mirror_accuracy": 0.30451388888888886,
+            "matched_view_accuracy": 0.21145833333333333,
+            "agreement": 0.6258333333333334
+          },
+          "student": {
+            "clean_accuracy": 0.2949305555555556,
+            "mirror_accuracy": 0.2996875,
+            "matched_view_accuracy": 0.24409722222222224,
+            "agreement": 0.7767708333333334
+          },
+          "joint": {
+            "clean_accuracy": 0.2989583333333333,
+            "mirror_accuracy": 0.30180555555555555,
+            "matched_view_accuracy": 0.22562500000000002,
+            "agreement": 0.6877083333333334
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2986111111111111,
+            "mirror_accuracy": 0.304375,
+            "matched_view_accuracy": 0.21125,
+            "agreement": 0.6271180555555556
+          },
+          "two_view": {
+            "clean_accuracy": 0.3155555555555556,
+            "mirror_accuracy": 0.3155555555555556,
+            "matched_view_accuracy": 0.3155555555555556,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.31524305555555554,
+            "mirror_accuracy": 0.32086805555555553,
+            "matched_view_accuracy": 0.1946875,
+            "agreement": 0.5096527777777777
+          },
+          "teacher": {
+            "clean_accuracy": 0.31690972222222225,
+            "mirror_accuracy": 0.3240972222222222,
+            "matched_view_accuracy": 0.2242361111111111,
+            "agreement": 0.6098611111111111
+          },
+          "student": {
+            "clean_accuracy": 0.3197916666666667,
+            "mirror_accuracy": 0.32298611111111114,
+            "matched_view_accuracy": 0.2526041666666667,
+            "agreement": 0.7169444444444444
+          },
+          "joint": {
+            "clean_accuracy": 0.31885416666666666,
+            "mirror_accuracy": 0.32555555555555554,
+            "matched_view_accuracy": 0.24211805555555554,
+            "agreement": 0.6758680555555556
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3169097222222222,
+            "mirror_accuracy": 0.3240277777777778,
+            "matched_view_accuracy": 0.22434027777777776,
+            "agreement": 0.6097916666666666
+          },
+          "two_view": {
+            "clean_accuracy": 0.3355208333333333,
+            "mirror_accuracy": 0.3355208333333333,
+            "matched_view_accuracy": 0.3355208333333333,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.24715277777777778,
+              "mirror_accuracy": 0.24524305555555553,
+              "matched_view_accuracy": 0.10569444444444444,
+              "agreement": 0.3604513888888889
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2520486111111111,
+              "mirror_accuracy": 0.25180555555555556,
+              "matched_view_accuracy": 0.21666666666666667,
+              "agreement": 0.8356597222222222
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.24371527777777777,
+              "mirror_accuracy": 0.24697916666666667,
+              "matched_view_accuracy": 0.10888888888888888,
+              "agreement": 0.3802430555555556
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2528472222222222,
+              "mirror_accuracy": 0.2554166666666667,
+              "matched_view_accuracy": 0.15531250000000002,
+              "agreement": 0.5549999999999999
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.24409722222222222,
+              "mirror_accuracy": 0.2461111111111111,
+              "matched_view_accuracy": 0.10944444444444444,
+              "agreement": 0.3792013888888889
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.27822916666666664,
+              "mirror_accuracy": 0.2755902777777778,
+              "matched_view_accuracy": 0.13663194444444446,
+              "agreement": 0.4228125
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2828472222222222,
+              "mirror_accuracy": 0.28611111111111115,
+              "matched_view_accuracy": 0.23197916666666665,
+              "agreement": 0.7808680555555555
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2811458333333333,
+              "mirror_accuracy": 0.2807638888888889,
+              "matched_view_accuracy": 0.13923611111111112,
+              "agreement": 0.4195833333333333
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2845833333333333,
+              "mirror_accuracy": 0.2844097222222222,
+              "matched_view_accuracy": 0.15989583333333332,
+              "agreement": 0.49145833333333333
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2809375,
+              "mirror_accuracy": 0.28055555555555556,
+              "matched_view_accuracy": 0.13951388888888888,
+              "agreement": 0.4192013888888889
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.3164930555555555,
+              "mirror_accuracy": 0.3168402777777778,
+              "matched_view_accuracy": 0.19819444444444445,
+              "agreement": 0.5385763888888889
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.3215625,
+              "mirror_accuracy": 0.3236458333333333,
+              "matched_view_accuracy": 0.2568055555555555,
+              "agreement": 0.7327777777777778
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.32243055555555555,
+              "mirror_accuracy": 0.3234027777777778,
+              "matched_view_accuracy": 0.19829861111111113,
+              "agreement": 0.519375
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.3239236111111111,
+              "mirror_accuracy": 0.32381944444444444,
+              "matched_view_accuracy": 0.205,
+              "agreement": 0.5404513888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3223958333333333,
+              "mirror_accuracy": 0.32277777777777783,
+              "matched_view_accuracy": 0.1979861111111111,
+              "agreement": 0.5183680555555555
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.24006944444444445,
+              "mirror_accuracy": 0.2390972222222222,
+              "matched_view_accuracy": 0.10239583333333332,
+              "agreement": 0.3651041666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2531597222222222,
+              "mirror_accuracy": 0.25326388888888884,
+              "matched_view_accuracy": 0.2111111111111111,
+              "agreement": 0.8058333333333334
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.24371527777777777,
+              "mirror_accuracy": 0.24697916666666667,
+              "matched_view_accuracy": 0.10888888888888888,
+              "agreement": 0.3802430555555556
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2528472222222222,
+              "mirror_accuracy": 0.2554166666666667,
+              "matched_view_accuracy": 0.15531250000000002,
+              "agreement": 0.5549999999999999
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.24409722222222222,
+              "mirror_accuracy": 0.2461111111111111,
+              "matched_view_accuracy": 0.10944444444444444,
+              "agreement": 0.3792013888888889
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2773611111111111,
+              "mirror_accuracy": 0.27503472222222225,
+              "matched_view_accuracy": 0.13659722222222223,
+              "agreement": 0.42489583333333336
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.28350694444444446,
+              "mirror_accuracy": 0.2874305555555556,
+              "matched_view_accuracy": 0.2164583333333333,
+              "agreement": 0.7115625
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2811458333333333,
+              "mirror_accuracy": 0.2807638888888889,
+              "matched_view_accuracy": 0.13923611111111112,
+              "agreement": 0.4195833333333333
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2845833333333333,
+              "mirror_accuracy": 0.2844097222222222,
+              "matched_view_accuracy": 0.15989583333333332,
+              "agreement": 0.49145833333333333
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2809375,
+              "mirror_accuracy": 0.28055555555555556,
+              "matched_view_accuracy": 0.13951388888888888,
+              "agreement": 0.4192013888888889
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.3169444444444445,
+              "mirror_accuracy": 0.31798611111111114,
+              "matched_view_accuracy": 0.1980208333333333,
+              "agreement": 0.5353125000000001
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.32104166666666667,
+              "mirror_accuracy": 0.3228125,
+              "matched_view_accuracy": 0.23819444444444446,
+              "agreement": 0.6622222222222223
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.32243055555555555,
+              "mirror_accuracy": 0.3234027777777778,
+              "matched_view_accuracy": 0.19829861111111113,
+              "agreement": 0.519375
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.3239236111111111,
+              "mirror_accuracy": 0.32381944444444444,
+              "matched_view_accuracy": 0.205,
+              "agreement": 0.5404513888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3223958333333333,
+              "mirror_accuracy": 0.32277777777777783,
+              "matched_view_accuracy": 0.1979861111111111,
+              "agreement": 0.5183680555555555
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 15.999999999999996,
+        "source_feature_rank": 76,
+        "latent_width": 76,
+        "transported_reference_ridge": 1.0831233793931641e-05,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 1.8392032778235163,
+          "ordinary_orbit": 1.5245766779133105,
+          "natural_iso": 6.284489758434514e-11,
+          "natural_orbit": 7.619181540404647e-11,
+          "natural_rotated": 7.986854211496883e-11
+        }
+      }
+    },
+    {
+      "seed": 66,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.6890625357627869,
+      "latent_width": 78,
+      "teacher_odd_count": 29,
+      "student_orbit_spectrum": [
+        -1.3425977351995102e-15,
+        2.674555376598161e-15,
+        3.158380158328259e-15,
+        3.771250891150654e-15,
+        4.2524233072626716e-15,
+        5.726626413818937e-15,
+        5.789352813523426e-15,
+        6.266434020314281e-15,
+        7.397124397937631e-15,
+        7.55965520749265e-15,
+        8.483359994756348e-15,
+        8.916313829566863e-15,
+        1.0882028472114162e-14,
+        1.2196391303795343e-14,
+        1.2504259938703747e-14,
+        1.3137297943875578e-14,
+        1.3850185155656288e-14,
+        1.6626101888696537e-14,
+        1.6997741731231874e-14,
+        1.8893684613454286e-14,
+        2.1421836187835026e-14,
+        2.2765440133262062e-14,
+        2.934605690771198e-14,
+        3.330038019019061e-14,
+        3.873990255296638e-14,
+        4.3966483463616813e-14,
+        4.705609347898117e-14,
+        5.0676029461258583e-14,
+        5.749153638410399e-14,
+        6.92898947115707e-14,
+        7.743939348303584e-14,
+        7.964587082693499e-14,
+        9.314261026421673e-14,
+        1.223425792865809e-13,
+        1.2569446236461538e-13,
+        1.6533954845217844e-13,
+        2.331176328534594e-13,
+        3.445142691285739e-13,
+        7.876319696729466e-13,
+        2.5794863414853674e-12,
+        3.0105731496112594e-12,
+        5.8282609721709335e-12,
+        1.1858165152991774e-11,
+        4.5991857664951146e-11,
+        6.30568614178324e-11,
+        1.3959957197511073e-10,
+        1.5402720229245657e-10,
+        2.1103768109138668e-10,
+        4.666327303287543e-10,
+        7.063692611976644e-10,
+        1.55163941988306e-09,
+        2.9430883037357274e-09,
+        7.063577948670565e-09,
+        1.6265084837432733e-08,
+        2.12399401511763e-08,
+        3.492475989816465e-08,
+        2.331477625682263e-07,
+        4.257376148859847e-07,
+        1.0510371587606228e-06,
+        1.9076480090957267e-06,
+        3.1229213914886922e-06,
+        4.006366747108804e-06,
+        1.047894042595109e-05,
+        1.621019419914326e-05,
+        3.334640720585519e-05,
+        0.00010118669045993984,
+        0.0004938976078732503,
+        0.0018741651509297708,
+        0.002438755239336146,
+        0.009952251433188685,
+        0.016831844609851734,
+        0.09596767832972791,
+        0.2587727028433357,
+        0.39433680063558624,
+        1.0691880882218525,
+        3.1663178483484256,
+        6.660838000916315,
+        66.32281591177193
+      ],
+      "source_even_flip_mse": 0.008413338102400303,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.21635416666666668,
+            "mirror_accuracy": 0.21795138888888888,
+            "matched_view_accuracy": 0.15149305555555553,
+            "agreement": 0.6646875000000001
+          },
+          "teacher": {
+            "clean_accuracy": 0.2164236111111111,
+            "mirror_accuracy": 0.21649305555555554,
+            "matched_view_accuracy": 0.1542013888888889,
+            "agreement": 0.6828125
+          },
+          "student": {
+            "clean_accuracy": 0.2222222222222222,
+            "mirror_accuracy": 0.2242708333333333,
+            "matched_view_accuracy": 0.19315972222222222,
+            "agreement": 0.8494097222222222
+          },
+          "joint": {
+            "clean_accuracy": 0.21541666666666667,
+            "mirror_accuracy": 0.2167013888888889,
+            "matched_view_accuracy": 0.15260416666666665,
+            "agreement": 0.6763888888888889
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.21663194444444445,
+            "mirror_accuracy": 0.21555555555555556,
+            "matched_view_accuracy": 0.15444444444444444,
+            "agreement": 0.6847222222222222
+          },
+          "two_view": {
+            "clean_accuracy": 0.22951388888888888,
+            "mirror_accuracy": 0.22951388888888888,
+            "matched_view_accuracy": 0.22951388888888888,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2568402777777778,
+            "mirror_accuracy": 0.25760416666666663,
+            "matched_view_accuracy": 0.18916666666666665,
+            "agreement": 0.6598263888888889
+          },
+          "teacher": {
+            "clean_accuracy": 0.2585763888888889,
+            "mirror_accuracy": 0.26041666666666663,
+            "matched_view_accuracy": 0.1957986111111111,
+            "agreement": 0.6840972222222222
+          },
+          "student": {
+            "clean_accuracy": 0.23878472222222222,
+            "mirror_accuracy": 0.2399652777777778,
+            "matched_view_accuracy": 0.21621527777777777,
+            "agreement": 0.8827777777777778
+          },
+          "joint": {
+            "clean_accuracy": 0.25354166666666667,
+            "mirror_accuracy": 0.25527777777777777,
+            "matched_view_accuracy": 0.18965277777777778,
+            "agreement": 0.6800694444444444
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.258125,
+            "mirror_accuracy": 0.2601736111111111,
+            "matched_view_accuracy": 0.19565972222222222,
+            "agreement": 0.6832986111111111
+          },
+          "two_view": {
+            "clean_accuracy": 0.26364583333333336,
+            "mirror_accuracy": 0.26364583333333336,
+            "matched_view_accuracy": 0.26364583333333336,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.26635416666666667,
+            "mirror_accuracy": 0.2684375,
+            "matched_view_accuracy": 0.19996527777777778,
+            "agreement": 0.6702777777777778
+          },
+          "teacher": {
+            "clean_accuracy": 0.26739583333333333,
+            "mirror_accuracy": 0.26836805555555554,
+            "matched_view_accuracy": 0.2026388888888889,
+            "agreement": 0.6829861111111111
+          },
+          "student": {
+            "clean_accuracy": 0.2640625,
+            "mirror_accuracy": 0.2619444444444444,
+            "matched_view_accuracy": 0.22774305555555557,
+            "agreement": 0.8273958333333333
+          },
+          "joint": {
+            "clean_accuracy": 0.26659722222222226,
+            "mirror_accuracy": 0.26621527777777776,
+            "matched_view_accuracy": 0.19961805555555556,
+            "agreement": 0.6811805555555555
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2663888888888889,
+            "mirror_accuracy": 0.2685763888888889,
+            "matched_view_accuracy": 0.20225694444444445,
+            "agreement": 0.6826041666666667
+          },
+          "two_view": {
+            "clean_accuracy": 0.2720138888888889,
+            "mirror_accuracy": 0.2720138888888889,
+            "matched_view_accuracy": 0.2720138888888889,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2033333333333333,
+              "mirror_accuracy": 0.20506944444444444,
+              "matched_view_accuracy": 0.1365972222222222,
+              "agreement": 0.6455555555555555
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.20628472222222224,
+              "mirror_accuracy": 0.20680555555555555,
+              "matched_view_accuracy": 0.18409722222222222,
+              "agreement": 0.8814583333333332
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.21541666666666665,
+              "mirror_accuracy": 0.2182638888888889,
+              "matched_view_accuracy": 0.11163194444444444,
+              "agreement": 0.4689236111111111
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.21840277777777778,
+              "mirror_accuracy": 0.22131944444444446,
+              "matched_view_accuracy": 0.12565972222222221,
+              "agreement": 0.5282638888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.21600694444444443,
+              "mirror_accuracy": 0.21899305555555554,
+              "matched_view_accuracy": 0.1125,
+              "agreement": 0.47062499999999996
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.24888888888888888,
+              "mirror_accuracy": 0.24635416666666668,
+              "matched_view_accuracy": 0.18302083333333335,
+              "agreement": 0.6813541666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.23649305555555555,
+              "mirror_accuracy": 0.23517361111111112,
+              "matched_view_accuracy": 0.21791666666666665,
+              "agreement": 0.9070138888888888
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.26840277777777777,
+              "mirror_accuracy": 0.26663194444444444,
+              "matched_view_accuracy": 0.1634722222222222,
+              "agreement": 0.5175347222222222
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.26961805555555557,
+              "mirror_accuracy": 0.26836805555555554,
+              "matched_view_accuracy": 0.16885416666666667,
+              "agreement": 0.5359027777777778
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.26885416666666667,
+              "mirror_accuracy": 0.26663194444444444,
+              "matched_view_accuracy": 0.1638888888888889,
+              "agreement": 0.5186111111111111
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2626736111111111,
+              "mirror_accuracy": 0.26156250000000003,
+              "matched_view_accuracy": 0.19222222222222224,
+              "agreement": 0.6680555555555555
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.24368055555555557,
+              "mirror_accuracy": 0.2419791666666667,
+              "matched_view_accuracy": 0.21506944444444442,
+              "agreement": 0.8588888888888888
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2856944444444445,
+              "mirror_accuracy": 0.28513888888888894,
+              "matched_view_accuracy": 0.1885763888888889,
+              "agreement": 0.5619444444444444
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.28586805555555556,
+              "mirror_accuracy": 0.28500000000000003,
+              "matched_view_accuracy": 0.18989583333333332,
+              "agreement": 0.5682638888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2855902777777778,
+              "mirror_accuracy": 0.2850694444444445,
+              "matched_view_accuracy": 0.18840277777777778,
+              "agreement": 0.5619097222222222
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.20645833333333335,
+              "mirror_accuracy": 0.2103125,
+              "matched_view_accuracy": 0.13930555555555557,
+              "agreement": 0.6497916666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2065972222222222,
+              "mirror_accuracy": 0.20902777777777776,
+              "matched_view_accuracy": 0.18451388888888887,
+              "agreement": 0.8780902777777778
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.21541666666666665,
+              "mirror_accuracy": 0.2182638888888889,
+              "matched_view_accuracy": 0.11163194444444444,
+              "agreement": 0.4689236111111111
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.21840277777777778,
+              "mirror_accuracy": 0.22131944444444446,
+              "matched_view_accuracy": 0.12565972222222221,
+              "agreement": 0.5282638888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.21600694444444443,
+              "mirror_accuracy": 0.21899305555555554,
+              "matched_view_accuracy": 0.1125,
+              "agreement": 0.47062499999999996
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2558333333333333,
+              "mirror_accuracy": 0.25201388888888887,
+              "matched_view_accuracy": 0.1837152777777778,
+              "agreement": 0.6579513888888888
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.24663194444444442,
+              "mirror_accuracy": 0.2451736111111111,
+              "matched_view_accuracy": 0.22194444444444444,
+              "agreement": 0.8802777777777777
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.26840277777777777,
+              "mirror_accuracy": 0.26663194444444444,
+              "matched_view_accuracy": 0.1634722222222222,
+              "agreement": 0.5175347222222222
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.26961805555555557,
+              "mirror_accuracy": 0.26836805555555554,
+              "matched_view_accuracy": 0.16885416666666667,
+              "agreement": 0.5359027777777778
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.26885416666666667,
+              "mirror_accuracy": 0.26663194444444444,
+              "matched_view_accuracy": 0.1638888888888889,
+              "agreement": 0.5186111111111111
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.27163194444444444,
+              "mirror_accuracy": 0.27173611111111107,
+              "matched_view_accuracy": 0.1940625,
+              "agreement": 0.6434375
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2615277777777778,
+              "mirror_accuracy": 0.2614930555555556,
+              "matched_view_accuracy": 0.2226388888888889,
+              "agreement": 0.8118402777777778
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2856944444444445,
+              "mirror_accuracy": 0.28513888888888894,
+              "matched_view_accuracy": 0.1885763888888889,
+              "agreement": 0.5619444444444444
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.28586805555555556,
+              "mirror_accuracy": 0.28500000000000003,
+              "matched_view_accuracy": 0.18989583333333332,
+              "agreement": 0.5682638888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2855902777777778,
+              "mirror_accuracy": 0.2850694444444445,
+              "matched_view_accuracy": 0.18840277777777778,
+              "agreement": 0.5619097222222222
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 15.999999999999986,
+        "source_feature_rank": 78,
+        "latent_width": 78,
+        "transported_reference_ridge": 3.564641065249983e-06,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 2.101747485347094,
+          "ordinary_orbit": 1.9174445352926914,
+          "natural_iso": 5.251297406213891e-11,
+          "natural_orbit": 6.778852030353217e-11,
+          "natural_rotated": 5.3491410682082775e-11
+        }
+      }
+    },
+    {
+      "seed": 67,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.6781250238418579,
+      "latent_width": 74,
+      "teacher_odd_count": 29,
+      "student_orbit_spectrum": [
+        1.3412032274436986e-15,
+        1.7248435906947766e-15,
+        2.0562677739152734e-15,
+        2.4526333450116124e-15,
+        2.904853658861087e-15,
+        3.2825144581025136e-15,
+        3.545696948896361e-15,
+        3.598088963476923e-15,
+        3.941435954698246e-15,
+        4.557289425318092e-15,
+        4.8900173152857185e-15,
+        6.231486643248997e-15,
+        6.459071620255364e-15,
+        6.997084449055865e-15,
+        7.393053972252734e-15,
+        7.544164857717136e-15,
+        8.20151281974507e-15,
+        9.650138812579645e-15,
+        9.939496884824204e-15,
+        1.0759954475520914e-14,
+        1.2003744393507057e-14,
+        1.314780450154022e-14,
+        1.3862757769128366e-14,
+        1.471185811228809e-14,
+        1.5561740198223262e-14,
+        1.8360605871127468e-14,
+        1.9262104130805203e-14,
+        2.0591497887879763e-14,
+        2.1857882598732254e-14,
+        2.354542826567021e-14,
+        2.7724768976578073e-14,
+        3.089673523140116e-14,
+        3.829136204530662e-14,
+        4.26320335196264e-14,
+        4.579128285010581e-14,
+        5.6392187710721037e-14,
+        5.807588325755026e-14,
+        6.744270571754764e-14,
+        7.264155181768853e-14,
+        9.805674900109606e-14,
+        2.3509175409894707e-13,
+        3.203400790017056e-13,
+        1.4704059767548224e-12,
+        1.7530296223794058e-12,
+        1.21476571340468e-11,
+        2.0721141253128644e-11,
+        4.5933469129678225e-11,
+        5.968593084368326e-11,
+        1.1292630379463883e-10,
+        3.099218323358108e-10,
+        9.191561557209075e-10,
+        1.2632363868466902e-09,
+        2.7938375059521398e-09,
+        7.153591898430909e-09,
+        2.6303364787194865e-08,
+        5.821801658592386e-08,
+        1.5834438682480678e-06,
+        2.059587719480832e-06,
+        4.565816874691235e-06,
+        1.3033249422779413e-05,
+        5.1179613398815586e-05,
+        0.00011935142971322871,
+        0.00022862002126810196,
+        0.0003489170243513888,
+        0.0008762867778006399,
+        0.001155354341845403,
+        0.0029651784011441116,
+        0.012265463764210652,
+        0.016749980417362573,
+        0.18260374518415445,
+        0.25680063146130405,
+        0.29424931165633983,
+        2.955615272273752,
+        70.27594936831827
+      ],
+      "source_even_flip_mse": 0.00959524791687727,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.21975694444444444,
+            "mirror_accuracy": 0.21666666666666667,
+            "matched_view_accuracy": 0.12590277777777778,
+            "agreement": 0.5290277777777778
+          },
+          "teacher": {
+            "clean_accuracy": 0.22208333333333335,
+            "mirror_accuracy": 0.21986111111111112,
+            "matched_view_accuracy": 0.1720833333333333,
+            "agreement": 0.7473611111111111
+          },
+          "student": {
+            "clean_accuracy": 0.23149305555555555,
+            "mirror_accuracy": 0.23173611111111111,
+            "matched_view_accuracy": 0.2104861111111111,
+            "agreement": 0.8953125
+          },
+          "joint": {
+            "clean_accuracy": 0.22881944444444444,
+            "mirror_accuracy": 0.22836805555555556,
+            "matched_view_accuracy": 0.18454861111111112,
+            "agreement": 0.7797569444444444
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2223263888888889,
+            "mirror_accuracy": 0.21989583333333335,
+            "matched_view_accuracy": 0.1717013888888889,
+            "agreement": 0.7443055555555556
+          },
+          "two_view": {
+            "clean_accuracy": 0.22746527777777775,
+            "mirror_accuracy": 0.22746527777777775,
+            "matched_view_accuracy": 0.22746527777777775,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2580902777777778,
+            "mirror_accuracy": 0.25416666666666665,
+            "matched_view_accuracy": 0.17770833333333333,
+            "agreement": 0.6403819444444445
+          },
+          "teacher": {
+            "clean_accuracy": 0.26083333333333336,
+            "mirror_accuracy": 0.2577083333333333,
+            "matched_view_accuracy": 0.19854166666666667,
+            "agreement": 0.7207291666666666
+          },
+          "student": {
+            "clean_accuracy": 0.2606597222222222,
+            "mirror_accuracy": 0.2597222222222222,
+            "matched_view_accuracy": 0.23434027777777777,
+            "agreement": 0.8764583333333333
+          },
+          "joint": {
+            "clean_accuracy": 0.26187499999999997,
+            "mirror_accuracy": 0.25895833333333335,
+            "matched_view_accuracy": 0.2051736111111111,
+            "agreement": 0.7427430555555556
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.26104166666666667,
+            "mirror_accuracy": 0.2572916666666667,
+            "matched_view_accuracy": 0.19850694444444444,
+            "agreement": 0.7202777777777778
+          },
+          "two_view": {
+            "clean_accuracy": 0.2739236111111111,
+            "mirror_accuracy": 0.2739236111111111,
+            "matched_view_accuracy": 0.2739236111111111,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.28447916666666667,
+            "mirror_accuracy": 0.2850694444444445,
+            "matched_view_accuracy": 0.20732638888888888,
+            "agreement": 0.6679513888888888
+          },
+          "teacher": {
+            "clean_accuracy": 0.2871527777777778,
+            "mirror_accuracy": 0.2866666666666666,
+            "matched_view_accuracy": 0.21697916666666667,
+            "agreement": 0.6997569444444444
+          },
+          "student": {
+            "clean_accuracy": 0.28784722222222225,
+            "mirror_accuracy": 0.2863541666666667,
+            "matched_view_accuracy": 0.254375,
+            "agreement": 0.8536805555555556
+          },
+          "joint": {
+            "clean_accuracy": 0.28805555555555556,
+            "mirror_accuracy": 0.28604166666666664,
+            "matched_view_accuracy": 0.22013888888888888,
+            "agreement": 0.7126388888888889
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.28722222222222227,
+            "mirror_accuracy": 0.28604166666666664,
+            "matched_view_accuracy": 0.21663194444444445,
+            "agreement": 0.6987152777777778
+          },
+          "two_view": {
+            "clean_accuracy": 0.30506944444444445,
+            "mirror_accuracy": 0.30506944444444445,
+            "matched_view_accuracy": 0.30506944444444445,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23385416666666667,
+              "mirror_accuracy": 0.23552083333333335,
+              "matched_view_accuracy": 0.14225694444444442,
+              "agreement": 0.5770833333333334
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.24631944444444442,
+              "mirror_accuracy": 0.24458333333333332,
+              "matched_view_accuracy": 0.22368055555555555,
+              "agreement": 0.8964930555555556
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2309722222222222,
+              "mirror_accuracy": 0.23017361111111112,
+              "matched_view_accuracy": 0.13114583333333332,
+              "agreement": 0.5238541666666666
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2364236111111111,
+              "mirror_accuracy": 0.23395833333333332,
+              "matched_view_accuracy": 0.15503472222222223,
+              "agreement": 0.6215972222222221
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.22999999999999998,
+              "mirror_accuracy": 0.22881944444444444,
+              "matched_view_accuracy": 0.13052083333333334,
+              "agreement": 0.5255902777777778
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2628125,
+              "mirror_accuracy": 0.26538194444444446,
+              "matched_view_accuracy": 0.1842361111111111,
+              "agreement": 0.6535416666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.26885416666666667,
+              "mirror_accuracy": 0.2695138888888889,
+              "matched_view_accuracy": 0.24489583333333334,
+              "agreement": 0.8886458333333334
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2692361111111111,
+              "mirror_accuracy": 0.26878472222222227,
+              "matched_view_accuracy": 0.17822916666666666,
+              "agreement": 0.5863194444444444
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2725,
+              "mirror_accuracy": 0.2710416666666667,
+              "matched_view_accuracy": 0.18809027777777776,
+              "agreement": 0.6212847222222222
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.26885416666666667,
+              "mirror_accuracy": 0.2689583333333333,
+              "matched_view_accuracy": 0.17798611111111112,
+              "agreement": 0.5864583333333333
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2872569444444445,
+              "mirror_accuracy": 0.2843055555555556,
+              "matched_view_accuracy": 0.21631944444444445,
+              "agreement": 0.6992013888888888
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2887152777777777,
+              "mirror_accuracy": 0.2862152777777778,
+              "matched_view_accuracy": 0.2589236111111111,
+              "agreement": 0.869548611111111
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2976388888888889,
+              "mirror_accuracy": 0.2992361111111111,
+              "matched_view_accuracy": 0.20760416666666667,
+              "agreement": 0.6214236111111111
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2986805555555555,
+              "mirror_accuracy": 0.29951388888888886,
+              "matched_view_accuracy": 0.21180555555555555,
+              "agreement": 0.6342361111111111
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2976736111111111,
+              "mirror_accuracy": 0.2992013888888889,
+              "matched_view_accuracy": 0.20763888888888887,
+              "agreement": 0.6220486111111111
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23145833333333332,
+              "mirror_accuracy": 0.23350694444444442,
+              "matched_view_accuracy": 0.14597222222222223,
+              "agreement": 0.5971875
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2445138888888889,
+              "mirror_accuracy": 0.24440972222222224,
+              "matched_view_accuracy": 0.22052083333333333,
+              "agreement": 0.886423611111111
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2309722222222222,
+              "mirror_accuracy": 0.23017361111111112,
+              "matched_view_accuracy": 0.13114583333333332,
+              "agreement": 0.5238541666666666
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2364236111111111,
+              "mirror_accuracy": 0.23395833333333332,
+              "matched_view_accuracy": 0.15503472222222223,
+              "agreement": 0.6215972222222221
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.22999999999999998,
+              "mirror_accuracy": 0.22881944444444444,
+              "matched_view_accuracy": 0.13052083333333334,
+              "agreement": 0.5255902777777778
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.26319444444444445,
+              "mirror_accuracy": 0.2655902777777778,
+              "matched_view_accuracy": 0.18559027777777776,
+              "agreement": 0.6605555555555556
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2682986111111111,
+              "mirror_accuracy": 0.26850694444444445,
+              "matched_view_accuracy": 0.2404513888888889,
+              "agreement": 0.8728819444444444
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2692361111111111,
+              "mirror_accuracy": 0.26878472222222227,
+              "matched_view_accuracy": 0.17822916666666666,
+              "agreement": 0.5863194444444444
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2725,
+              "mirror_accuracy": 0.2710416666666667,
+              "matched_view_accuracy": 0.18809027777777776,
+              "agreement": 0.6212847222222222
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.26885416666666667,
+              "mirror_accuracy": 0.2689583333333333,
+              "matched_view_accuracy": 0.17798611111111112,
+              "agreement": 0.5864583333333333
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.28888888888888886,
+              "mirror_accuracy": 0.2857291666666667,
+              "matched_view_accuracy": 0.21756944444444443,
+              "agreement": 0.7001736111111111
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2903125,
+              "mirror_accuracy": 0.2880902777777778,
+              "matched_view_accuracy": 0.2538541666666667,
+              "agreement": 0.8427083333333334
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2976388888888889,
+              "mirror_accuracy": 0.2992361111111111,
+              "matched_view_accuracy": 0.20760416666666667,
+              "agreement": 0.6214236111111111
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2986805555555555,
+              "mirror_accuracy": 0.29951388888888886,
+              "matched_view_accuracy": 0.21180555555555555,
+              "agreement": 0.6342361111111111
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2976736111111111,
+              "mirror_accuracy": 0.2992013888888889,
+              "matched_view_accuracy": 0.20763888888888887,
+              "agreement": 0.6220486111111111
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 15.999999999999998,
+        "source_feature_rank": 74,
+        "latent_width": 74,
+        "transported_reference_ridge": 7.132452756916064e-06,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 1.61651995734759,
+          "ordinary_orbit": 1.4382147249149642,
+          "natural_iso": 2.9498102491587995e-11,
+          "natural_orbit": 1.3729474392947267e-11,
+          "natural_rotated": 1.643802514398972e-11
+        }
+      }
+    },
+    {
+      "seed": 68,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.694531261920929,
+      "latent_width": 77,
+      "teacher_odd_count": 31,
+      "student_orbit_spectrum": [
+        -3.1049734287630874e-16,
+        1.7806178567647975e-15,
+        1.864361806830266e-15,
+        2.4386776722789703e-15,
+        2.5808422404351364e-15,
+        2.755395114612521e-15,
+        3.103236460578502e-15,
+        3.549594113986573e-15,
+        3.6970747348175135e-15,
+        4.2859445074030695e-15,
+        4.673180785123938e-15,
+        4.876812219303637e-15,
+        5.359636983961838e-15,
+        5.776499727708858e-15,
+        6.408337993609587e-15,
+        6.5861510287611805e-15,
+        7.517075970112003e-15,
+        7.670446783122006e-15,
+        7.978509492831772e-15,
+        8.1485283789265e-15,
+        8.826325266304162e-15,
+        1.0156322074835915e-14,
+        1.0838588851855702e-14,
+        1.1351349202738723e-14,
+        1.191262262770461e-14,
+        1.261802999264486e-14,
+        1.3013925361246443e-14,
+        1.455602640213465e-14,
+        1.5317733107827746e-14,
+        1.6043714648077977e-14,
+        1.7301677343743846e-14,
+        1.7435156031725074e-14,
+        1.9677210424759947e-14,
+        2.085265539100911e-14,
+        2.210805781489442e-14,
+        2.4462329067338604e-14,
+        2.5345311185278526e-14,
+        2.7813542223359882e-14,
+        3.144361601687236e-14,
+        3.49587350464181e-14,
+        4.166431626604065e-14,
+        4.8700039604130055e-14,
+        5.3424007814977154e-14,
+        8.0481679453991e-14,
+        1.114479833827785e-13,
+        6.49009891849172e-13,
+        7.238594012157114e-13,
+        2.38598455715667e-12,
+        3.1142987724080015e-12,
+        5.837638125845623e-12,
+        8.466135787664519e-12,
+        1.83503788039487e-11,
+        2.96145944840875e-11,
+        8.488225940377988e-11,
+        1.7604315234099e-10,
+        3.4320814771706167e-10,
+        1.270002472606494e-09,
+        5.618327885858346e-09,
+        1.0671625838329684e-08,
+        1.6571230359987474e-08,
+        5.0027602849824346e-08,
+        9.093367207231118e-08,
+        1.261924401912665e-07,
+        5.417053550534417e-07,
+        2.5287991902552014e-06,
+        3.5004642948771535e-06,
+        6.477892136024934e-06,
+        1.3702390232891775e-05,
+        0.002388289735932341,
+        0.0060856119998322755,
+        0.2276737322214381,
+        0.4976323399237288,
+        1.1285728690480994,
+        2.7494569156358875,
+        10.623054170358603,
+        18.03543498114557,
+        43.72967403672071
+      ],
+      "source_even_flip_mse": 0.04049250856041908,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2451736111111111,
+            "mirror_accuracy": 0.23895833333333333,
+            "matched_view_accuracy": 0.12513888888888888,
+            "agreement": 0.43128472222222225
+          },
+          "teacher": {
+            "clean_accuracy": 0.24305555555555555,
+            "mirror_accuracy": 0.24038194444444444,
+            "matched_view_accuracy": 0.14996527777777777,
+            "agreement": 0.5495138888888889
+          },
+          "student": {
+            "clean_accuracy": 0.24409722222222222,
+            "mirror_accuracy": 0.24225694444444443,
+            "matched_view_accuracy": 0.2065972222222222,
+            "agreement": 0.8173958333333333
+          },
+          "joint": {
+            "clean_accuracy": 0.2501736111111111,
+            "mirror_accuracy": 0.2467361111111111,
+            "matched_view_accuracy": 0.15902777777777777,
+            "agreement": 0.5595833333333333
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.24270833333333333,
+            "mirror_accuracy": 0.2396875,
+            "matched_view_accuracy": 0.14902777777777776,
+            "agreement": 0.5489236111111111
+          },
+          "two_view": {
+            "clean_accuracy": 0.2617013888888889,
+            "mirror_accuracy": 0.2617013888888889,
+            "matched_view_accuracy": 0.2617013888888889,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2848611111111111,
+            "mirror_accuracy": 0.2817361111111111,
+            "matched_view_accuracy": 0.16184027777777776,
+            "agreement": 0.4819097222222222
+          },
+          "teacher": {
+            "clean_accuracy": 0.28812499999999996,
+            "mirror_accuracy": 0.2849305555555555,
+            "matched_view_accuracy": 0.17309027777777777,
+            "agreement": 0.5208333333333334
+          },
+          "student": {
+            "clean_accuracy": 0.2830902777777778,
+            "mirror_accuracy": 0.2824652777777778,
+            "matched_view_accuracy": 0.23402777777777778,
+            "agreement": 0.7725000000000001
+          },
+          "joint": {
+            "clean_accuracy": 0.28715277777777776,
+            "mirror_accuracy": 0.2846875,
+            "matched_view_accuracy": 0.17805555555555558,
+            "agreement": 0.5374652777777778
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2878819444444444,
+            "mirror_accuracy": 0.28371527777777783,
+            "matched_view_accuracy": 0.17270833333333332,
+            "agreement": 0.5201388888888889
+          },
+          "two_view": {
+            "clean_accuracy": 0.3125,
+            "mirror_accuracy": 0.3125,
+            "matched_view_accuracy": 0.3125,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.3077083333333333,
+            "mirror_accuracy": 0.3047222222222222,
+            "matched_view_accuracy": 0.1953125,
+            "agreement": 0.5441319444444445
+          },
+          "teacher": {
+            "clean_accuracy": 0.30874999999999997,
+            "mirror_accuracy": 0.3039236111111111,
+            "matched_view_accuracy": 0.19982638888888887,
+            "agreement": 0.5607986111111112
+          },
+          "student": {
+            "clean_accuracy": 0.30711805555555555,
+            "mirror_accuracy": 0.3036111111111111,
+            "matched_view_accuracy": 0.24472222222222223,
+            "agreement": 0.7410069444444445
+          },
+          "joint": {
+            "clean_accuracy": 0.30986111111111114,
+            "mirror_accuracy": 0.30364583333333334,
+            "matched_view_accuracy": 0.20159722222222223,
+            "agreement": 0.5672569444444444
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.30854166666666666,
+            "mirror_accuracy": 0.30413194444444447,
+            "matched_view_accuracy": 0.19951388888888888,
+            "agreement": 0.5606249999999999
+          },
+          "two_view": {
+            "clean_accuracy": 0.3359375,
+            "mirror_accuracy": 0.3359375,
+            "matched_view_accuracy": 0.3359375,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.24833333333333332,
+              "mirror_accuracy": 0.24440972222222224,
+              "matched_view_accuracy": 0.13416666666666666,
+              "agreement": 0.4784027777777778
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.24256944444444445,
+              "mirror_accuracy": 0.23888888888888887,
+              "matched_view_accuracy": 0.2054513888888889,
+              "agreement": 0.8265625
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.24027777777777778,
+              "mirror_accuracy": 0.2357986111111111,
+              "matched_view_accuracy": 0.12701388888888887,
+              "agreement": 0.4721180555555555
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24329861111111115,
+              "mirror_accuracy": 0.23819444444444443,
+              "matched_view_accuracy": 0.15562499999999999,
+              "agreement": 0.5912847222222222
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.23965277777777777,
+              "mirror_accuracy": 0.2351736111111111,
+              "matched_view_accuracy": 0.12645833333333334,
+              "agreement": 0.4715277777777778
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2832986111111111,
+              "mirror_accuracy": 0.27666666666666667,
+              "matched_view_accuracy": 0.16295138888888888,
+              "agreement": 0.48809027777777775
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2820486111111111,
+              "mirror_accuracy": 0.2808333333333334,
+              "matched_view_accuracy": 0.22746527777777778,
+              "agreement": 0.7621875
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.28260416666666666,
+              "mirror_accuracy": 0.2767708333333333,
+              "matched_view_accuracy": 0.17128472222222224,
+              "agreement": 0.5267361111111112
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.28510416666666666,
+              "mirror_accuracy": 0.2797222222222222,
+              "matched_view_accuracy": 0.1821875,
+              "agreement": 0.5653125
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2826736111111111,
+              "mirror_accuracy": 0.27621527777777777,
+              "matched_view_accuracy": 0.17097222222222222,
+              "agreement": 0.5255208333333334
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.31000000000000005,
+              "mirror_accuracy": 0.30399305555555556,
+              "matched_view_accuracy": 0.20770833333333333,
+              "agreement": 0.5828819444444444
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.30732638888888886,
+              "mirror_accuracy": 0.30395833333333333,
+              "matched_view_accuracy": 0.24746527777777777,
+              "agreement": 0.7473958333333333
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.31166666666666665,
+              "mirror_accuracy": 0.30565972222222226,
+              "matched_view_accuracy": 0.21173611111111112,
+              "agreement": 0.6051041666666667
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.31135416666666665,
+              "mirror_accuracy": 0.30600694444444443,
+              "matched_view_accuracy": 0.21520833333333333,
+              "agreement": 0.6185763888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.31149305555555556,
+              "mirror_accuracy": 0.30600694444444443,
+              "matched_view_accuracy": 0.2121875,
+              "agreement": 0.6055208333333333
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.24965277777777778,
+              "mirror_accuracy": 0.24552083333333335,
+              "matched_view_accuracy": 0.13309027777777777,
+              "agreement": 0.47368055555555555
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.24135416666666668,
+              "mirror_accuracy": 0.2396875,
+              "matched_view_accuracy": 0.19864583333333335,
+              "agreement": 0.7960069444444444
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.24027777777777778,
+              "mirror_accuracy": 0.2357986111111111,
+              "matched_view_accuracy": 0.12701388888888887,
+              "agreement": 0.4721180555555555
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24329861111111115,
+              "mirror_accuracy": 0.23819444444444443,
+              "matched_view_accuracy": 0.15562499999999999,
+              "agreement": 0.5912847222222222
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.23965277777777777,
+              "mirror_accuracy": 0.2351736111111111,
+              "matched_view_accuracy": 0.12645833333333334,
+              "agreement": 0.4715277777777778
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.28229166666666666,
+              "mirror_accuracy": 0.2763541666666667,
+              "matched_view_accuracy": 0.16291666666666665,
+              "agreement": 0.4892361111111111
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.28631944444444446,
+              "mirror_accuracy": 0.28607638888888887,
+              "matched_view_accuracy": 0.21729166666666666,
+              "agreement": 0.6945138888888889
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.28260416666666666,
+              "mirror_accuracy": 0.2767708333333333,
+              "matched_view_accuracy": 0.17128472222222224,
+              "agreement": 0.5267361111111112
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.28510416666666666,
+              "mirror_accuracy": 0.2797222222222222,
+              "matched_view_accuracy": 0.1821875,
+              "agreement": 0.5653125
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2826736111111111,
+              "mirror_accuracy": 0.27621527777777777,
+              "matched_view_accuracy": 0.17097222222222222,
+              "agreement": 0.5255208333333334
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.3100347222222222,
+              "mirror_accuracy": 0.3045833333333333,
+              "matched_view_accuracy": 0.20729166666666665,
+              "agreement": 0.5827083333333334
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.3112152777777778,
+              "mirror_accuracy": 0.30600694444444443,
+              "matched_view_accuracy": 0.23451388888888888,
+              "agreement": 0.6865277777777777
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.31166666666666665,
+              "mirror_accuracy": 0.30565972222222226,
+              "matched_view_accuracy": 0.21173611111111112,
+              "agreement": 0.6051041666666667
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.31135416666666665,
+              "mirror_accuracy": 0.30600694444444443,
+              "matched_view_accuracy": 0.21520833333333333,
+              "agreement": 0.6185763888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.31149305555555556,
+              "mirror_accuracy": 0.30600694444444443,
+              "matched_view_accuracy": 0.2121875,
+              "agreement": 0.6055208333333333
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 15.999999999999982,
+        "source_feature_rank": 77,
+        "latent_width": 77,
+        "transported_reference_ridge": 7.727224072134388e-06,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 2.679521258737922,
+          "ordinary_orbit": 2.1568527505510593,
+          "natural_iso": 1.0911864669876906e-10,
+          "natural_orbit": 1.3743613504778443e-10,
+          "natural_rotated": 1.1660496324148325e-10
+        }
+      }
+    },
+    {
+      "seed": 69,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.684374988079071,
+      "latent_width": 87,
+      "teacher_odd_count": 34,
+      "student_orbit_spectrum": [
+        5.889175753399725e-16,
+        9.674415845782512e-16,
+        1.255779853655305e-15,
+        1.6424517553564695e-15,
+        1.7102504292730215e-15,
+        2.12015823522582e-15,
+        2.4692096595382243e-15,
+        2.5992491283723957e-15,
+        3.1142425058226157e-15,
+        3.3911580929717795e-15,
+        3.5391472299262467e-15,
+        3.761105003888244e-15,
+        4.054635540515608e-15,
+        4.3878840727644335e-15,
+        4.668306759122577e-15,
+        5.232880315321316e-15,
+        5.496857303096285e-15,
+        5.7706894858000974e-15,
+        6.206866956115714e-15,
+        6.593232605635926e-15,
+        6.765883666558466e-15,
+        7.419673640894815e-15,
+        7.857592940586498e-15,
+        8.09839771982619e-15,
+        9.053072800397498e-15,
+        9.615893602561888e-15,
+        1.0356895133215886e-14,
+        1.0604912780502508e-14,
+        1.1933484667670383e-14,
+        1.208744328970555e-14,
+        1.3446590232438504e-14,
+        1.388043136546975e-14,
+        1.4272454254858797e-14,
+        1.5978457028302343e-14,
+        1.736641779632346e-14,
+        1.8219927335159307e-14,
+        1.9731874319912078e-14,
+        2.093237029183164e-14,
+        2.222410887586116e-14,
+        2.4332543819698622e-14,
+        2.6248262465201884e-14,
+        2.7861609649714978e-14,
+        2.944733355479649e-14,
+        3.062038226571408e-14,
+        3.126867508459804e-14,
+        4.144964588262904e-14,
+        4.988110154646059e-14,
+        5.5507708017577567e-14,
+        6.839432130897909e-14,
+        8.178994636874844e-14,
+        1.1894378727765397e-13,
+        2.760208001424836e-13,
+        4.798475157880046e-13,
+        9.579789761670736e-13,
+        3.203913658334805e-12,
+        4.594208637727107e-12,
+        1.1532896628612023e-11,
+        1.5463751714848682e-11,
+        4.2122806824221216e-11,
+        9.308964776440078e-11,
+        1.4639293888463965e-10,
+        8.116420078270285e-10,
+        8.816806833874139e-10,
+        1.6967424115488786e-09,
+        1.363186708496941e-08,
+        3.2562974802897505e-08,
+        1.191860355399658e-07,
+        2.272173066341959e-07,
+        4.2891668062627025e-07,
+        7.148408243206007e-07,
+        4.312071739199462e-06,
+        1.6256726634095235e-05,
+        2.8467897307794298e-05,
+        6.977421554015647e-05,
+        0.00012268408163708242,
+        0.00029414401011849294,
+        0.00036492310806725714,
+        0.000544952508981903,
+        0.002960045361518221,
+        0.005714762836478971,
+        0.012185623488636034,
+        0.014262898390301896,
+        0.5437683539072301,
+        0.8113008985228953,
+        1.1622673193342017,
+        11.950137926642494,
+        72.49595511683148
+      ],
+      "source_even_flip_mse": 0.02040576934814453,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2063888888888889,
+            "mirror_accuracy": 0.2103472222222222,
+            "matched_view_accuracy": 0.10631944444444445,
+            "agreement": 0.4444097222222222
+          },
+          "teacher": {
+            "clean_accuracy": 0.20972222222222223,
+            "mirror_accuracy": 0.2149652777777778,
+            "matched_view_accuracy": 0.12701388888888887,
+            "agreement": 0.5386805555555556
+          },
+          "student": {
+            "clean_accuracy": 0.2057986111111111,
+            "mirror_accuracy": 0.2035763888888889,
+            "matched_view_accuracy": 0.17607638888888888,
+            "agreement": 0.8384027777777778
+          },
+          "joint": {
+            "clean_accuracy": 0.2079513888888889,
+            "mirror_accuracy": 0.2086458333333333,
+            "matched_view_accuracy": 0.11559027777777778,
+            "agreement": 0.49531250000000004
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.20934027777777778,
+            "mirror_accuracy": 0.21489583333333334,
+            "matched_view_accuracy": 0.12854166666666667,
+            "agreement": 0.5478819444444445
+          },
+          "two_view": {
+            "clean_accuracy": 0.23628472222222222,
+            "mirror_accuracy": 0.23628472222222222,
+            "matched_view_accuracy": 0.23628472222222222,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2431597222222222,
+            "mirror_accuracy": 0.24385416666666668,
+            "matched_view_accuracy": 0.1484375,
+            "agreement": 0.53125
+          },
+          "teacher": {
+            "clean_accuracy": 0.2436111111111111,
+            "mirror_accuracy": 0.24597222222222223,
+            "matched_view_accuracy": 0.1577777777777778,
+            "agreement": 0.5723958333333333
+          },
+          "student": {
+            "clean_accuracy": 0.23767361111111113,
+            "mirror_accuracy": 0.23739583333333333,
+            "matched_view_accuracy": 0.20725694444444445,
+            "agreement": 0.8433333333333333
+          },
+          "joint": {
+            "clean_accuracy": 0.24413194444444444,
+            "mirror_accuracy": 0.24552083333333335,
+            "matched_view_accuracy": 0.15531250000000002,
+            "agreement": 0.56
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2432638888888889,
+            "mirror_accuracy": 0.24590277777777778,
+            "matched_view_accuracy": 0.15843749999999998,
+            "agreement": 0.5770833333333334
+          },
+          "two_view": {
+            "clean_accuracy": 0.2608333333333333,
+            "mirror_accuracy": 0.2608333333333333,
+            "matched_view_accuracy": 0.2608333333333333,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.2533680555555555,
+            "mirror_accuracy": 0.2580555555555556,
+            "matched_view_accuracy": 0.16350694444444444,
+            "agreement": 0.5647569444444445
+          },
+          "teacher": {
+            "clean_accuracy": 0.2557638888888889,
+            "mirror_accuracy": 0.26128472222222227,
+            "matched_view_accuracy": 0.1734375,
+            "agreement": 0.5940624999999999
+          },
+          "student": {
+            "clean_accuracy": 0.26034722222222223,
+            "mirror_accuracy": 0.26079861111111113,
+            "matched_view_accuracy": 0.22086805555555555,
+            "agreement": 0.8072222222222223
+          },
+          "joint": {
+            "clean_accuracy": 0.2573611111111111,
+            "mirror_accuracy": 0.26208333333333333,
+            "matched_view_accuracy": 0.17465277777777777,
+            "agreement": 0.5951736111111112
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2559027777777778,
+            "mirror_accuracy": 0.2617708333333333,
+            "matched_view_accuracy": 0.17427083333333332,
+            "agreement": 0.5959375
+          },
+          "two_view": {
+            "clean_accuracy": 0.27819444444444447,
+            "mirror_accuracy": 0.27819444444444447,
+            "matched_view_accuracy": 0.27819444444444447,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.21298611111111113,
+              "mirror_accuracy": 0.21409722222222222,
+              "matched_view_accuracy": 0.12156250000000002,
+              "agreement": 0.5090972222222223
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.22229166666666667,
+              "mirror_accuracy": 0.22138888888888889,
+              "matched_view_accuracy": 0.19222222222222224,
+              "agreement": 0.8572222222222222
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.20857638888888888,
+              "mirror_accuracy": 0.20833333333333331,
+              "matched_view_accuracy": 0.09913194444444444,
+              "agreement": 0.42649305555555556
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2127777777777778,
+              "mirror_accuracy": 0.21263888888888888,
+              "matched_view_accuracy": 0.12875,
+              "agreement": 0.5663888888888888
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.20861111111111114,
+              "mirror_accuracy": 0.2076736111111111,
+              "matched_view_accuracy": 0.09899305555555556,
+              "agreement": 0.4260069444444444
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.22972222222222222,
+              "mirror_accuracy": 0.23152777777777778,
+              "matched_view_accuracy": 0.13993055555555556,
+              "agreement": 0.5448958333333334
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.23246527777777776,
+              "mirror_accuracy": 0.233125,
+              "matched_view_accuracy": 0.20006944444444444,
+              "agreement": 0.8396527777777778
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.24131944444444445,
+              "mirror_accuracy": 0.2426388888888889,
+              "matched_view_accuracy": 0.12503472222222223,
+              "agreement": 0.44934027777777785
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24593749999999998,
+              "mirror_accuracy": 0.2481597222222222,
+              "matched_view_accuracy": 0.13989583333333333,
+              "agreement": 0.49819444444444444
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.24118055555555556,
+              "mirror_accuracy": 0.24291666666666667,
+              "matched_view_accuracy": 0.12486111111111112,
+              "agreement": 0.4484722222222222
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2532638888888889,
+              "mirror_accuracy": 0.25604166666666667,
+              "matched_view_accuracy": 0.1544097222222222,
+              "agreement": 0.5304513888888889
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2590625,
+              "mirror_accuracy": 0.26104166666666667,
+              "matched_view_accuracy": 0.21684027777777778,
+              "agreement": 0.7959375
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.27125,
+              "mirror_accuracy": 0.2715625,
+              "matched_view_accuracy": 0.1613888888888889,
+              "agreement": 0.5154861111111111
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.27284722222222224,
+              "mirror_accuracy": 0.27298611111111115,
+              "matched_view_accuracy": 0.1673263888888889,
+              "agreement": 0.533611111111111
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2714930555555556,
+              "mirror_accuracy": 0.27163194444444444,
+              "matched_view_accuracy": 0.16159722222222223,
+              "agreement": 0.5155555555555555
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.21256944444444445,
+              "mirror_accuracy": 0.21045138888888887,
+              "matched_view_accuracy": 0.11760416666666668,
+              "agreement": 0.4995833333333334
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.22121527777777777,
+              "mirror_accuracy": 0.2204513888888889,
+              "matched_view_accuracy": 0.1896875,
+              "agreement": 0.8476041666666667
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.20857638888888888,
+              "mirror_accuracy": 0.20833333333333331,
+              "matched_view_accuracy": 0.09913194444444444,
+              "agreement": 0.42649305555555556
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2127777777777778,
+              "mirror_accuracy": 0.21263888888888888,
+              "matched_view_accuracy": 0.12875,
+              "agreement": 0.5663888888888888
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.20861111111111114,
+              "mirror_accuracy": 0.2076736111111111,
+              "matched_view_accuracy": 0.09899305555555556,
+              "agreement": 0.4260069444444444
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.22888888888888886,
+              "mirror_accuracy": 0.23246527777777776,
+              "matched_view_accuracy": 0.13559027777777777,
+              "agreement": 0.5255208333333333
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.23618055555555556,
+              "mirror_accuracy": 0.2362152777777778,
+              "matched_view_accuracy": 0.19586805555555556,
+              "agreement": 0.7975347222222222
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.24131944444444445,
+              "mirror_accuracy": 0.2426388888888889,
+              "matched_view_accuracy": 0.12503472222222223,
+              "agreement": 0.44934027777777785
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24593749999999998,
+              "mirror_accuracy": 0.2481597222222222,
+              "matched_view_accuracy": 0.13989583333333333,
+              "agreement": 0.49819444444444444
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.24118055555555556,
+              "mirror_accuracy": 0.24291666666666667,
+              "matched_view_accuracy": 0.12486111111111112,
+              "agreement": 0.4484722222222222
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.25517361111111114,
+              "mirror_accuracy": 0.2551041666666667,
+              "matched_view_accuracy": 0.15107638888888889,
+              "agreement": 0.5180902777777778
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.26163194444444443,
+              "mirror_accuracy": 0.2630902777777778,
+              "matched_view_accuracy": 0.20347222222222222,
+              "agreement": 0.7267361111111111
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.27125,
+              "mirror_accuracy": 0.2715625,
+              "matched_view_accuracy": 0.1613888888888889,
+              "agreement": 0.5154861111111111
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.27284722222222224,
+              "mirror_accuracy": 0.27298611111111115,
+              "matched_view_accuracy": 0.1673263888888889,
+              "agreement": 0.533611111111111
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2714930555555556,
+              "mirror_accuracy": 0.27163194444444444,
+              "matched_view_accuracy": 0.16159722222222223,
+              "agreement": 0.5155555555555555
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 16.000000000000014,
+        "source_feature_rank": 87,
+        "latent_width": 87,
+        "transported_reference_ridge": 4.204096513026523e-06,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 1.8445636917032082,
+          "ordinary_orbit": 1.847236462336209,
+          "natural_iso": 7.555982070828353e-11,
+          "natural_orbit": 1.336120277537385e-10,
+          "natural_rotated": 7.404327252131382e-11
+        }
+      }
+    },
+    {
+      "seed": 70,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.660937488079071,
+      "latent_width": 55,
+      "teacher_odd_count": 21,
+      "student_orbit_spectrum": [
+        1.6589014694443525e-14,
+        2.4130691885050088e-14,
+        2.7029624099124952e-14,
+        3.53073304514603e-14,
+        7.384534329954901e-14,
+        2.47849939933751e-13,
+        3.3942007158535665e-13,
+        7.670261546539172e-13,
+        2.196717141344507e-12,
+        2.9124067900742994e-12,
+        3.843032384388852e-12,
+        1.3807836724302042e-11,
+        2.118734578552156e-11,
+        5.547660991437439e-11,
+        1.1263033337041742e-10,
+        1.7123551330209312e-10,
+        5.074739741094581e-10,
+        1.3892888896587579e-09,
+        2.3457722720979515e-09,
+        3.744652670443252e-09,
+        5.283499541569556e-09,
+        1.1609119534978523e-08,
+        1.5339308027420923e-08,
+        1.822294634855438e-08,
+        6.297239193102262e-08,
+        9.658524424726164e-08,
+        1.2443992023290737e-07,
+        2.760498734144512e-07,
+        4.269166766409473e-07,
+        1.4135101692368512e-06,
+        1.8625431012388122e-06,
+        7.549761192437243e-06,
+        1.23568410014094e-05,
+        1.36218982741649e-05,
+        2.4042429229455572e-05,
+        6.686583526052647e-05,
+        7.230705188846337e-05,
+        0.00014757229118220872,
+        0.0001805185691043809,
+        0.0002561042053133035,
+        0.00045698453865310727,
+        0.0008701857042626862,
+        0.0016230173364323928,
+        0.0036293696274362986,
+        0.00984574324853654,
+        0.016010660722622458,
+        0.052747658250123966,
+        0.06115470919490185,
+        0.08321918671544978,
+        0.1650465385097734,
+        0.35662756834023746,
+        2.044842571737729,
+        11.888093656891249,
+        18.797017947065253,
+        21.518028941390586
+      ],
+      "source_even_flip_mse": 0.036526866257190704,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.24840277777777778,
+            "mirror_accuracy": 0.25,
+            "matched_view_accuracy": 0.1163888888888889,
+            "agreement": 0.3990625
+          },
+          "teacher": {
+            "clean_accuracy": 0.2571527777777778,
+            "mirror_accuracy": 0.25625,
+            "matched_view_accuracy": 0.18274305555555556,
+            "agreement": 0.6682986111111111
+          },
+          "student": {
+            "clean_accuracy": 0.25593750000000004,
+            "mirror_accuracy": 0.25354166666666667,
+            "matched_view_accuracy": 0.22270833333333334,
+            "agreement": 0.853576388888889
+          },
+          "joint": {
+            "clean_accuracy": 0.25722222222222224,
+            "mirror_accuracy": 0.2548611111111111,
+            "matched_view_accuracy": 0.19586805555555553,
+            "agreement": 0.7285069444444445
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.25677083333333334,
+            "mirror_accuracy": 0.2547569444444444,
+            "matched_view_accuracy": 0.18354166666666666,
+            "agreement": 0.6739930555555556
+          },
+          "two_view": {
+            "clean_accuracy": 0.2622916666666667,
+            "mirror_accuracy": 0.2622916666666667,
+            "matched_view_accuracy": 0.2622916666666667,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.30093749999999997,
+            "mirror_accuracy": 0.3022222222222223,
+            "matched_view_accuracy": 0.18333333333333335,
+            "agreement": 0.5107638888888889
+          },
+          "teacher": {
+            "clean_accuracy": 0.3104166666666667,
+            "mirror_accuracy": 0.3120833333333334,
+            "matched_view_accuracy": 0.22197916666666667,
+            "agreement": 0.6337152777777777
+          },
+          "student": {
+            "clean_accuracy": 0.3132638888888889,
+            "mirror_accuracy": 0.31267361111111114,
+            "matched_view_accuracy": 0.2655208333333333,
+            "agreement": 0.80125
+          },
+          "joint": {
+            "clean_accuracy": 0.3114236111111111,
+            "mirror_accuracy": 0.3125347222222222,
+            "matched_view_accuracy": 0.23465277777777777,
+            "agreement": 0.6850347222222222
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3104513888888889,
+            "mirror_accuracy": 0.3112152777777778,
+            "matched_view_accuracy": 0.22288194444444445,
+            "agreement": 0.6374305555555555
+          },
+          "two_view": {
+            "clean_accuracy": 0.32576388888888885,
+            "mirror_accuracy": 0.32576388888888885,
+            "matched_view_accuracy": 0.32576388888888885,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.32562500000000005,
+            "mirror_accuracy": 0.3267013888888889,
+            "matched_view_accuracy": 0.2279861111111111,
+            "agreement": 0.5985416666666667
+          },
+          "teacher": {
+            "clean_accuracy": 0.3297916666666667,
+            "mirror_accuracy": 0.3296527777777778,
+            "matched_view_accuracy": 0.24493055555555554,
+            "agreement": 0.6539583333333333
+          },
+          "student": {
+            "clean_accuracy": 0.33315972222222223,
+            "mirror_accuracy": 0.33243055555555556,
+            "matched_view_accuracy": 0.27239583333333334,
+            "agreement": 0.7524305555555556
+          },
+          "joint": {
+            "clean_accuracy": 0.33190972222222226,
+            "mirror_accuracy": 0.33,
+            "matched_view_accuracy": 0.2574652777777778,
+            "agreement": 0.6965277777777779
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.33024305555555555,
+            "mirror_accuracy": 0.32972222222222225,
+            "matched_view_accuracy": 0.24534722222222222,
+            "agreement": 0.6545833333333333
+          },
+          "two_view": {
+            "clean_accuracy": 0.34635416666666663,
+            "mirror_accuracy": 0.34635416666666663,
+            "matched_view_accuracy": 0.34635416666666663,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2351388888888889,
+              "mirror_accuracy": 0.23753472222222222,
+              "matched_view_accuracy": 0.10746527777777777,
+              "agreement": 0.38190972222222225
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2548611111111111,
+              "mirror_accuracy": 0.2542013888888889,
+              "matched_view_accuracy": 0.2201736111111111,
+              "agreement": 0.8370833333333334
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2577083333333333,
+              "mirror_accuracy": 0.26166666666666666,
+              "matched_view_accuracy": 0.13201388888888888,
+              "agreement": 0.41916666666666663
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2652083333333333,
+              "mirror_accuracy": 0.2675347222222222,
+              "matched_view_accuracy": 0.16996527777777776,
+              "agreement": 0.5636111111111111
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2586111111111111,
+              "mirror_accuracy": 0.2612847222222222,
+              "matched_view_accuracy": 0.13090277777777778,
+              "agreement": 0.41333333333333333
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.28802083333333334,
+              "mirror_accuracy": 0.2926388888888889,
+              "matched_view_accuracy": 0.16020833333333334,
+              "agreement": 0.4617013888888889
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.3048958333333333,
+              "mirror_accuracy": 0.301875,
+              "matched_view_accuracy": 0.25059027777777776,
+              "agreement": 0.7813541666666667
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.31076388888888884,
+              "mirror_accuracy": 0.31482638888888886,
+              "matched_view_accuracy": 0.18569444444444447,
+              "agreement": 0.4947916666666667
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.315625,
+              "mirror_accuracy": 0.31937499999999996,
+              "matched_view_accuracy": 0.20256944444444444,
+              "agreement": 0.5418402777777778
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3109722222222222,
+              "mirror_accuracy": 0.3145486111111111,
+              "matched_view_accuracy": 0.18583333333333335,
+              "agreement": 0.4958680555555556
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.3302083333333333,
+              "mirror_accuracy": 0.3298958333333333,
+              "matched_view_accuracy": 0.22114583333333332,
+              "agreement": 0.5752430555555555
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.33625000000000005,
+              "mirror_accuracy": 0.33434027777777775,
+              "matched_view_accuracy": 0.26836805555555554,
+              "agreement": 0.7339930555555556
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.36038194444444444,
+              "mirror_accuracy": 0.3582986111111111,
+              "matched_view_accuracy": 0.25024305555555554,
+              "agreement": 0.5888888888888888
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.36125,
+              "mirror_accuracy": 0.3588541666666667,
+              "matched_view_accuracy": 0.25395833333333334,
+              "agreement": 0.600625
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3607638888888889,
+              "mirror_accuracy": 0.3581944444444444,
+              "matched_view_accuracy": 0.25027777777777777,
+              "agreement": 0.5887847222222222
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23475694444444445,
+              "mirror_accuracy": 0.23635416666666667,
+              "matched_view_accuracy": 0.10597222222222222,
+              "agreement": 0.3766319444444445
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.25677083333333334,
+              "mirror_accuracy": 0.2573263888888889,
+              "matched_view_accuracy": 0.20868055555555554,
+              "agreement": 0.7726041666666666
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.2577083333333333,
+              "mirror_accuracy": 0.26166666666666666,
+              "matched_view_accuracy": 0.13201388888888888,
+              "agreement": 0.41916666666666663
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2652083333333333,
+              "mirror_accuracy": 0.2675347222222222,
+              "matched_view_accuracy": 0.16996527777777776,
+              "agreement": 0.5636111111111111
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2586111111111111,
+              "mirror_accuracy": 0.2612847222222222,
+              "matched_view_accuracy": 0.13090277777777778,
+              "agreement": 0.41333333333333333
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.29097222222222224,
+              "mirror_accuracy": 0.2951388888888889,
+              "matched_view_accuracy": 0.1629861111111111,
+              "agreement": 0.4660763888888889
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.3038194444444444,
+              "mirror_accuracy": 0.3042708333333334,
+              "matched_view_accuracy": 0.2245486111111111,
+              "agreement": 0.6755208333333333
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.31076388888888884,
+              "mirror_accuracy": 0.31482638888888886,
+              "matched_view_accuracy": 0.18569444444444447,
+              "agreement": 0.4947916666666667
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.315625,
+              "mirror_accuracy": 0.31937499999999996,
+              "matched_view_accuracy": 0.20256944444444444,
+              "agreement": 0.5418402777777778
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3109722222222222,
+              "mirror_accuracy": 0.3145486111111111,
+              "matched_view_accuracy": 0.18583333333333335,
+              "agreement": 0.4958680555555556
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.33211805555555557,
+              "mirror_accuracy": 0.33274305555555556,
+              "matched_view_accuracy": 0.2247222222222222,
+              "agreement": 0.5789583333333334
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.3339930555555556,
+              "mirror_accuracy": 0.33482638888888894,
+              "matched_view_accuracy": 0.24631944444444445,
+              "agreement": 0.6544097222222223
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.36038194444444444,
+              "mirror_accuracy": 0.3582986111111111,
+              "matched_view_accuracy": 0.25024305555555554,
+              "agreement": 0.5888888888888888
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.36125,
+              "mirror_accuracy": 0.3588541666666667,
+              "matched_view_accuracy": 0.25395833333333334,
+              "agreement": 0.600625
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3607638888888889,
+              "mirror_accuracy": 0.3581944444444444,
+              "matched_view_accuracy": 0.25027777777777777,
+              "agreement": 0.5887847222222222
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 16.000000000000004,
+        "source_feature_rank": 55,
+        "latent_width": 55,
+        "transported_reference_ridge": 1.475256887554399e-05,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 2.524646643051614,
+          "ordinary_orbit": 1.8355271847969645,
+          "natural_iso": 3.054421930371351e-11,
+          "natural_orbit": 4.226468328544138e-11,
+          "natural_rotated": 3.70872973515274e-11
+        }
+      }
+    },
+    {
+      "seed": 71,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.664843738079071,
+      "latent_width": 72,
+      "teacher_odd_count": 27,
+      "student_orbit_spectrum": [
+        -8.408124351786142e-16,
+        7.791264649117371e-16,
+        1.2353232138657649e-15,
+        1.3602580541576522e-15,
+        1.747831490716479e-15,
+        1.9799104970078322e-15,
+        2.7856865084359708e-15,
+        3.0330623671354686e-15,
+        3.1944626895903474e-15,
+        3.4934531891422654e-15,
+        3.512177491004561e-15,
+        3.976119869354353e-15,
+        4.244583557480389e-15,
+        4.889739307049861e-15,
+        5.0253129866363396e-15,
+        5.366784622683025e-15,
+        6.322750147790782e-15,
+        6.692583961516453e-15,
+        7.66335610165236e-15,
+        8.45237193005226e-15,
+        9.213894318481566e-15,
+        9.901911279640288e-15,
+        1.1484881919983002e-14,
+        1.226165245357353e-14,
+        1.3033367723198803e-14,
+        1.5044647041591746e-14,
+        1.6923130369968005e-14,
+        1.819279791233192e-14,
+        2.0520006313777932e-14,
+        2.126702510081649e-14,
+        2.2722216293163815e-14,
+        2.421457539426507e-14,
+        2.6732475509092817e-14,
+        2.870551592663819e-14,
+        3.008681253811651e-14,
+        3.3311550913448583e-14,
+        3.7898514998695543e-14,
+        4.3148088523088064e-14,
+        4.81951161330151e-14,
+        5.027833317325797e-14,
+        7.246373784375359e-14,
+        1.376400739354869e-13,
+        3.1218721033596245e-13,
+        1.1703963316567172e-12,
+        4.403680159959562e-12,
+        6.116230529037178e-12,
+        4.871586403336597e-11,
+        2.0843719226503406e-10,
+        4.750666017474792e-10,
+        2.000523996859918e-09,
+        2.6226293365013304e-09,
+        4.062477447285944e-09,
+        2.18836419564494e-08,
+        4.539637823901422e-08,
+        1.0443336536225895e-07,
+        4.358940338532344e-07,
+        1.4974636162625728e-06,
+        3.17813390316277e-06,
+        6.648790058467234e-06,
+        1.808083083389947e-05,
+        2.751829307686333e-05,
+        5.080394955870998e-05,
+        9.885650887786344e-05,
+        0.0001536682393042657,
+        0.00019471454307738384,
+        0.0013266781831546245,
+        0.003010523128668426,
+        0.13443142203962363,
+        0.902716832971867,
+        1.3104436592437658,
+        2.136642913967504,
+        67.51087238667508
+      ],
+      "source_even_flip_mse": 0.008582117967307568,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.24888888888888888,
+            "mirror_accuracy": 0.24149305555555556,
+            "matched_view_accuracy": 0.14211805555555557,
+            "agreement": 0.5123958333333333
+          },
+          "teacher": {
+            "clean_accuracy": 0.2528472222222222,
+            "mirror_accuracy": 0.2485763888888889,
+            "matched_view_accuracy": 0.18770833333333337,
+            "agreement": 0.6959375
+          },
+          "student": {
+            "clean_accuracy": 0.25045138888888885,
+            "mirror_accuracy": 0.24895833333333334,
+            "matched_view_accuracy": 0.22819444444444445,
+            "agreement": 0.8922916666666667
+          },
+          "joint": {
+            "clean_accuracy": 0.250625,
+            "mirror_accuracy": 0.2459722222222222,
+            "matched_view_accuracy": 0.19149305555555557,
+            "agreement": 0.7234375
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2532986111111111,
+            "mirror_accuracy": 0.24888888888888888,
+            "matched_view_accuracy": 0.18770833333333334,
+            "agreement": 0.6941319444444445
+          },
+          "two_view": {
+            "clean_accuracy": 0.26059027777777777,
+            "mirror_accuracy": 0.26059027777777777,
+            "matched_view_accuracy": 0.26059027777777777,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.2768402777777778,
+            "mirror_accuracy": 0.2704861111111111,
+            "matched_view_accuracy": 0.18479166666666666,
+            "agreement": 0.5770833333333334
+          },
+          "teacher": {
+            "clean_accuracy": 0.2808333333333333,
+            "mirror_accuracy": 0.27631944444444445,
+            "matched_view_accuracy": 0.20965277777777777,
+            "agreement": 0.672951388888889
+          },
+          "student": {
+            "clean_accuracy": 0.28034722222222225,
+            "mirror_accuracy": 0.27677083333333335,
+            "matched_view_accuracy": 0.25520833333333337,
+            "agreement": 0.8881944444444445
+          },
+          "joint": {
+            "clean_accuracy": 0.28152777777777777,
+            "mirror_accuracy": 0.2750694444444445,
+            "matched_view_accuracy": 0.2210416666666667,
+            "agreement": 0.7234722222222223
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2809027777777778,
+            "mirror_accuracy": 0.27631944444444445,
+            "matched_view_accuracy": 0.20944444444444446,
+            "agreement": 0.6717708333333333
+          },
+          "two_view": {
+            "clean_accuracy": 0.29076388888888893,
+            "mirror_accuracy": 0.29076388888888893,
+            "matched_view_accuracy": 0.29076388888888893,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.2911111111111111,
+            "mirror_accuracy": 0.28677083333333336,
+            "matched_view_accuracy": 0.20590277777777777,
+            "agreement": 0.6290625
+          },
+          "teacher": {
+            "clean_accuracy": 0.29079861111111116,
+            "mirror_accuracy": 0.2890972222222222,
+            "matched_view_accuracy": 0.2167013888888889,
+            "agreement": 0.6731944444444444
+          },
+          "student": {
+            "clean_accuracy": 0.2880555555555555,
+            "mirror_accuracy": 0.2871875,
+            "matched_view_accuracy": 0.2533333333333333,
+            "agreement": 0.8509722222222222
+          },
+          "joint": {
+            "clean_accuracy": 0.29107638888888887,
+            "mirror_accuracy": 0.28666666666666674,
+            "matched_view_accuracy": 0.2210416666666667,
+            "agreement": 0.6998263888888889
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.29097222222222224,
+            "mirror_accuracy": 0.28913194444444446,
+            "matched_view_accuracy": 0.2167013888888889,
+            "agreement": 0.6726388888888889
+          },
+          "two_view": {
+            "clean_accuracy": 0.3032986111111111,
+            "mirror_accuracy": 0.3032986111111111,
+            "matched_view_accuracy": 0.3032986111111111,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23951388888888886,
+              "mirror_accuracy": 0.23572916666666666,
+              "matched_view_accuracy": 0.13201388888888888,
+              "agreement": 0.4854166666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.24913194444444442,
+              "mirror_accuracy": 0.24885416666666665,
+              "matched_view_accuracy": 0.22586805555555556,
+              "agreement": 0.8841666666666668
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.23791666666666667,
+              "mirror_accuracy": 0.23628472222222224,
+              "matched_view_accuracy": 0.12364583333333332,
+              "agreement": 0.4564930555555555
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24288194444444444,
+              "mirror_accuracy": 0.23989583333333334,
+              "matched_view_accuracy": 0.15625,
+              "agreement": 0.5892708333333334
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.23760416666666667,
+              "mirror_accuracy": 0.2357986111111111,
+              "matched_view_accuracy": 0.12263888888888888,
+              "agreement": 0.4539236111111111
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2668402777777778,
+              "mirror_accuracy": 0.263125,
+              "matched_view_accuracy": 0.1761111111111111,
+              "agreement": 0.5754166666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2685763888888889,
+              "mirror_accuracy": 0.2675694444444444,
+              "matched_view_accuracy": 0.24625000000000002,
+              "agreement": 0.8926736111111111
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.27045138888888887,
+              "mirror_accuracy": 0.2631597222222222,
+              "matched_view_accuracy": 0.17086805555555556,
+              "agreement": 0.55375
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2726736111111111,
+              "mirror_accuracy": 0.2661111111111111,
+              "matched_view_accuracy": 0.18416666666666667,
+              "agreement": 0.6004166666666667
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2704861111111111,
+              "mirror_accuracy": 0.2629861111111111,
+              "matched_view_accuracy": 0.17055555555555554,
+              "agreement": 0.5528125
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2873958333333333,
+              "mirror_accuracy": 0.28506944444444443,
+              "matched_view_accuracy": 0.21302083333333333,
+              "agreement": 0.6667013888888889
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.28607638888888887,
+              "mirror_accuracy": 0.28145833333333337,
+              "matched_view_accuracy": 0.2530555555555556,
+              "agreement": 0.8648958333333334
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.28725694444444444,
+              "mirror_accuracy": 0.28055555555555556,
+              "matched_view_accuracy": 0.1988888888888889,
+              "agreement": 0.6277430555555554
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.28805555555555556,
+              "mirror_accuracy": 0.2807638888888889,
+              "matched_view_accuracy": 0.20378472222222221,
+              "agreement": 0.6457638888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2875,
+              "mirror_accuracy": 0.280625,
+              "matched_view_accuracy": 0.19895833333333335,
+              "agreement": 0.6272222222222222
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.23854166666666665,
+              "mirror_accuracy": 0.2341666666666667,
+              "matched_view_accuracy": 0.13090277777777778,
+              "agreement": 0.4798263888888889
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.24857638888888886,
+              "mirror_accuracy": 0.24861111111111112,
+              "matched_view_accuracy": 0.21954861111111112,
+              "agreement": 0.858125
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.23791666666666667,
+              "mirror_accuracy": 0.23628472222222224,
+              "matched_view_accuracy": 0.12364583333333332,
+              "agreement": 0.4564930555555555
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24288194444444444,
+              "mirror_accuracy": 0.23989583333333334,
+              "matched_view_accuracy": 0.15625,
+              "agreement": 0.5892708333333334
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.23760416666666667,
+              "mirror_accuracy": 0.2357986111111111,
+              "matched_view_accuracy": 0.12263888888888888,
+              "agreement": 0.4539236111111111
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.26760416666666664,
+              "mirror_accuracy": 0.2636805555555556,
+              "matched_view_accuracy": 0.17479166666666668,
+              "agreement": 0.5686805555555556
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.2715277777777778,
+              "mirror_accuracy": 0.2682986111111111,
+              "matched_view_accuracy": 0.23958333333333331,
+              "agreement": 0.8536805555555556
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.27045138888888887,
+              "mirror_accuracy": 0.2631597222222222,
+              "matched_view_accuracy": 0.17086805555555556,
+              "agreement": 0.55375
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.2726736111111111,
+              "mirror_accuracy": 0.2661111111111111,
+              "matched_view_accuracy": 0.18416666666666667,
+              "agreement": 0.6004166666666667
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2704861111111111,
+              "mirror_accuracy": 0.2629861111111111,
+              "matched_view_accuracy": 0.17055555555555554,
+              "agreement": 0.5528125
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.28805555555555556,
+              "mirror_accuracy": 0.28600694444444447,
+              "matched_view_accuracy": 0.2115625,
+              "agreement": 0.6579166666666667
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.28725694444444444,
+              "mirror_accuracy": 0.2833333333333333,
+              "matched_view_accuracy": 0.24420138888888887,
+              "agreement": 0.8205902777777778
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.28725694444444444,
+              "mirror_accuracy": 0.28055555555555556,
+              "matched_view_accuracy": 0.1988888888888889,
+              "agreement": 0.6277430555555554
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.28805555555555556,
+              "mirror_accuracy": 0.2807638888888889,
+              "matched_view_accuracy": 0.20378472222222221,
+              "agreement": 0.6457638888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.2875,
+              "mirror_accuracy": 0.280625,
+              "matched_view_accuracy": 0.19895833333333335,
+              "agreement": 0.6272222222222222
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 16.000000000000018,
+        "source_feature_rank": 72,
+        "latent_width": 72,
+        "transported_reference_ridge": 5.097020381413098e-06,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 1.8283817968588383,
+          "ordinary_orbit": 1.4150832496791739,
+          "natural_iso": 8.985552333966344e-12,
+          "natural_orbit": 7.539434855278248e-12,
+          "natural_rotated": 2.5273751712095104e-12
+        }
+      }
+    },
+    {
+      "seed": 72,
+      "source_classes": [
+        0,
+        2,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "teacher_probe_accuracy": 0.702343761920929,
+      "latent_width": 72,
+      "teacher_odd_count": 28,
+      "student_orbit_spectrum": [
+        2.840235470235687e-15,
+        3.6764314660938284e-15,
+        4.351051425706272e-15,
+        5.5815499119861e-15,
+        6.8748181931721204e-15,
+        6.930421108261341e-15,
+        7.837869217038132e-15,
+        8.332787373948742e-15,
+        9.323341465269745e-15,
+        1.0262523650216161e-14,
+        1.0923918974940882e-14,
+        1.2344526754063187e-14,
+        1.3711907661754008e-14,
+        1.4647382606334576e-14,
+        1.5968007999104882e-14,
+        1.8954702402185428e-14,
+        2.096897298747368e-14,
+        2.441563119042625e-14,
+        2.6392075239078548e-14,
+        2.846911696106413e-14,
+        3.311926424000566e-14,
+        3.67775420006929e-14,
+        4.0753705757486233e-14,
+        4.434698027580687e-14,
+        5.786715055432551e-14,
+        7.812245399257643e-14,
+        8.131221670055016e-14,
+        1.1833657944141205e-13,
+        1.5994602059154571e-13,
+        5.443806007269975e-13,
+        1.8921487691449255e-12,
+        3.971375235906464e-12,
+        5.72345746517431e-12,
+        8.420360597289557e-12,
+        2.995395736148043e-11,
+        4.3834079124529225e-11,
+        6.991278748350436e-11,
+        7.248217554224737e-11,
+        1.7920934712144476e-10,
+        3.985781616558213e-10,
+        5.375688457189332e-10,
+        1.0906565091338596e-09,
+        2.026117840777741e-09,
+        2.9776811041434585e-09,
+        6.215740836178219e-09,
+        7.99111416681049e-09,
+        2.3630012810473157e-08,
+        8.793328855256518e-08,
+        2.0401345105163625e-07,
+        4.5571828308037763e-07,
+        8.341118928125906e-07,
+        1.8200022575770852e-06,
+        7.709124263123232e-06,
+        1.339445970874462e-05,
+        2.8393931303161007e-05,
+        0.00010187003181378073,
+        0.00022009824289722442,
+        0.0003222456831366357,
+        0.0004177876799351062,
+        0.0007796486303769806,
+        0.0007870654882125565,
+        0.0009303055809043898,
+        0.0023201550494979205,
+        0.004504162251046504,
+        0.013868078588342762,
+        0.2789212960102774,
+        0.3322782985190024,
+        0.9267638886452593,
+        0.93886622451132,
+        1.8915174476356122,
+        4.80584901432297,
+        62.801499468550645
+      ],
+      "source_even_flip_mse": 0.01375976949930191,
+      "shots": {
+        "5": {
+          "isotropic": {
+            "clean_accuracy": 0.2519097222222222,
+            "mirror_accuracy": 0.24996527777777777,
+            "matched_view_accuracy": 0.16340277777777779,
+            "agreement": 0.5910763888888889
+          },
+          "teacher": {
+            "clean_accuracy": 0.2581597222222222,
+            "mirror_accuracy": 0.25604166666666667,
+            "matched_view_accuracy": 0.20444444444444446,
+            "agreement": 0.7503124999999999
+          },
+          "student": {
+            "clean_accuracy": 0.254375,
+            "mirror_accuracy": 0.25684027777777774,
+            "matched_view_accuracy": 0.22618055555555555,
+            "agreement": 0.8638194444444445
+          },
+          "joint": {
+            "clean_accuracy": 0.2576736111111111,
+            "mirror_accuracy": 0.2578472222222222,
+            "matched_view_accuracy": 0.2079513888888889,
+            "agreement": 0.7660069444444444
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.2570138888888889,
+            "mirror_accuracy": 0.2563888888888889,
+            "matched_view_accuracy": 0.2035763888888889,
+            "agreement": 0.7479861111111111
+          },
+          "two_view": {
+            "clean_accuracy": 0.2615625,
+            "mirror_accuracy": 0.2615625,
+            "matched_view_accuracy": 0.2615625,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "isotropic": {
+            "clean_accuracy": 0.3125,
+            "mirror_accuracy": 0.3117361111111111,
+            "matched_view_accuracy": 0.21118055555555557,
+            "agreement": 0.5959027777777778
+          },
+          "teacher": {
+            "clean_accuracy": 0.31631944444444443,
+            "mirror_accuracy": 0.3163194444444445,
+            "matched_view_accuracy": 0.2404513888888889,
+            "agreement": 0.6902430555555555
+          },
+          "student": {
+            "clean_accuracy": 0.3164236111111111,
+            "mirror_accuracy": 0.31743055555555555,
+            "matched_view_accuracy": 0.27746527777777774,
+            "agreement": 0.8311805555555556
+          },
+          "joint": {
+            "clean_accuracy": 0.3169791666666667,
+            "mirror_accuracy": 0.31833333333333336,
+            "matched_view_accuracy": 0.24836805555555555,
+            "agreement": 0.7153472222222222
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3154166666666666,
+            "mirror_accuracy": 0.31524305555555554,
+            "matched_view_accuracy": 0.2390625,
+            "agreement": 0.6882986111111111
+          },
+          "two_view": {
+            "clean_accuracy": 0.3203472222222222,
+            "mirror_accuracy": 0.3203472222222222,
+            "matched_view_accuracy": 0.3203472222222222,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "isotropic": {
+            "clean_accuracy": 0.35020833333333334,
+            "mirror_accuracy": 0.3473263888888889,
+            "matched_view_accuracy": 0.265,
+            "agreement": 0.6773611111111111
+          },
+          "teacher": {
+            "clean_accuracy": 0.35215277777777776,
+            "mirror_accuracy": 0.3512847222222222,
+            "matched_view_accuracy": 0.2795833333333333,
+            "agreement": 0.7194097222222222
+          },
+          "student": {
+            "clean_accuracy": 0.3504861111111111,
+            "mirror_accuracy": 0.35291666666666666,
+            "matched_view_accuracy": 0.30809027777777775,
+            "agreement": 0.8206944444444444
+          },
+          "joint": {
+            "clean_accuracy": 0.35284722222222226,
+            "mirror_accuracy": 0.3516666666666666,
+            "matched_view_accuracy": 0.2846875,
+            "agreement": 0.7340625000000001
+          },
+          "shuffled_student": {
+            "clean_accuracy": 0.3520833333333333,
+            "mirror_accuracy": 0.3507638888888889,
+            "matched_view_accuracy": 0.27913194444444445,
+            "agreement": 0.7188888888888889
+          },
+          "two_view": {
+            "clean_accuracy": 0.3589930555555555,
+            "mirror_accuracy": 0.3589930555555555,
+            "matched_view_accuracy": 0.3589930555555555,
+            "agreement": 1.0
+          }
+        }
+      },
+      "coordinate_comparison": {
+        "native": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.2523263888888889,
+              "mirror_accuracy": 0.25100694444444444,
+              "matched_view_accuracy": 0.16621527777777778,
+              "agreement": 0.6016319444444445
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.25854166666666667,
+              "mirror_accuracy": 0.2586111111111111,
+              "matched_view_accuracy": 0.22843750000000002,
+              "agreement": 0.8550347222222222
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.23916666666666664,
+              "mirror_accuracy": 0.23993055555555556,
+              "matched_view_accuracy": 0.12944444444444442,
+              "agreement": 0.47531249999999997
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24479166666666669,
+              "mirror_accuracy": 0.24829861111111112,
+              "matched_view_accuracy": 0.15864583333333332,
+              "agreement": 0.5917708333333334
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.23791666666666667,
+              "mirror_accuracy": 0.23961805555555554,
+              "matched_view_accuracy": 0.12951388888888887,
+              "agreement": 0.47534722222222225
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.31399305555555557,
+              "mirror_accuracy": 0.3125347222222222,
+              "matched_view_accuracy": 0.2182291666666667,
+              "agreement": 0.6125
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.3246527777777778,
+              "mirror_accuracy": 0.32204861111111116,
+              "matched_view_accuracy": 0.28326388888888887,
+              "agreement": 0.8315972222222222
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.30246527777777776,
+              "mirror_accuracy": 0.3113194444444445,
+              "matched_view_accuracy": 0.18694444444444444,
+              "agreement": 0.5152430555555556
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.3083680555555556,
+              "mirror_accuracy": 0.31708333333333333,
+              "matched_view_accuracy": 0.20315972222222223,
+              "agreement": 0.5571180555555555
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3018402777777778,
+              "mirror_accuracy": 0.3113194444444445,
+              "matched_view_accuracy": 0.18701388888888887,
+              "agreement": 0.5165625
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.34243055555555557,
+              "mirror_accuracy": 0.33934027777777775,
+              "matched_view_accuracy": 0.25927083333333334,
+              "agreement": 0.6807986111111111
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.34673611111111113,
+              "mirror_accuracy": 0.34513888888888894,
+              "matched_view_accuracy": 0.30093749999999997,
+              "agreement": 0.82125
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.3492361111111111,
+              "mirror_accuracy": 0.3545138888888889,
+              "matched_view_accuracy": 0.24836805555555558,
+              "agreement": 0.6116666666666667
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.35062499999999996,
+              "mirror_accuracy": 0.3556944444444445,
+              "matched_view_accuracy": 0.25274305555555554,
+              "agreement": 0.6245138888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.34934027777777776,
+              "mirror_accuracy": 0.35479166666666667,
+              "matched_view_accuracy": 0.24871527777777777,
+              "agreement": 0.6120486111111111
+            }
+          }
+        },
+        "mixed": {
+          "5": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.25364583333333335,
+              "mirror_accuracy": 0.25506944444444446,
+              "matched_view_accuracy": 0.1720833333333333,
+              "agreement": 0.6177430555555556
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.25871527777777775,
+              "mirror_accuracy": 0.26,
+              "matched_view_accuracy": 0.22631944444444446,
+              "agreement": 0.8425
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.23916666666666664,
+              "mirror_accuracy": 0.23993055555555556,
+              "matched_view_accuracy": 0.12944444444444442,
+              "agreement": 0.47531249999999997
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.24479166666666669,
+              "mirror_accuracy": 0.24829861111111112,
+              "matched_view_accuracy": 0.15864583333333332,
+              "agreement": 0.5917708333333334
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.23791666666666667,
+              "mirror_accuracy": 0.23961805555555554,
+              "matched_view_accuracy": 0.12951388888888887,
+              "agreement": 0.47534722222222225
+            }
+          },
+          "20": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.3171875,
+              "mirror_accuracy": 0.3118402777777778,
+              "matched_view_accuracy": 0.21583333333333332,
+              "agreement": 0.6002083333333333
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.3269791666666667,
+              "mirror_accuracy": 0.3245486111111111,
+              "matched_view_accuracy": 0.2783333333333333,
+              "agreement": 0.8065625000000001
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.30246527777777776,
+              "mirror_accuracy": 0.3113194444444445,
+              "matched_view_accuracy": 0.18694444444444444,
+              "agreement": 0.5152430555555556
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.3083680555555556,
+              "mirror_accuracy": 0.31708333333333333,
+              "matched_view_accuracy": 0.20315972222222223,
+              "agreement": 0.5571180555555555
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.3018402777777778,
+              "mirror_accuracy": 0.3113194444444445,
+              "matched_view_accuracy": 0.18701388888888887,
+              "agreement": 0.5165625
+            }
+          },
+          "60": {
+            "ordinary_iso": {
+              "clean_accuracy": 0.34534722222222225,
+              "mirror_accuracy": 0.3398611111111111,
+              "matched_view_accuracy": 0.2605208333333333,
+              "agreement": 0.6816666666666666
+            },
+            "ordinary_orbit": {
+              "clean_accuracy": 0.34965277777777776,
+              "mirror_accuracy": 0.34684027777777776,
+              "matched_view_accuracy": 0.29614583333333333,
+              "agreement": 0.795138888888889
+            },
+            "natural_iso": {
+              "clean_accuracy": 0.3492361111111111,
+              "mirror_accuracy": 0.3545138888888889,
+              "matched_view_accuracy": 0.24836805555555558,
+              "agreement": 0.6116666666666667
+            },
+            "natural_orbit": {
+              "clean_accuracy": 0.35062499999999996,
+              "mirror_accuracy": 0.3556944444444445,
+              "matched_view_accuracy": 0.25274305555555554,
+              "agreement": 0.6245138888888889
+            },
+            "natural_rotated": {
+              "clean_accuracy": 0.34934027777777776,
+              "mirror_accuracy": 0.35479166666666667,
+              "matched_view_accuracy": 0.24871527777777777,
+              "agreement": 0.6120486111111111
+            }
+          }
+        }
+      },
+      "coordinate_diagnostics": {
+        "condition_number": 15.999999999999995,
+        "source_feature_rank": 72,
+        "latent_width": 72,
+        "transported_reference_ridge": 8.120808965230973e-06,
+        "test_kernel_relative_error": {
+          "ordinary_iso": 1.8737531785588168,
+          "ordinary_orbit": 1.4745646389679734,
+          "natural_iso": 4.3665312387617744e-11,
+          "natural_orbit": 7.658153957901839e-11,
+          "natural_rotated": 7.622872282030236e-11
+        }
+      }
+    }
+  ],
+  "elapsed_seconds": 72.56166693201521
+}
