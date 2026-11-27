@@ -19,6 +19,11 @@ MATCHED_METHODS = {"isotropic": "Isotropic reference", "rotated": "Rotated spect
 ROW_METHODS = {"path_matched": "Path · uniform rows", "split_matched": "Separate · uniform rows",
                "teacher_rows": "Path · teacher rows", "rotated_rows": "Path · rotated rows",
                "reversed_rows": "Path · reversed rows"}
+TARGET_ROW_METHODS = {"path_matched": "Path · uniform output", "rotated_matched": "Rotated path · uniform output",
+                      "target_rows_path_aligned": "Path · target centroids",
+                      "target_rows_path_rotated": "Path · rotated centroids",
+                      "target_rows_rotated_aligned": "Rotated path · target centroids",
+                      "target_rows_rotated_rotated": "Rotated path · rotated centroids"}
 ACTION_METHODS = {"path_matched": "Input path prior", "split_matched": "Separate generator budgets",
                   "teacher_action": "Teacher action", "rotated_action": "Rotated teacher action",
                   "identity_action": "Identity output action"}
@@ -49,6 +54,8 @@ def main():
     methods = MATCHED_METHODS if data["config"].get("match_update_rms", False) else METHODS
     if data["config"].get("teacher_row_prior", False):
         methods = ROW_METHODS
+    elif data["config"].get("target_row_prior", False):
+        methods = TARGET_ROW_METHODS
     elif data["config"].get("intertwining_prior", False):
         methods = ACTION_METHODS
     if data["config"].get("compare_probe_domain", False):

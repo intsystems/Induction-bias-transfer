@@ -87,6 +87,17 @@ def teacher_row_precisions(views, seed):
             "reversed_rows": (axes * strengths[::-1]) @ axes.T}, strengths
 
 
+def target_row_precisions(center, supports, count, shots, rotation):
+    centroids = F.linear(supports.reshape(count, shots, -1).mean(dim=1), center)
+    centroids = centroids - centroids.mean(dim=0)
+    between = centroids.T @ centroids
+    energy = between.diagonal().mean()
+    normalized = between / energy.clamp_min(1e-9)
+    identity = torch.eye(len(center), device=center.device, dtype=center.dtype)
+    aligned = identity + .5 * (normalized - normalized.diagonal().mean() * identity)
+    return {"aligned": aligned, "rotated": rotation @ aligned @ rotation.T}
+
+
 def composition_action_penalties(stem_action, teacher_views, seed):
     centered = teacher_views - teacher_views.mean(axis=(0, 1))
     _, teacher_action, _ = composition_moments(centered, path_composition=True)
@@ -216,6 +227,10 @@ def run(train, test, args, seed, device, traffic_paths=None):
             for key, (a, b, scale) in matrices.items()
         }
         diagnostics["action_penalty_normalizers"] = {key: scale for key, (_, _, scale) in matrices.items()}
+    if args.target_row_prior:
+        shape = (len(weights), len(weights))
+        rotation, _ = np.linalg.qr(np.random.default_rng(seed + 6100).normal(size=shape))
+        target_rotation = torch.as_tensor(rotation, device=device, dtype=weights.dtype)
 
     def coordinates(views):
         return torch.as_tensor((views - offset) @ whitener, device=device, dtype=weights.dtype)
@@ -252,6 +267,14 @@ def run(train, test, args, seed, device, traffic_paths=None):
                         weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
                         radii=reference_radii, row_precision=row_precision
                     )
+                if args.target_row_prior:
+                    target_rows = target_row_precisions(weights, design, len(target), n, target_rotation)
+                    for input_name in ("path", "rotated"):
+                        for output_name, row_precision in target_rows.items():
+                            results[f"target_rows_{input_name}_{output_name}"], _ = fit_target(
+                                weights, bias, head, design, labels, target_views, truth, precisions[input_name], args,
+                                radii=reference_radii, row_precision=row_precision
+                            )
                 for name, action_penalty in action_penalties.items():
                     results[name], _ = fit_target(
                         weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
@@ -305,10 +328,12 @@ def main():
                               help="vary the output precision using the teacher's composition stability")
     output_prior.add_argument("--intertwining-prior", action="store_true",
                               help="penalize changes that disrupt the composition action across the adapter")
+    output_prior.add_argument("--target-row-prior", action="store_true",
+                              help="protect clean target class-centroid directions in the adapter output")
     args = parser.parse_args()
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
-    if (args.teacher_row_prior or args.intertwining_prior or args.compare_probe_domain
+    if (args.teacher_row_prior or args.intertwining_prior or args.target_row_prior or args.compare_probe_domain
             or args.hybrid_prior or args.spectral_blocks or args.spectral_orientation):
         args.match_update_rms = True
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:
