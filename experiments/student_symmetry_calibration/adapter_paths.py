@@ -11,7 +11,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from experiment import CIFAR10, HERE, class_split, data_partitions, discover_basis, fit_student, fit_teacher
-from generator_budget import TEST_VIEWS, embed_orbit, source_priors
+from generator_budget import TEST_VIEWS, composition_moments, embed_orbit, source_priors
 
 
 def source_adapter_priors(views, budget, seed):
@@ -34,8 +34,21 @@ def coordinate_adapter(adapter, whitener, offset):
     return weight, bias
 
 
+def teacher_row_precisions(views, seed):
+    centered = views - views.mean(axis=(0, 1))
+    moments, _, _ = composition_moments(centered, path_composition=True)
+    energies, axes = np.linalg.eigh(moments["mean_prediction"])
+    strengths = 1 / (.1 + np.maximum(energies, 0))
+    strengths /= strengths.mean()
+    rotation, _ = np.linalg.qr(np.random.default_rng(seed + 2100).normal(size=axes.shape))
+    aligned = (axes * strengths) @ axes.T
+    return {"teacher_rows": aligned,
+            "rotated_rows": rotation @ aligned @ rotation.T,
+            "reversed_rows": (axes * strengths[::-1]) @ axes.T}, strengths
+
+
 def fit_target(center, bias, init_head, supports, labels, queries, truth, precision, args, *,
-               freeze=False, radii=None, record_radii=False):
+               freeze=False, radii=None, record_radii=False, row_precision=None):
     weight = nn.Parameter(center.clone(), requires_grad=not freeze)
     intercept = nn.Parameter(bias.clone(), requires_grad=not freeze)
     head = nn.Parameter(init_head.clone())
@@ -48,7 +61,8 @@ def fit_target(center, bias, init_head, supports, labels, queries, truth, precis
         loss = F.cross_entropy(logits, labels)
         if precision is not None:
             displacement = weight - center
-            loss = loss + args.penalty * ((displacement @ precision) * displacement).mean()
+            output_penalty = displacement if row_precision is None else row_precision @ displacement
+            loss = loss + args.penalty * ((displacement @ precision) * output_penalty).mean()
         loss.backward()
         optimizer.step()
         if radii is not None or record_radii:
@@ -84,6 +98,15 @@ def run(train, test, args, seed, device):
                                        torch.as_tensor(whitener, device=device, dtype=torch.float32),
                                        torch.as_tensor(offset, device=device, dtype=torch.float32))
     precisions = {key: torch.as_tensor(value, device=device, dtype=torch.float32) for key, value in priors.items()}
+    row_priors = {}
+    diagnostics = {}
+    if args.teacher_row_prior:
+        teacher_views = embed_orbit(lambda batch: (teacher.encode(batch) - mean) @ basis,
+                                    probe[1::2], device, args.batch_size)
+        row_matrices, strengths = teacher_row_precisions(teacher_views, seed)
+        row_priors = {key: torch.as_tensor(value, device=device, dtype=weights.dtype) for key, value in row_matrices.items()}
+        diagnostics["row_precision_spectrum"] = strengths.tolist()
+
     def coordinates(views):
         return torch.as_tensor((views - offset) @ whitener, device=device, dtype=weights.dtype)
 
@@ -114,9 +137,15 @@ def run(train, test, args, seed, device):
                         weights, bias, head, design, labels, target_views, truth, precisions[name], args,
                         radii=reference_radii
                     )
+                for name, row_precision in row_priors.items():
+                    results[name], _ = fit_target(
+                        weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
+                        radii=reference_radii, row_precision=row_precision
+                    )
             rows[str(n)].append(results)
     print(seed, "completed", flush=True)
-    return {"seed": seed, "latent_width": len(weights), "source_moment_error": moment_error, "shots": rows}
+    return {"seed": seed, "latent_width": len(weights), "source_moment_error": moment_error,
+            "shots": rows, **diagnostics}
 
 
 def main():
@@ -140,7 +169,11 @@ def main():
     parser.add_argument("--budget", type=float, default=.25)
     parser.add_argument("--match-update-rms", action="store_true",
                         help="match the isotropic adapter displacement after each optimizer step")
+    parser.add_argument("--teacher-row-prior", action="store_true",
+                        help="vary the output precision using the teacher's composition stability")
     args = parser.parse_args()
+    if args.teacher_row_prior:
+        args.match_update_rms = True
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:
         parser.error("need at least two probe examples per class, a variance budget in (0, 1), and a nonnegative penalty")
     if args.epochs < 1:

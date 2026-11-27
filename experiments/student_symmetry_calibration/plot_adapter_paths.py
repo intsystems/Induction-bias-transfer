@@ -16,6 +16,9 @@ METHODS = {"frozen": "Frozen adapter", "initialization": "Initialization only",
 MATCHED_METHODS = {"isotropic": "Isotropic reference", "rotated": "Rotated spectrum",
                    "path": "Path prior", "rotated_matched": "Rotated · matched displacement",
                    "path_matched": "Path · matched displacement", "split_matched": "Separate · matched displacement"}
+ROW_METHODS = {"path_matched": "Path · uniform rows", "split_matched": "Separate · uniform rows",
+               "teacher_rows": "Path · teacher rows", "rotated_rows": "Path · rotated rows",
+               "reversed_rows": "Path · reversed rows"}
 
 
 def main():
@@ -26,6 +29,8 @@ def main():
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
     methods = MATCHED_METHODS if data["config"].get("match_update_rms", False) else METHODS
+    if data["config"].get("teacher_row_prior", False):
+        methods = ROW_METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     for ax, (metric, title) in zip(axes, (("clean", "Clean"),
                                          ("composition", "Clean and composition"),
