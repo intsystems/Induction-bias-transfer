@@ -142,6 +142,42 @@ def asymmetric_actions(relative, teacher, weights):
     return weights[0] * relative[0] + weights[1] * teacher[1]
 
 
+def matched_rms(reference_variance, measured_variance, fallback=1.):
+    if min(reference_variance, measured_variance) <= 1e-12:
+        return fallback
+    return float(np.sqrt(reference_variance / measured_variance))
+
+
+def cross_fitted_scale(x, labels, teacher_even, relative_even, noise, fallback):
+    """Match branch score scales on held-out balanced pairs of clean examples."""
+    if len(labels) == 2:
+        return fallback
+    predictions = np.empty((2, len(labels)))
+    for left, right in zip(np.flatnonzero(labels < 0), np.flatnonzero(labels > 0), strict=True):
+        held_out = [left, right]
+        keep = np.ones(len(labels), dtype=bool)
+        keep[held_out] = False
+        reference, _ = support_fit(teacher_even[None], x[keep], labels[keep], noise)
+        measured, scores = support_fit(relative_even, x[keep], labels[keep], noise)
+        coefficients = np.stack((reference[0, :, 0], probabilities(scores["centered"]) @ measured[..., 0]))
+        predictions[:, held_out] = coefficients @ x[held_out].T
+    return matched_rms(*np.mean(predictions ** 2, axis=1), fallback=fallback)
+
+
+def calibrated_hybrids(x, labels, parity, relative_even, teacher_modes, relative_modes,
+                       weights, source_moment, noise):
+    reference, measured = teacher_modes[0], relative_modes[0]
+    scale = matched_rms(reference @ source_moment @ reference, measured @ source_moment @ measured)
+    oof_scale = cross_fitted_scale(x, labels, parity[0], relative_even, noise, scale)
+    odd = weights[1] * teacher_modes[1]
+    even_weight = weights[0]
+    return {
+        "hybrid_source_scale": even_weight * scale * measured + odd,
+        "hybrid_cross_fit": even_weight * oof_scale * measured + odd,
+        "teacher_scale_only": even_weight * reference / scale + odd,
+    }, {"source_factor": scale, "cross_fit_factor": oof_scale}
+
+
 def judge(test, truth, true_sign, coefficients):
     clean, reflected = np.where(test @ coefficients >= 0, 1, -1)
     good_clean, good_reflected = clean == truth, reflected == true_sign * truth
@@ -151,7 +187,8 @@ def judge(test, truth, true_sign, coefficients):
                                 ("parity", reflected == true_sign * clean))}
 
 
-def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, block_banks=None, hybrid_actions=False):
+def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, block_banks=None,
+            hybrid_actions=False, source_moment=None):
     estimates, diagnostics, modes = {}, {}, {}
     selected = SIGNS.index(sign)
     for name, kernels in banks.items():
@@ -208,6 +245,10 @@ def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, b
                     "hybrid_reverse": asymmetric_actions(teacher_modes, conditionals, weights),
                     "hybrid_metric": asymmetric_actions(measured[:, 0], teacher_modes, weights),
                 })
+                if source_moment is not None:
+                    calibrated, diagnostics["scale_matching"] = calibrated_hybrids(
+                        x, labels, parity, kernels[0, 0], teacher_modes, conditionals, weights, source_moment, noise)
+                    estimates.update(calibrated)
                 even_budget_weights = probabilities(scores["centered"][0, 0])
                 for i, rotated in enumerate(fitted[1:, 0, :, :, 0]):
                     even = even_budget_weights @ rotated
@@ -219,7 +260,7 @@ def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, b
             "diagnostics": diagnostics}
 
 
-def measure_task(pair, sign, train, test, tracks, banks, parity, args, rng, block_banks=None):
+def measure_task(pair, sign, train, test, tracks, banks, parity, args, rng, block_banks=None, source_moment=None):
     query = np.concatenate([test[label] for label in pair], axis=1)
     truth = np.concatenate([np.full(len(test[label][0]), k) for label, k in zip(pair, (-1, 1), strict=True)])
     rows = {str(n): [] for n in args.shots}
@@ -233,7 +274,8 @@ def measure_task(pair, sign, train, test, tracks, banks, parity, args, rng, bloc
             x = np.concatenate([train[label][0, ids[:shots]] for label, ids in zip(pair, selected, strict=True)])
             labels = np.repeat([-1., 1.], shots)
             rows[str(shots)].append(episode(
-                x, query, labels, truth, sign, banks, parity, args.noise, args.crossed, block_banks, args.hybrid_actions))
+                x, query, labels, truth, sign, banks, parity, args.noise, args.crossed, block_banks,
+                args.hybrid_actions, source_moment))
     return rows
 
 
@@ -261,8 +303,13 @@ def run(data, args, device, seed):
     if args.relative_blocks:
         block_banks["relative"], achieved["relative_blocks"] = relative_block_banks(
             h - mean, odd, np.random.default_rng(seed + 670))
+    source_moment = None
+    if args.calibrate_hybrid:
+        pooled = (h - mean).reshape(-1, len(mean))
+        source_moment = pooled.T @ pooled / len(pooled)
     tasks = {family: {"-".join(map(str, pair)): measure_task(
-        pair, 1 if family == "invariant" else -1, train, test, tracks, banks, parity, args, rng, block_banks)
+        pair, 1 if family == "invariant" else -1, train, test, tracks, banks, parity, args, rng,
+        block_banks, source_moment)
         for pair in pairs} for family, pairs in TASKS.items()}
     print(seed, "completed", flush=True)
     return {"seed": seed, "achieved_budgets": achieved, "tasks": tasks}
@@ -286,7 +333,10 @@ def main():
     parser.add_argument("--parity-blocks", action="store_true")
     parser.add_argument("--relative-blocks", action="store_true")
     parser.add_argument("--hybrid-actions", action="store_true")
+    parser.add_argument("--calibrate-hybrid", action="store_true")
     args = parser.parse_args()
+    if args.calibrate_hybrid:
+        args.hybrid_actions = True
     if args.hybrid_actions:
         args.relative_blocks = True
     if args.relative_blocks:
@@ -297,6 +347,8 @@ def main():
         name = "parity_blocks" if args.parity_blocks else "signed_budget_crossed" if args.crossed else "signed_budget"
         if args.relative_blocks:
             name = "hybrid_actions" if args.hybrid_actions else "relative_blocks"
+        if args.calibrate_hybrid:
+            name = "calibrated_hybrid"
         args.output = HERE / "results" / name / "metrics.json"
     if not np.isfinite(args.noise) or args.noise <= 0 or min(args.shots) <= 0:
         parser.error("shots and noise must be positive")

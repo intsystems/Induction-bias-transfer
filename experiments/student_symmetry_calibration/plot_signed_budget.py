@@ -29,6 +29,9 @@ HYBRID = {"teacher_parity": "Teacher parity", "relative_adaptive_teacher_sign": 
           "hybrid_actions": "Action-specific hybrid", "hybrid_metric": "Hybrid · metric only",
           "hybrid_rotated": "Hybrid · rotated spectrum", "hybrid_reverse": "Reverse hybrid",
           "hybrid_known_sign": "Hybrid · known action"}
+CALIBRATION = {"teacher_parity": "Teacher parity", "hybrid_actions": "Uncalibrated hybrid",
+               "hybrid_source_scale": "Source RMS matching", "hybrid_cross_fit": "Cross-fitted RMS matching",
+               "teacher_scale_only": "Teacher parity with hybrid scale"}
 
 
 def main():
@@ -42,7 +45,9 @@ def main():
     blocked = data["config"].get("parity_blocks", False)
     relative = data["config"].get("relative_blocks", False)
     hybrid = data["config"].get("hybrid_actions", False)
-    methods = HYBRID if hybrid else RELATIVE if relative else BLOCKS if blocked else CROSSED if crossed else METHODS
+    calibrated = data["config"].get("calibrate_hybrid", False)
+    methods = (CALIBRATION if calibrated else HYBRID if hybrid else RELATIVE if relative
+               else BLOCKS if blocked else CROSSED if crossed else METHODS)
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
         title = "Reflection preserves label" if family == "invariant" else "Reflection swaps labels"
@@ -56,12 +61,14 @@ def main():
             ax.plot(shots, values, marker="o", label=label)
         ax.set_ylabel("Reflected balanced accuracy (%)")
     if hybrid:
-        for key in ("teacher_parity", "hybrid_actions", "relative_adaptive_teacher_sign", "hybrid_rotated"):
+        selected = tuple(CALIBRATION) if calibrated else (
+            "teacher_parity", "hybrid_actions", "relative_adaptive_teacher_sign", "hybrid_rotated")
+        for key in selected:
             names = [f"{key}_{i}" for i in range(data["block_orientation_controls"])] if key == "hybrid_rotated" else [key]
             values = [100 * np.mean([ep["metrics"][model]["both"]
                                      for r in data["runs"] for tasks in r["tasks"].values()
                                      for task in tasks.values() for ep in task[str(n)] for model in names]) for n in shots]
-            axes[2].plot(shots, values, marker="o", label=HYBRID[key])
+            axes[2].plot(shots, values, marker="o", label=methods[key])
         axes[2].set_xlabel("Labels per class")
         axes[2].set_ylabel("Both views correct (%)")
     elif relative:
