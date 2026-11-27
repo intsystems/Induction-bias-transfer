@@ -135,7 +135,7 @@ def composition_action_penalties(stem_action, teacher_views, seed):
 
 
 def fit_target(center, bias, init_head, supports, labels, queries, truth, precision, args, *,
-               freeze=False, radii=None, record_radii=False, row_precision=None, action_penalty=None):
+               freeze=False, radii=None, record_radii=False, row_precision=None, action_penalty=None, coupling=None):
     weight = nn.Parameter(center.clone(), requires_grad=not freeze)
     intercept = nn.Parameter(bias.clone(), requires_grad=not freeze)
     head = nn.Parameter(init_head.clone())
@@ -148,8 +148,14 @@ def fit_target(center, bias, init_head, supports, labels, queries, truth, precis
         loss = F.cross_entropy(logits, labels)
         if precision is not None:
             displacement = weight - center
+            input_penalty = displacement @ precision
             output_penalty = displacement if row_precision is None else row_precision @ displacement
-            penalty = ((displacement @ precision) * output_penalty).mean()
+            if coupling == "additive":
+                penalty = .5 * ((input_penalty + output_penalty) * displacement).mean()
+            elif coupling == "product":
+                penalty = .25 * ((input_penalty + displacement) * (output_penalty + displacement)).mean()
+            else:
+                penalty = (input_penalty * output_penalty).mean()
             if action_penalty is not None:
                 stem_action, teacher_action, scale = action_penalty
                 commutator = stem_action @ displacement.T - displacement.T @ teacher_action
@@ -248,7 +254,9 @@ def run(train, test, args, seed, device, traffic_paths=None):
             for key, (a, b, scale) in matrices.items()
         }
         diagnostics["action_penalty_normalizers"] = {key: scale for key, (_, _, scale) in matrices.items()}
-    target_rows_enabled = args.target_row_prior or args.target_row_labels or args.target_row_scatter
+    target_rows_enabled = (args.target_row_prior or args.target_row_labels or args.target_row_scatter
+                           or args.target_row_coupling)
+    couplings = ("product", "additive") if args.target_row_coupling else (None,)
     if target_rows_enabled:
         shape = (len(weights), len(weights))
         rotation, _ = np.linalg.qr(np.random.default_rng(seed + 6100).normal(size=shape))
@@ -299,10 +307,13 @@ def run(train, test, args, seed, device, traffic_paths=None):
                                                         permutation=permutation, scatter=args.target_row_scatter)
                     for input_name in ("path", "rotated"):
                         for output_name, row_precision in target_rows.items():
-                            results[f"target_rows_{input_name}_{output_name}"], _ = fit_target(
-                                weights, bias, head, design, labels, target_views, truth, precisions[input_name], args,
-                                radii=reference_radii, row_precision=row_precision
-                            )
+                            name = f"target_rows_{input_name}_{output_name}"
+                            for coupling in couplings:
+                                key = f"{name}_{coupling}" if coupling else name
+                                results[key], _ = fit_target(
+                                    weights, bias, head, design, labels, target_views, truth, precisions[input_name],
+                                    args, radii=reference_radii, row_precision=row_precision, coupling=coupling
+                                )
                 for name, action_penalty in action_penalties.items():
                     results[name], _ = fit_target(
                         weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
@@ -362,11 +373,13 @@ def main():
                               help="compare label-dependent and unlabeled output bases at matched spectra")
     output_prior.add_argument("--target-row-scatter", action="store_true",
                               help="adjust target centroid directions for within-class or total scatter")
+    output_prior.add_argument("--target-row-coupling", action="store_true",
+                              help="compare additive and product penalties with equal marginal strengths")
     args = parser.parse_args()
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
     if (args.teacher_row_prior or args.intertwining_prior or args.target_row_prior or args.target_row_labels
-            or args.target_row_scatter
+            or args.target_row_scatter or args.target_row_coupling
             or args.compare_probe_domain
             or args.hybrid_prior or args.spectral_blocks or args.spectral_orientation):
         args.match_update_rms = True

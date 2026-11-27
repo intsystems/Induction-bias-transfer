@@ -32,6 +32,11 @@ TARGET_SCATTER_METHODS = {"path_matched": "Uniform output", "target_rows_path_al
                           "target_rows_path_within_scatter": "Within-class scatter adjustment",
                           "target_rows_path_total_scatter": "Total scatter adjustment",
                           "target_rows_path_rotated": "Rotated centroids"}
+COUPLING_METHODS = {"path_matched": "Uniform output",
+                    "target_rows_path_aligned_product": "Product · target centroids",
+                    "target_rows_path_aligned_additive": "Sum · target centroids",
+                    "target_rows_path_rotated_product": "Product · rotated centroids",
+                    "target_rows_path_rotated_additive": "Sum · rotated centroids"}
 ACTION_METHODS = {"path_matched": "Input path prior", "split_matched": "Separate generator budgets",
                   "teacher_action": "Teacher action", "rotated_action": "Rotated teacher action",
                   "identity_action": "Identity output action"}
@@ -68,6 +73,8 @@ def main():
         methods = TARGET_LABEL_METHODS
     elif data["config"].get("target_row_scatter", False):
         methods = TARGET_SCATTER_METHODS
+    elif data["config"].get("target_row_coupling", False):
+        methods = COUPLING_METHODS
     elif data["config"].get("intertwining_prior", False):
         methods = ACTION_METHODS
     if data["config"].get("compare_probe_domain", False):
