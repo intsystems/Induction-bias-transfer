@@ -22,6 +22,11 @@ def main():
     repair = data["config"].get("repair", False)
     if repair:
         arms = ("naive", "confidence", "nearest", "bijection", "anchored_bijection", "clean_full")
+    recovery_arms = ("original", "nearest", "bijection", "anchored_bijection")
+    if data["config"].get("calibrate_repair", False):
+        recovery_arms = ("original", "bijection", "signed", "even_calibrated",
+                         "signed_calibrated", "signed_shuffled")
+        arms = ("naive", "confidence", *recovery_arms[1:], "clean_full")
     fig, axes = plt.subplots(1, 3 if repair else 2, figsize=(14 if repair else 10, 4),
                              layout="constrained")
     rows = [[run["measurements"][str(f)] for f in fractions] for run in data["runs"]]
@@ -38,12 +43,13 @@ def main():
             error = np.array([[row["relative_orbit_error"][arm] for row in run] for run in rows])
             axes[1].plot(fractions, error.mean(axis=0), marker="o", color=line.get_color())
     if repair:
-        for method in ("original", "nearest", "bijection", "anchored_bijection"):
+        for method in recovery_arms:
             recovered = np.array([[100 * row["recovered_correspondence"][method] for row in run]
                                   for run in rows])
             axes[2].plot(fractions, recovered.mean(axis=0), marker="o",
                          color=colors.get(method, colors["naive"]), label=method)
         axes[2].set_ylabel("Correct correspondence (%)")
+        axes[2].legend(fontsize=7)
     axes[0].set_ylabel(f"Both views correct (%) · {shots} labels/class")
     axes[1].set_ylabel("Relative source covariance error")
     for ax in axes:

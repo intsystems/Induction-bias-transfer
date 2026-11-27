@@ -36,12 +36,15 @@ def corrupted_mapping(candidates, fraction, seed, class_size=None):
     return mapping
 
 
-def repair_pairs(scores, candidates, assigned, positive, negative, clean_fraction):
+def pair_costs(scores, candidates):
     # Evaluate in blocks to avoid a full [pairs, pairs, features] buffer.
-    cost = np.concatenate([
-        scores(block[:, None], assigned[None, :])
+    return np.concatenate([
+        scores(block[:, None], candidates[None, :])
         for block in np.array_split(candidates, (len(candidates) + 63) // 64)
     ])
+
+
+def repair_pairs(cost, positive, negative, clean_fraction):
     nearest = cost.argmin(axis=1)
     _, bijective = linear_sum_assignment(cost)
     # Equal-variance Gaussian log odds reduce to a linear distance cost.
@@ -49,7 +52,7 @@ def repair_pairs(scores, candidates, assigned, positive, negative, clean_fractio
         float((negative.var() + positive.var()) / 2), 0.05
     )
     probability = np.clip(clean_fraction, .005, .995)
-    bonus = np.log((len(candidates) - 1) * probability / (1 - probability))
+    bonus = np.log((len(cost) - 1) * probability / (1 - probability))
     anchored_cost = slope * cost
     diagonal = np.diag_indices_from(anchored_cost)
     anchored_cost[diagonal] -= bonus
@@ -61,15 +64,27 @@ def covariance(residual, weights):
     return residual.T @ (residual * weights[:, None]) / weights.sum()
 
 
-def pair_scores(probe, odd):
-    even = probe[..., ~odd]
-    total = even.reshape(-1, even.shape[-1])
+def matching_coordinates(probe):
+    total = probe.reshape(-1, probe.shape[-1])
     total = total - total.mean(axis=0)
     gram = total.T @ total / len(total)
     ridge = 0.05 * max(np.trace(gram) / len(gram), 1e-12)
     factor = np.linalg.cholesky(gram + ridge * np.eye(len(gram)))
-    coordinates = np.linalg.solve(factor, even.reshape(-1, even.shape[-1]).T).T.reshape(even.shape)
+    return np.linalg.solve(factor, total.T).T.reshape(probe.shape)
 
+
+def align_to_anchors(coordinates, anchors, reflected_anchors, strength):
+    left, right = coordinates[0, anchors], coordinates[1, reflected_anchors]
+    left_mean, right_mean = left.mean(axis=0), right.mean(axis=0)
+    right_centered = right - right_mean
+    discrepancy = left - left_mean - right_centered
+    precision = right_centered.T @ right_centered + len(right) * strength * np.eye(right.shape[1])
+    update = np.linalg.solve(precision, right_centered.T @ discrepancy)
+    reflected = coordinates[1] - right_mean
+    return np.stack((coordinates[0], reflected + reflected @ update + left_mean))
+
+
+def pair_scores(coordinates):
     def scores(left, right):
         distance = coordinates[0, left] - coordinates[1, right]
         return np.log(np.mean(distance ** 2, axis=-1) + 1e-10)
@@ -117,8 +132,27 @@ def run(train, test, args, seed, device):
     rng = np.random.default_rng(seed + 7700)
     order = rng.permutation(probe.shape[1])
     anchors, candidates = order[:args.anchors], order[args.anchors:]
-    scores = pair_scores(probe, features["odd"])
-    positive, negative = scores(anchors, anchors), scores(anchors, np.roll(anchors, 1))
+    odd = features["odd"]
+    even_coordinates = matching_coordinates(probe[..., ~odd])
+    scores = pair_scores(even_coordinates)
+    shuffled_anchors = np.roll(anchors, 1)
+    positive, negative = scores(anchors, anchors), scores(anchors, shuffled_anchors)
+    if args.repair:
+        original_cost = pair_costs(scores, candidates)
+    calibrated_costs = {}
+    if args.calibrate_repair:
+        signed = probe.copy()
+        signed[1][:, odd] *= -1
+        signed_coordinates = matching_coordinates(signed)
+        configurations = {
+            "signed": signed_coordinates,
+            "even_calibrated": align_to_anchors(even_coordinates, anchors, anchors, args.alignment_ridge),
+            "signed_calibrated": align_to_anchors(signed_coordinates, anchors, anchors, args.alignment_ridge),
+            "signed_shuffled": align_to_anchors(signed_coordinates, anchors, shuffled_anchors,
+                                                args.alignment_ridge),
+        }
+        calibrated_costs = {name: pair_costs(pair_scores(coordinates), candidates)
+                            for name, coordinates in configurations.items()}
 
     def residual(left, right):
         return (probe[0, left] - probe[1, right]) @ whitener / 2
@@ -147,9 +181,10 @@ def run(train, test, args, seed, device):
         recovered = {"original": float(matched.mean())}
         repaired_wrong, preserved_clean = {}, {}
         if args.repair:
-            for method, columns in repair_pairs(
-                scores, candidates, assigned, positive, negative, confidence.mean()
-            ).items():
+            matchings = repair_pairs(original_cost[:, mapping], positive, negative, confidence.mean())
+            for method, cost in calibrated_costs.items():
+                matchings[method] = linear_sum_assignment(cost[:, mapping])[1]
+            for method, columns in matchings.items():
                 repaired = assigned[columns]
                 matrices[method] = covariance(residual(candidates, repaired), np.ones(len(candidates)))
                 correct = repaired == candidates
@@ -187,6 +222,8 @@ def main():
     parser.add_argument("--anchors", type=int, default=32)
     parser.add_argument("--repair", action="store_true")
     parser.add_argument("--within-class-noise", action="store_true")
+    parser.add_argument("--calibrate-repair", action="store_true")
+    parser.add_argument("--alignment-ridge", type=float, default=0.25)
     parser.add_argument("--budget", type=float, default=.25)
     parser.add_argument("--shots", type=int, nargs="+", default=[5, 20, 60])
     parser.add_argument("--teacher-epochs", type=int, default=26)
@@ -199,6 +236,10 @@ def main():
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
+    if args.calibrate_repair and not args.repair:
+        parser.error("--calibrate-repair requires --repair")
+    if not np.isfinite(args.alignment_ridge) or args.alignment_ridge <= 0:
+        parser.error("--alignment-ridge must be finite and positive")
     if args.anchors < 2 or 4 * args.probe_examples - args.anchors < 4:
         parser.error("need at least two trusted pairs and four candidate pairs")
     if not 0 < args.budget < 1 or any(not 0 <= f < 1 for f in args.fractions):
