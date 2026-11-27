@@ -45,6 +45,8 @@ ANGLE_GATE_MODELS = {"pose": "Absolute angle", "angle_same": "Paired angle",
 ANGLE_GATE_METHODS = {"raw": "Uncorrected",
                       **{name + "_point": label for name, label in ANGLE_GATE_MODELS.items()},
                       "oracle": "Known inverse"}
+TRACK_METHODS = {"raw": "Uncorrected", "pose_point": "Absolute pose", "angle_same_point": "Paired angle",
+                 "paired_full": "Paired pose", "angle_shuffled": "Shuffled paired angle"}
 
 
 def main():
@@ -55,7 +57,9 @@ def main():
     results = json.loads(args.metrics.read_text())
     runs = results["runs"]
     levels = results["config"]["strengths"]
-    shots = str(4 if 4 in results["config"]["shots"] else results["config"]["shots"][0])
+    available_shots = results["config"]["shots"]
+    natural_track_pose = results["config"].get("natural_track_pose", False)
+    shots = str(max(available_shots) if natural_track_pose else (4 if 4 in available_shots else available_shots[0]))
     selective = results["config"].get("selective", False)
     posterior = results["config"].get("posterior_selection", False)
     symmetric = results["config"].get("symmetrize_pose", False)
@@ -66,7 +70,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if angle_gate:
+    if natural_track_pose:
+        methods = TRACK_METHODS
+    elif angle_gate:
         methods = ANGLE_GATE_METHODS
     elif paired_angle_bias:
         methods = ANGLE_METHODS
@@ -84,7 +90,8 @@ def main():
         methods = POSTERIOR_POLICIES
     elif selective:
         methods = POLICIES
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
+    panels = 2 if natural_track_pose else 3
+    fig, axes = plt.subplots(1, panels, figsize=(9 if natural_track_pose else 13, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
         for key, label in methods.items():
             accuracy = np.array([[100 * np.mean([
@@ -132,7 +139,7 @@ def main():
         axes[2].set_title("Selected correction")
         axes[2].set_ylabel("Mean correction fraction")
         axes[2].set_ylim(0, 1)
-    else:
+    elif not natural_track_pose:
         pose_models = {"pose": "Pose-only training", "hidden": "Teacher loss"}
         if angle_gate:
             pose_models = ANGLE_GATE_MODELS
@@ -145,9 +152,10 @@ def main():
             axes[2].plot(levels, np.sqrt(mse.mean(axis=0)[:, 0]) * 32, marker="o", label=label)
         axes[2].set_title("Inverse rotation")
         axes[2].set_ylabel("Angle RMSE (degrees)")
-    axes[2].legend(fontsize=8)
+    if not natural_track_pose:
+        axes[2].legend(fontsize=8)
     for ax in axes:
-        ax.set_xlabel("Pose distortion scale")
+        ax.set_xlabel("Relative frame position" if natural_track_pose else "Pose distortion scale")
         ax.grid(alpha=.2)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.output, dpi=170)

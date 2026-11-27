@@ -12,6 +12,7 @@ import torch
 
 from experiment import (GTSRB, HERE, TASKS, PoseGenerator, batches, discover_basis, embed,
                         fit_student, fit_teacher, predict, preprocess, prior_kernels)
+from reflection_evidence.experiment import paths_by_class
 
 ANGLE = math.radians(32)
 SHIFT = .24
@@ -368,6 +369,48 @@ def canonical_embeddings(student, models, images, args, device, seed, *, angle_g
     return output
 
 
+def split_natural_tracks(tracks, shots, limit, seed):
+    rng = np.random.default_rng(seed)
+    support, query = {}, {}
+    for label, groups in tracks.items():
+        count = max(max(shots), math.ceil(.6 * len(groups)))
+        if count >= len(groups):
+            raise ValueError(f"class {label} has too few tracks for {max(shots)} labels per class")
+        order = rng.permutation(len(groups))
+        support[label] = [groups[i] for i in order[:count]]
+        query[label] = [groups[i] for i in order[count:count + limit]]
+    return support, query
+
+
+@torch.inference_mode()
+def natural_track_embeddings(student, models, images, tracks, args, device):
+    output = {}
+    for label, groups in tracks.items():
+        output[label] = {}
+        for fraction in args.strengths:
+            indices = [group[round((len(group) - 1) * fraction)] for group in groups]
+            chunks = []
+            for batch in images[label][indices].split(args.batch_size):
+                batch = batch.to(device, dtype=torch.float32) / 255
+                clean = torch.cat((batch, batch.flip(-1)))
+                first, second = (parameters(models[name], clean) for name in ("pose", "angle_same"))
+                paired = torch.cat((second[0][:, :1], first[0][:, 1:]), dim=1)
+                predictions = {"pose_point": first[0], "angle_same_point": paired,
+                               "paired_full": second[0]}
+                perm = torch.arange(len(batch), device=device).roll(1)
+                shuffled_angle = second[0][torch.cat((perm, perm + len(batch))), :1]
+                predictions["angle_shuffled"] = torch.cat((shuffled_angle, first[0][:, 1:]), dim=1)
+                features = {"raw": student(clean)}
+                for name, center in predictions.items():
+                    features[name] = student(pose_warp(clean, center.clamp(-2, 2)))
+                chunks.append({name: array.reshape(2, len(batch), -1).cpu().numpy()
+                               for name, array in features.items()})
+            output[label][str(fraction)] = ({
+                name: np.concatenate([chunk[name] for chunk in chunks], axis=1) for name in chunks[0]
+            }, None)
+    return output
+
+
 @torch.inference_mode()
 def global_pose_scale(probe, model, args, seed):
     rng = torch.Generator(device=probe.device).manual_seed(seed)
@@ -712,10 +755,18 @@ def run(data, args, device, seed):
     mean, basis, energies = discover_basis(teacher, basis_probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     odd = energies > .5
-    if not (args.identity_mixture or args.relative_pose or args.paired_angle_bias or args.angle_gate):
+    if not (args.identity_mixture or args.relative_pose or args.paired_angle_bias or args.angle_gate
+            or args.natural_track_pose):
         pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
-    if args.pose_refinement:
+    if args.natural_track_pose:
+        tracks, natural_queries = split_natural_tracks(tracks, args.shots, args.test_per_class, seed + 400)
+        models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
+                  for name, pairing in (("pose", "absolute"), ("angle_same", "same"))}
+        query = natural_track_embeddings(student, models, train, natural_queries, args, device)
+        diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
+                                         for label, groups in tracks.items()}}
+    elif args.pose_refinement:
         calibration = fit_pose_refinement(probe[1::2], pose_model, args, seed + 250)
         query, errors = refinement_embeddings(student, pose_model, test, args, device, seed + 300,
                                               calibration=calibration)
@@ -782,8 +833,8 @@ def main():
     parser.add_argument("--output", type=Path)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--seeds", type=int, nargs="+", default=list(range(81, 93)))
-    parser.add_argument("--shots", type=int, nargs="+", default=[1, 2, 4, 5])
-    parser.add_argument("--strengths", type=float, nargs="+", default=[0., .5, 1., 1.5])
+    parser.add_argument("--shots", type=int, nargs="+")
+    parser.add_argument("--strengths", type=float, nargs="+")
     parser.add_argument("--teacher-epochs", type=int, default=22)
     parser.add_argument("--student-epochs", type=int, default=18)
     parser.add_argument("--generator-epochs", type=int, default=12)
@@ -805,11 +856,18 @@ def main():
     selection.add_argument("--relative-pose", action="store_true")
     selection.add_argument("--paired-angle-bias", action="store_true")
     selection.add_argument("--angle-gate", action="store_true")
+    selection.add_argument("--natural-track-pose", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.shots is None:
+        args.shots = [1, 2, 3] if args.natural_track_pose else [1, 2, 4, 5]
+    if args.strengths is None:
+        args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.angle_gate:
+        if args.natural_track_pose:
+            name = "natural_track_pose"
+        elif args.angle_gate:
             name = "angle_gate"
         elif args.paired_angle_bias:
             name = "paired_angle_bias"
@@ -832,14 +890,21 @@ def main():
         parser.error("need a positive test size and an even number of at least two posterior views")
     if not all(math.isfinite(s) and s >= 0 for s in args.strengths):
         parser.error("strengths must be finite and nonnegative")
+    if args.natural_track_pose and any(s > 1 for s in args.strengths):
+        parser.error("natural track frame fractions must be in [0, 1]")
     if not math.isfinite(args.selector_ridge) or args.selector_ridge <= 0:
         parser.error("selector ridge must be finite and positive")
     if args.refiner_epochs < 1:
         parser.error("refiner epochs must be positive")
     torch.set_num_threads(2)
     device = torch.device(args.device)
-    data = preprocess(GTSRB(args.data, split="train", download=True),
-                      GTSRB(args.data, split="test", download=True), args)
+    train_dataset = GTSRB(args.data, split="train", download=True)
+    data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args)
+    if args.natural_track_pose:
+        paths = paths_by_class(train_dataset)
+        for label, groups in data[-1].items():
+            for group in groups:
+                group.sort(key=lambda i: int(paths[label][i].stem.rsplit("_", 1)[1]))
     args.output.parent.mkdir(parents=True, exist_ok=True)
     output = {"config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
               "device_name": torch.cuda.get_device_name(device) if device.type == "cuda" else "CPU",
