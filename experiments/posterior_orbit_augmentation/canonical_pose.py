@@ -871,8 +871,20 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng):
             weights, probability = predict(parity, f, y, np.eye(width), args.noise, center_evidence=True)
             even, _ = predict(kernels["fixed_even"], f, y, np.eye(width), args.noise)
             values = {"posterior_same": float(probability[0]), "strengths": {}}
+            if args.track_parity_policy:
+                values["correct_action"] = float((probability[0] >= .5) == (sign == 1))
             for strength, (embeddings, truth, n_negative) in batches_by_strength.items():
                 choices = {name: features @ weights for name, features in embeddings.items()}
+                if args.track_parity_policy:
+                    p_same = probability[0]
+                    even_logits, odd_logits = (choices[name] for name in ("even_teacher", "odd_teacher"))
+                    choices.update({
+                        "parity_soft": p_same * even_logits + (1 - p_same) * odd_logits,
+                        "parity_fixed": (even_logits + odd_logits) / 2,
+                        "parity_inverted": (1 - p_same) * even_logits + p_same * odd_logits,
+                        "parity_hard": even_logits if p_same >= .5 else odd_logits,
+                        "parity_oracle": even_logits if sign == 1 else odd_logits,
+                    })
                 steps = select_posterior_logits(choices) if "centers" in choices else {}
                 if "hidden_posterior" in embeddings:
                     choices["hidden_posterior_even"] = embeddings["hidden_posterior"] @ even
@@ -891,6 +903,8 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng):
     return {
         count: {
             "posterior_same": float(np.mean([ep["posterior_same"] for ep in episodes])),
+            **({"correct_action": float(np.mean([ep["correct_action"] for ep in episodes]))}
+               if args.track_parity_policy else {}),
             "strengths": {strength: {key: {metric: float(np.mean([
                 ep["strengths"][strength][key][metric] for ep in episodes]))
                 for metric in measures} for key, measures in methods.items()}
@@ -1049,9 +1063,12 @@ def main():
     selection.add_argument("--track-pooling", action="store_true")
     selection.add_argument("--track-teacher-basis", action="store_true")
     selection.add_argument("--track-teacher-parity", action="store_true")
+    selection.add_argument("--track-parity-policy", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_parity_policy:
+        args.track_teacher_parity = True
     if args.track_consistency or args.track_pooling or args.track_teacher_basis or args.track_teacher_parity:
         args.train_track_canonicalizer = True
     if args.train_track_canonicalizer:
@@ -1064,7 +1081,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_teacher_parity:
+        if args.track_parity_policy:
+            name = "track_parity_policy"
+        elif args.track_teacher_parity:
             name = "track_teacher_parity"
         elif args.track_teacher_basis:
             name = "track_teacher_basis"

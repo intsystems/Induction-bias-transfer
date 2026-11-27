@@ -54,6 +54,9 @@ TRACK_TEACHER_METHODS = {"raw": "Uncorrected", "pose_point": "Synthetic pose los
 TRACK_TEACHER_PARITY_METHODS = {"raw": "Uncorrected", "pose_point": "Synthetic pose loss",
                                 "same_track": "Even and odd teacher blocks", "even_teacher": "Even block",
                                 "odd_teacher": "Odd block"}
+TRACK_PARITY_POLICY_METHODS = {"raw": "Uncorrected", "same_track": "Both blocks",
+                               "parity_fixed": "Fixed mixture", "parity_soft": "Posterior mixture",
+                               "parity_hard": "Posterior hard choice", "parity_oracle": "Known label action"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -86,6 +89,8 @@ def main():
     methods = METHODS
     if track_pooling:
         methods = TRACK_POOLING_METHODS
+    elif results["config"].get("track_parity_policy", False):
+        methods = TRACK_PARITY_POLICY_METHODS
     elif results["config"].get("track_teacher_parity", False):
         methods = TRACK_TEACHER_PARITY_METHODS
     elif results["config"].get("track_teacher_basis", False):
