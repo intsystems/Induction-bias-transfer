@@ -15,6 +15,35 @@ from reflection_evidence.experiment import TASKS, preprocess, prior_kernels
 from signed_budget import (judge_probabilities, predictive_bank, predictive_probabilities,
                            probabilities, support_fit)
 
+POOLED_TASKS = {
+    "invariant": (((11, 26), (15, 35)), ((12, 30), (13, 17)),
+                  ((18, 26), (29, 31)), ((11, 35), (22, 30))),
+    "antisymmetric": (((19, 34), (20, 33)), ((19, 39), (20, 38)),
+                      ((34, 37), (33, 36)), ((37, 39), (36, 38))),
+}
+
+
+def pool_task(groups, train, test, tracks, rng):
+    """Form binary labels from equally represented constituent classes."""
+    train_by_group, test_by_group, tracks_by_group = {}, {}, {}
+    test_count = min(test[label].shape[1] for group in groups for label in group)
+    for i, classes in enumerate(groups):
+        training, queries, merged = [], [], []
+        track_count = min(len(tracks[label]) for label in classes)
+        offset = 0
+        for label in classes:
+            examples = train[label]
+            training.append(examples)
+            selected = rng.choice(len(tracks[label]), track_count, replace=False)
+            merged.extend([offset + j for j in tracks[label][k]] for k in selected)
+            offset += examples.shape[1]
+            chosen = rng.choice(test[label].shape[1], test_count, replace=False)
+            queries.append(test[label][:, chosen])
+        train_by_group[i] = np.concatenate(training, axis=1)
+        test_by_group[i] = np.concatenate(queries, axis=1)
+        tracks_by_group[i] = merged
+    return train_by_group, test_by_group, tracks_by_group
+
 
 def head_projection(x, kernel, noise):
     products = x @ kernel
@@ -245,7 +274,7 @@ def run(data, args, device, seed):
     (source, labels), (probe, _), target, target_test, tracks = data
     source = source.to(device, dtype=torch.float32) / 255
     probe = probe.to(device, dtype=torch.float32) / 255
-    teacher = fit_teacher(source, labels.to(device), args, seed)
+    teacher = fit_teacher(source, labels.to(device), args, seed, classes=int(labels.max()) + 1)
     mean, basis, energies = discover_basis(teacher, probe[::2], args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     with torch.inference_mode():
@@ -262,10 +291,23 @@ def run(data, args, device, seed):
     if args.target_blocks:
         source_pairs = np.stack((reference.cpu().numpy(), reflected.cpu().numpy())) - center
         block_source = (source_pairs, energies.cpu().numpy() > .5)
-    tasks = {family: {"-".join(map(str, pair)): measure_task(
-        pair, 1 if family == "invariant" else -1, train, test, tracks, parity, kernels["isotropic"][0],
-        args, rng, null_rng, block_source)
-        for pair in pairs} for family, pairs in TASKS.items()}
+    definitions = POOLED_TASKS if args.pooled_validation else TASKS
+    pool_rng = np.random.default_rng(seed + 4100)
+    tasks = {}
+    for family, pairs in definitions.items():
+        tasks[family] = {}
+        for pair in pairs:
+            if args.pooled_validation:
+                key = "-".join("+".join(map(str, group)) for group in pair)
+                task_data = pool_task(pair, train, test, tracks, pool_rng)
+                task_labels = (0, 1)
+            else:
+                key = "-".join(map(str, pair))
+                task_data = train, test, tracks
+                task_labels = pair
+            tasks[family][key] = measure_task(
+                task_labels, 1 if family == "invariant" else -1, *task_data, parity, kernels["isotropic"][0],
+                args, rng, null_rng, block_source)
     print(seed, "completed", flush=True)
     return {"seed": seed, "tasks": tasks}
 
@@ -290,8 +332,11 @@ def main():
     parser.add_argument("--track-cv", action="store_true")
     parser.add_argument("--target-blocks", action="store_true")
     parser.add_argument("--pair-evidence", action="store_true")
+    parser.add_argument("--pooled-validation", action="store_true")
     parser.add_argument("--null-draws", type=int, default=63)
     args = parser.parse_args()
+    if args.pooled_validation:
+        args.pair_evidence = True
     if args.target_blocks or args.pair_evidence:
         args.track_cv = True
     if args.track_cv:
@@ -304,17 +349,23 @@ def main():
             name = "target_block_action"
         if args.pair_evidence:
             name = "pair_contrast_action"
+        if args.pooled_validation:
+            name = "pooled_action_validation"
         args.output = HERE / "results" / name / "metrics.json"
     if (min(args.shots) <= 0 or not np.isfinite(args.noise) or args.noise <= 0
             or args.unlabeled_tracks < 2 or not np.isfinite(args.shrink) or args.shrink <= 0 or args.null_draws < 1):
         parser.error("need positive shots, noise, shrink and null draws, and at least two unlabelled tracks")
     torch.set_num_threads(2)
     device = torch.device(args.device)
+    tasks = POOLED_TASKS if args.pooled_validation else TASKS
+    target_ids = None
+    if args.pooled_validation:
+        target_ids = {label for pairs in tasks.values() for pair in pairs for group in pair for label in group}
     data = preprocess(GTSRB(args.data, split="train", download=True),
-                      GTSRB(args.data, split="test", download=True), args)
+                      GTSRB(args.data, split="test", download=True), args, target_ids=target_ids)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     output = {"config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
-              "tasks": TASKS, "runs": []}
+              "tasks": tasks, "runs": []}
     started = time.monotonic()
     for seed in args.seeds:
         output["runs"].append(run(data, args, device, seed))

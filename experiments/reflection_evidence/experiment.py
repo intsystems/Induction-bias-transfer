@@ -69,12 +69,14 @@ def images(paths):
     return torch.stack(samples)
 
 
-def preprocess(train, test, args):
+def preprocess(train, test, args, *, target_ids=None):
     rng = np.random.default_rng(2025)
     train_paths = paths_by_class(train)
     test_paths = paths_by_class(test)
     source, labels, probe, probe_labels = [], [], [], []
-    for index, label in enumerate(SOURCE_IDS):
+    source_ids = SOURCE_IDS if target_ids is None else [label for label in sorted(train_paths) if label not in target_ids]
+    target_ids = TARGET_IDS if target_ids is None else target_ids
+    for index, label in enumerate(source_ids):
         groups = tracks(train_paths[label])
         split = max(1, len(groups) // 4)
         permutation = rng.permutation(len(groups))
@@ -87,7 +89,7 @@ def preprocess(train, test, args):
             paths.extend(available[i] for i in selected)
             ids.extend([index] * len(selected))
     target_train, target_test, target_tracks = {}, {}, {}
-    for label in sorted(TARGET_IDS):
+    for label in sorted(target_ids):
         paths = train_paths[label]
         target_train[label] = images(paths)
         target_test[label] = images(test_paths[label])

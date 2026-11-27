@@ -44,6 +44,10 @@ def main():
         methods = TARGET_BLOCKS
     if data["config"].get("pair_evidence", False):
         methods = PAIR_CONTRAST
+    if data["config"].get("pooled_validation", False):
+        methods = {"clean": "Clean-label evidence", "track_cv": "Held-out track pairs",
+                   "restricted": "Joint contrasts", "restricted_scale_matched": "Joint contrasts · matched scale",
+                   "known_sign": "Known action"}
     for key, label in methods.items():
         correct = []
         for ax, family in zip(axes[:2], ("invariant", "antisymmetric"), strict=True):
