@@ -84,6 +84,37 @@ def fit_canonicalizer(source, teacher, basis, odd, args, seed, hidden_weight):
     return model.eval()
 
 
+def fit_paired_canonicalizer(source, args, seed, pairing):
+    torch.manual_seed(seed)
+    model = PoseGenerator().to(source.device)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=.003)
+    ordering = torch.Generator().manual_seed(seed)
+    rng = torch.Generator(device=source.device).manual_seed(seed + 100)
+    for _ in range(args.generator_epochs):
+        for indices in batches(len(source), args.batch_size, ordering):
+            clean = source[indices]
+            reflected = torch.rand(len(clean), device=clean.device, generator=rng) < .5
+            clean = torch.where(reflected[:, None, None, None], clean.flip(-1), clean)
+            pose = 2 * torch.rand(2, len(clean), 3, device=clean.device, generator=rng) - 1
+            images = pose_warp(clean.repeat(2, 1, 1, 1), pose.flatten(0, 1))
+            center, log_std = parameters(model, images)
+            target = inverse_pose(pose)
+            loss = normal_nll(center, log_std, target.flatten(0, 1)).mean()
+            if pairing != "absolute":
+                first, second = center.reshape(2, len(clean), 3)
+                y_first, y_second = target
+                if pairing == "shuffled":
+                    second = second.roll(1, dims=0)
+                    y_second = y_second.roll(1, dims=0)
+                estimated = compose_pose(first, inverse_pose(second))
+                relative = compose_pose(y_first, inverse_pose(y_second))
+                loss = loss + .5 * (estimated - relative).square().mean()
+            optimizer.zero_grad(set_to_none=True)
+            loss.backward()
+            optimizer.step()
+    return model.eval()
+
+
 def mixture_parameters(model, images):
     output = model.network(images)
     return output[:, :3], output[:, 3:6].clamp(-3.5, .6), output[:, 6]
@@ -618,7 +649,7 @@ def run(data, args, device, seed):
     mean, basis, energies = discover_basis(teacher, basis_probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     odd = energies > .5
-    if not args.identity_mixture:
+    if not (args.identity_mixture or args.relative_pose):
         pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
     if args.pose_refinement:
@@ -650,8 +681,12 @@ def run(data, args, device, seed):
             student, pose_model, teacher, basis, odd, selection, test, args, device, seed + 300)
         diagnostics = {"source_fixed_step": STEPS[selection[0]], "policy_statistics": policy_stats}
     else:
-        models = {"pose": pose_model, "hidden": fit_canonicalizer(
-            source, teacher, basis, odd, args, seed + 200, args.hidden_weight)}
+        if args.relative_pose:
+            models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing)
+                      for name, pairing in (("pose", "absolute"), ("relative", "same"), ("relative_shuffled", "shuffled"))}
+        else:
+            models = {"pose": pose_model, "hidden": fit_canonicalizer(
+                source, teacher, basis, odd, args, seed + 200, args.hidden_weight)}
         query = canonical_embeddings(student, models, test, args, device, seed + 300)
         diagnostics = {"pose_calibration": {strength: {
             method: {measure: np.mean([v[strength][1][method][measure] for v in query.values()], axis=0).tolist()
@@ -692,11 +727,14 @@ def main():
     selection.add_argument("--identity-mixture", action="store_true")
     selection.add_argument("--pose-refinement", action="store_true")
     selection.add_argument("--train-residual", action="store_true")
+    selection.add_argument("--relative-pose", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if args.output is None:
-        if args.train_residual:
+        if args.relative_pose:
+            name = "relative_pose"
+        elif args.train_residual:
             name = "trained_residual_pose"
         elif args.pose_refinement:
             name = "pose_refinement"

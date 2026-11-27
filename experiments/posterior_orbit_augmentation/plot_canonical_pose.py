@@ -30,6 +30,11 @@ REFINEMENT_METHODS = {"raw": "Uncorrected", "pose_point": "One pass", "iterative
 RESIDUAL_METHODS = {"raw": "Uncorrected", "pose_point": "One pass", "damped": "Damped second pass",
                     "continued_point": "Extra training · one pass", "continued_two": "Extra training · two passes",
                     "residual_trained": "Trained residual", "oracle": "Known inverse"}
+RELATIVE_MODELS = {"pose": "Absolute loss", "relative": "Same-image relative loss",
+                   "relative_shuffled": "Cross-image relative loss"}
+RELATIVE_METHODS = {"raw": "Uncorrected",
+                    **{name + "_point": label for name, label in RELATIVE_MODELS.items()},
+                    "relative_posterior": "Same-image posterior", "oracle": "Known inverse"}
 
 
 def main():
@@ -47,8 +52,11 @@ def main():
     identity = results["config"].get("identity_mixture", False)
     refinement = results["config"].get("pose_refinement", False)
     trained_residual = results["config"].get("train_residual", False)
+    relative_pose = results["config"].get("relative_pose", False)
     methods = METHODS
-    if trained_residual:
+    if relative_pose:
+        methods = RELATIVE_METHODS
+    elif trained_residual:
         methods = RESIDUAL_METHODS
     elif refinement:
         methods = REFINEMENT_METHODS
@@ -109,7 +117,8 @@ def main():
         axes[2].set_ylabel("Mean correction fraction")
         axes[2].set_ylim(0, 1)
     else:
-        for key, label in (("pose", "Pose-only training"), ("hidden", "Teacher loss")):
+        pose_models = RELATIVE_MODELS if relative_pose else {"pose": "Pose-only training", "hidden": "Teacher loss"}
+        for key, label in pose_models.items():
             mse = np.array([[r["pose_calibration"][str(level)][key]["mse"] for level in levels] for r in runs])
             axes[2].plot(levels, np.sqrt(mse.mean(axis=0)[:, 0]) * 32, marker="o", label=label)
         axes[2].set_title("Inverse rotation")
