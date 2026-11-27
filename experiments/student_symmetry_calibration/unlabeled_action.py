@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from scipy.linalg import helmert
 from scipy.special import expit, logit
 
 from experiment import GTSRB, HERE, discover_basis, embed, fit_student, fit_teacher
@@ -141,6 +142,12 @@ def block_precision(observations):
     return inverse / np.trace(inverse)
 
 
+def match_prediction_scale(priors, pool, target_scale):
+    scale = np.mean(np.sum((pool @ priors) * pool, axis=-1), axis=-1)
+    ratio = target_scale / np.maximum(scale, 1e-12)
+    return priors * ratio[:, None, None], ratio.tolist()
+
+
 def calibrated_block_priors(pairs, source_pairs, odd, parity):
     """Keep block shares before matching predicted variance across actions."""
     pool = pairs.reshape(-1, len(odd))
@@ -158,11 +165,41 @@ def calibrated_block_priors(pairs, source_pairs, odd, parity):
             shapes[kind][k][region] = mass * block_precision(observations)
     factors = {}
     for kind, priors in shapes.items():
-        scale = np.mean(np.sum((pool @ priors) * pool, axis=-1), axis=-1)
-        ratio = target_scale / np.maximum(scale, 1e-12)
-        shapes[kind] = priors * ratio[:, None, None]
-        factors[kind] = ratio.tolist()
+        shapes[kind], factors[kind] = match_prediction_scale(priors, pool, target_scale)
     return shapes, factors
+
+
+def contrast_scores(x, labels, parity, noise):
+    """Compare labels in the subspace orthogonal to a shared offset."""
+    count = len(x)
+    left, right = np.triu_indices(count, k=1)
+    gram = x @ parity @ x.T
+    diagonal = np.diagonal(gram, axis1=-2, axis2=-1)
+    variance = np.maximum(diagonal[:, left] + diagonal[:, right] - 2 * gram[:, left, right], 0) + 2 * noise ** 2
+    difference = (labels[left] - labels[right]) ** 2
+    determinant = -.5 * np.log(variance).sum(axis=1) / (count - 1)
+    data_fit = -.5 * np.sum(difference / variance, axis=1) / (count - 1)
+    expected = 2 * count / (count - 1)
+    centered = -.5 * np.sum((difference - expected) / variance, axis=1) / (count - 1)
+    contrasts = helmert(count)
+    cov = contrasts @ gram @ contrasts.T + noise ** 2 * np.eye(count - 1)
+    y = contrasts @ labels
+    solved = np.linalg.solve(cov, np.broadcast_to(y[:, None], (*cov.shape[:-1], 1)))[..., 0]
+    restricted = -.5 * (np.linalg.slogdet(cov)[1] + solved @ y)
+    return {"pair_contrast": determinant + data_fit, "pair_centered": centered, "restricted": restricted}, (
+        float(determinant[0] - determinant[1]), float(data_fit[0] - data_fit[1]))
+
+
+def pair_evidence_weights(x, labels, pairs, parity, noise):
+    scores, (determinant, data_fit) = contrast_scores(x, labels, parity, noise)
+    pool = pairs.reshape(-1, x.shape[-1])
+    target_scale = max(float(np.mean(np.sum((pool @ parity) * pool, axis=-1))), 1e-12)
+    scaled, factors = match_prediction_scale(parity, pool, target_scale)
+    scaled_scores, _ = contrast_scores(x, labels, scaled, noise)
+    scores["pair_scale_matched"] = scaled_scores["pair_contrast"]
+    scores["restricted_scale_matched"] = scaled_scores["restricted"]
+    return {key: float(probabilities(value)[0]) for key, value in scores.items()}, {
+        "pair_log_scale_ratio": determinant, "pair_log_fit_ratio": data_fit, "scale_factors": factors}
 
 
 def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng, null_rng=None, block_source=None):
@@ -190,13 +227,17 @@ def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng, 
             for kind, prior in augmented_priors.items():
                 score, _ = track_cross_validation(x, labels, prior, args.noise)
                 weights[kind] = float(probabilities(score)[0])
+            contrasts = {}
+            if args.pair_evidence:
+                added, contrasts = pair_evidence_weights(x, labels, pairs, parity, args.noise)
+                weights.update(added)
             _, posterior = predictive_probabilities(cache, x, labels, args.noise, query.shape[:-1])
             weights["known_sign"] = float(sign == 1)
             metrics = {key: judge_probabilities(p * posterior[0] + (1 - p) * posterior[1], truth, sign)
                        for key, p in weights.items()}
             rows[str(shots)].append({"metrics": metrics, "same_weights": weights,
                                      "calibration_tracks": len(calibration), "null_diagnostics": diagnostics,
-                                     "block_scale_factors": factors})
+                                     "block_scale_factors": factors, "contrast_diagnostics": contrasts})
     return rows
 
 
@@ -248,9 +289,10 @@ def main():
     parser.add_argument("--centered-null", action="store_true")
     parser.add_argument("--track-cv", action="store_true")
     parser.add_argument("--target-blocks", action="store_true")
+    parser.add_argument("--pair-evidence", action="store_true")
     parser.add_argument("--null-draws", type=int, default=63)
     args = parser.parse_args()
-    if args.target_blocks:
+    if args.target_blocks or args.pair_evidence:
         args.track_cv = True
     if args.track_cv:
         args.centered_null = True
@@ -260,6 +302,8 @@ def main():
             name = "cross_validated_action"
         if args.target_blocks:
             name = "target_block_action"
+        if args.pair_evidence:
+            name = "pair_contrast_action"
         args.output = HERE / "results" / name / "metrics.json"
     if (min(args.shots) <= 0 or not np.isfinite(args.noise) or args.noise <= 0
             or args.unlabeled_tracks < 2 or not np.isfinite(args.shrink) or args.shrink <= 0 or args.null_draws < 1):

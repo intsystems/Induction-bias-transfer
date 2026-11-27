@@ -23,6 +23,10 @@ TARGET_BLOCKS = {"clean": "Clean-label evidence", "track_cv": "Held-out track pa
                  "scale_only": "Matched predictive variance", "source_blocks": "Source block metric",
                  "target_marginals": "Target marginals", "target_pairs": "Paired target block metric",
                  "known_sign": "Known action"}
+PAIR_CONTRAST = {"clean": "Clean-label evidence", "track_cv": "Held-out track pairs",
+                 "pair_contrast": "Pairwise differences", "pair_centered": "Centered pairwise differences",
+                 "pair_scale_matched": "Pairwise · matched scale", "restricted": "Joint contrasts",
+                 "known_sign": "Known action"}
 
 
 def main():
@@ -38,6 +42,8 @@ def main():
         methods = TRACK_CV
     if data["config"].get("target_blocks", False):
         methods = TARGET_BLOCKS
+    if data["config"].get("pair_evidence", False):
+        methods = PAIR_CONTRAST
     for key, label in methods.items():
         correct = []
         for ax, family in zip(axes[:2], ("invariant", "antisymmetric"), strict=True):
