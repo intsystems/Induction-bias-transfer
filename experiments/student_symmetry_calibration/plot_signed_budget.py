@@ -13,6 +13,10 @@ RESULTS = Path(__file__).resolve().parent / "results/signed_budget"
 METHODS = {"teacher_parity": "Teacher parity", "proxy_centered": "Marginal proxy",
            "paired_marginal": "Paired · marginal evidence", "paired_centered": "Paired · centered evidence",
            "paired_fixed": "Paired · fixed strength", "paired_known_sign": "Paired · known action"}
+CROSSED = {"teacher_parity": "Teacher head and action", "paired_centered": "Paired head and action",
+           "paired_teacher_sign": "Paired head · teacher action", "teacher_paired_sign": "Teacher head · paired action",
+           "proxy_teacher_sign": "Marginal proxy · teacher action", "teacher_known_sign": "Teacher head · known action",
+           "paired_known_sign": "Paired head · known action"}
 
 
 def main():
@@ -22,11 +26,12 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
+    crossed = data["config"].get("crossed", False)
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
         title = "Reflection preserves label" if family == "invariant" else "Reflection swaps labels"
         ax.set_title(title)
-        for key, label in METHODS.items():
+        for key, label in (CROSSED if crossed else METHODS).items():
             values = [100 * np.mean([ep["metrics"][key]["reflected"]
                                      for r in data["runs"] for task in r["tasks"][family].values()
                                      for ep in task[str(n)]]) for n in shots]

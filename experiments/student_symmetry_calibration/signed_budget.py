@@ -66,6 +66,10 @@ def mixture(coefficients, scores):
     return np.sum(coefficients * weights[..., None], axis=(0, 1)), weights
 
 
+def conditional_coefficients(fitted, scores):
+    return np.stack([probabilities(logits) @ vectors for logits, vectors in zip(scores, fitted, strict=True)])
+
+
 def judge(test, truth, true_sign, coefficients):
     clean, reflected = np.where(test @ coefficients >= 0, 1, -1)
     good_clean, good_reflected = clean == truth, reflected == true_sign * truth
@@ -75,8 +79,8 @@ def judge(test, truth, true_sign, coefficients):
                                 ("parity", reflected == true_sign * clean))}
 
 
-def episode(x, test, labels, truth, sign, banks, parity, noise):
-    estimates, diagnostics = {}, {}
+def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False):
+    estimates, diagnostics, modes = {}, {}, {}
     for name, kernels in banks.items():
         fitted, scores = support_fit(kernels, x, labels, noise)
         fitted = fitted[..., 0]
@@ -88,16 +92,28 @@ def episode(x, test, labels, truth, sign, banks, parity, noise):
                                 "mean_budget": float(weights.sum(axis=0) @ BUDGETS)}
             if name == "paired":
                 estimates[f"paired_{kind}_map"] = fitted[np.unravel_index(logits.argmax(), logits.shape)]
+        centered = scores["centered"]
+        modes[name] = conditional_coefficients(fitted, centered)
         if name == "paired":
-            centered = scores["centered"]
             estimates["paired_fixed"] = probabilities(centered[:, FIXED_BUDGET]) @ fitted[:, FIXED_BUDGET]
             estimates["paired_always_same"] = fitted[0, FIXED_BUDGET]
-            k = SIGNS.index(sign)
-            estimates["paired_known_sign"] = probabilities(centered[k]) @ fitted[k]
+            estimates["paired_known_sign"] = modes["paired"][SIGNS.index(sign)]
     fitted, scores = support_fit(parity, x, labels, noise)
     weights = probabilities(scores["centered"])
-    estimates["teacher_parity"] = weights @ fitted[..., 0]
+    modes["teacher"] = fitted[..., 0]
+    estimates["teacher_parity"] = weights @ modes["teacher"]
     diagnostics["teacher_parity"] = {"same_probability": float(weights[0])}
+    if crossed:
+        selected = SIGNS.index(sign)
+        paired_same = diagnostics["paired_centered"]["same_probability"]
+        paired_sign = np.array([paired_same, 1 - paired_same])
+        estimates.update({
+            "paired_teacher_sign": weights @ modes["paired"],
+            "teacher_paired_sign": paired_sign @ modes["teacher"],
+            "proxy_teacher_sign": weights @ modes["proxy"],
+            "teacher_known_sign": modes["teacher"][selected],
+            "proxy_known_sign": modes["proxy"][selected],
+        })
     return {"metrics": {key: judge(test, truth, sign, weights) for key, weights in estimates.items()},
             "diagnostics": diagnostics}
 
@@ -115,7 +131,7 @@ def measure_task(pair, sign, train, test, tracks, banks, parity, args, rng):
         for shots in args.shots:
             x = np.concatenate([train[label][0, ids[:shots]] for label, ids in zip(pair, selected, strict=True)])
             labels = np.repeat([-1., 1.], shots)
-            rows[str(shots)].append(episode(x, query, labels, truth, sign, banks, parity, args.noise))
+            rows[str(shots)].append(episode(x, query, labels, truth, sign, banks, parity, args.noise, args.crossed))
     return rows
 
 
@@ -145,7 +161,7 @@ def run(data, args, device, seed):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
-    parser.add_argument("--output", type=Path, default=HERE / "results/signed_budget/metrics.json")
+    parser.add_argument("--output", type=Path)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--seeds", type=int, nargs="+", default=list(range(151, 167)))
     parser.add_argument("--shots", type=int, nargs="+", default=[1, 2, 4, 5])
@@ -156,7 +172,11 @@ def main():
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=.5)
+    parser.add_argument("--crossed", action="store_true")
     args = parser.parse_args()
+    if args.output is None:
+        name = "signed_budget_crossed" if args.crossed else "signed_budget"
+        args.output = HERE / "results" / name / "metrics.json"
     if not np.isfinite(args.noise) or args.noise <= 0 or min(args.shots) <= 0:
         parser.error("shots and noise must be positive")
     torch.set_num_threads(2)
