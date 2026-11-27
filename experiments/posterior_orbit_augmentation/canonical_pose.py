@@ -101,7 +101,8 @@ def mix_angle_predictions(first, second, weight):
             torch.cat((variance.log()[:, None] / 2, first_log_std[:, 1:]), dim=1))
 
 
-def fit_canonicalizer(source, teacher, basis, odd, args, seed, hidden_weight, *, partners=None):
+def fit_canonicalizer(source, teacher, basis, odd, args, seed, hidden_weight, *, partners=None,
+                      pair_weights=(.25, .25)):
     torch.manual_seed(seed)
     model = PoseGenerator().to(source.device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=.003)
@@ -136,7 +137,8 @@ def fit_canonicalizer(source, teacher, basis, odd, args, seed, hidden_weight, *,
                     projected = teacher.encode(pose_warp(natural, center.clamp(-2, 2))) @ basis
                     first, second = projected.chunk(2)
                     residual = (first - second).square()
-                    loss = loss + .25 * (residual[:, odd].mean() + residual[:, ~odd].mean())
+                    pair_loss = pair_weights[0] * residual[:, ~odd].mean() + pair_weights[1] * residual[:, odd].mean()
+                    loss = loss + pair_loss
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
             optimizer.step()
@@ -418,6 +420,13 @@ def natural_source_partners(paths):
 
 
 @torch.no_grad()
+def teacher_pair_differences(teacher, source, partners, batch_size):
+    latent = torch.cat([teacher.encode(batch) for batch in source.split(batch_size)])
+    indices = torch.where(partners >= 0)[0]
+    return latent[indices] - latent[partners[indices]]
+
+
+@torch.no_grad()
 def control_teacher_basis(teacher, basis, odd, source, partners, args, seed):
     rng = torch.Generator(device=source.device).manual_seed(seed)
     rotated = []
@@ -426,9 +435,7 @@ def control_teacher_basis(teacher, basis, odd, source, partners, args, seed):
         matrix = torch.randn(shape, device=source.device, dtype=basis.dtype, generator=rng)
         rotated.append(torch.linalg.qr(matrix).Q @ block)
     control = torch.cat(rotated)
-    latent = torch.cat([teacher.encode(batch) for batch in source.split(args.batch_size)])
-    indices = torch.where(partners >= 0)[0]
-    difference = latent[indices] - latent[partners[indices]]
+    difference = teacher_pair_differences(teacher, source, partners, args.batch_size)
     original_error = (difference @ basis).square().mean(dim=0)
     control_error = (difference @ control).square().mean(dim=0)
     diagnostics = {}
@@ -440,6 +447,14 @@ def control_teacher_basis(teacher, basis, odd, source, partners, args, seed):
         diagnostics[name] = {"original_mse": original.item(), "scaled_mse": (unscaled * scale.square()).item(),
                              "scale": scale.item()}
     return control, diagnostics
+
+
+@torch.no_grad()
+def calibrate_teacher_parity(teacher, basis, odd, source, partners, args):
+    difference = teacher_pair_differences(teacher, source, partners, args.batch_size) @ basis
+    energy = torch.stack((difference[:, ~odd].square().mean(), difference[:, odd].square().mean()))
+    matched = (.25 * energy.sum() / energy.clamp_min(1e-12)).tolist()
+    return {"even_teacher": (matched[0], 0.), "odd_teacher": (0., matched[1])}, energy.tolist()
 
 
 @torch.inference_mode()
@@ -901,11 +916,12 @@ def run(data, args, device, seed, *, source_partners=None):
     if args.natural_track_pose:
         tracks, natural_queries = split_natural_tracks(tracks, args.shots, args.test_per_class, seed + 400)
         teacher_rotation = None
+        teacher_parity = None
         if source_partners is None:
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
         else:
-            if args.track_consistency or args.track_pooling or args.track_teacher_basis:
+            if args.track_consistency or args.track_pooling or args.track_teacher_basis or args.track_teacher_parity:
                 source_partners = {"same_track": source_partners["same_track"]}
             model_partners = source_partners if args.track_pooling else {"pose_point": None, **source_partners}
             models = {name: fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.,
@@ -916,6 +932,14 @@ def run(data, args, device, seed, *, source_partners=None):
                 control, teacher_rotation = control_teacher_basis(teacher, basis, odd, source, partners, args, seed + 250)
                 models["rotated_teacher"] = fit_canonicalizer(
                     source, teacher, control, odd, args, seed + 200, 0., partners=partners)
+            if args.track_teacher_parity:
+                partners = source_partners["same_track"]
+                weights, energy = calibrate_teacher_parity(teacher, basis, odd, source, partners, args)
+                teacher_parity = {"weights": weights, "raw_pair_mse": energy}
+                for name, pair_weights in weights.items():
+                    models[name] = fit_canonicalizer(
+                        source, teacher, basis, odd, args, seed + 200, 0.,
+                        partners=partners, pair_weights=pair_weights)
         if args.track_pooling:
             query = pooled_track_embeddings(student, models["same_track"], train, natural_queries, args, device, seed + 500)
         else:
@@ -927,6 +951,8 @@ def run(data, args, device, seed, *, source_partners=None):
             diagnostics["mean_track_weight"] = select_track_corrections(query, odd, seed + 500)
         if teacher_rotation is not None:
             diagnostics["teacher_rotation"] = teacher_rotation
+        if teacher_parity is not None:
+            diagnostics["teacher_parity"] = teacher_parity
     elif args.pose_refinement:
         calibration = fit_pose_refinement(probe[1::2], pose_model, args, seed + 250)
         query, errors = refinement_embeddings(student, pose_model, test, args, device, seed + 300,
@@ -1022,10 +1048,11 @@ def main():
     selection.add_argument("--track-consistency", action="store_true")
     selection.add_argument("--track-pooling", action="store_true")
     selection.add_argument("--track-teacher-basis", action="store_true")
+    selection.add_argument("--track-teacher-parity", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_consistency or args.track_pooling or args.track_teacher_basis:
+    if args.track_consistency or args.track_pooling or args.track_teacher_basis or args.track_teacher_parity:
         args.train_track_canonicalizer = True
     if args.train_track_canonicalizer:
         args.natural_track_pose = True
@@ -1037,7 +1064,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_teacher_basis:
+        if args.track_teacher_parity:
+            name = "track_teacher_parity"
+        elif args.track_teacher_basis:
             name = "track_teacher_basis"
         elif args.track_pooling:
             name = "track_pooling"
