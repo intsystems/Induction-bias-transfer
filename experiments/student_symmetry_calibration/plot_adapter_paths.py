@@ -58,6 +58,10 @@ ORIENTATION_METHODS = {"path_matched": "Path prior", "global_quarter_split_match
 AXIS_METHODS = {"axis_horizontal_matched": "Horizontal-reflection path",
                 "axis_vertical_matched": "Vertical-reflection path",
                 "axis_rotated_matched": "Rotated basis"}
+AXIS_MIXTURE_METHODS = {"axis_horizontal_matched": "Horizontal path", "axis_vertical_matched": "Vertical path",
+                        "axis_arithmetic_matched": "Arithmetic mean", "axis_log_mean_matched": "Log-space mean",
+                        "axis_arithmetic_rotated_matched": "Rotated arithmetic mean",
+                        "axis_log_mean_rotated_matched": "Rotated log-space mean"}
 
 
 def main():
@@ -94,6 +98,11 @@ def main():
         panels = (("composition", "Clean and horizontal-reflection composition"),
                   ("vertical_composition", "Clean and vertical-reflection composition"),
                   ("all_views", "All eight views"))
+    if data["config"].get("path_axis_mixture", False):
+        methods = AXIS_MIXTURE_METHODS
+        panels = (("composition", "Horizontal-reflection composition"),
+                  ("vertical_composition", "Vertical-reflection composition"),
+                  ("both_compositions", "Clean and both compositions"))
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     if source := data["config"].get("source_domain"):
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]

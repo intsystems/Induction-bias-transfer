@@ -61,6 +61,20 @@ def shared_axis_precisions(horizontal, vertical, seed):
             (("axis_horizontal", h_basis), ("axis_vertical", v_basis), ("axis_rotated", rotated))}
 
 
+def axis_mixture_precisions(horizontal, vertical, seed):
+    h_values, h_basis = np.linalg.eigh(horizontal)
+    v_values, v_basis = np.linalg.eigh(vertical)
+    log_mean = ((h_basis * np.log(h_values)) @ h_basis.T + (v_basis * np.log(v_values)) @ v_basis.T) / 2
+    log_values, log_basis = np.linalg.eigh(log_mean)
+    geometric = (log_basis * np.exp(log_values)) @ log_basis.T
+    geometric /= np.trace(geometric) / len(geometric)
+    arithmetic = (horizontal + vertical) / 2
+    rotation, _ = np.linalg.qr(np.random.default_rng(seed + 7200).normal(size=horizontal.shape))
+    return {"axis_arithmetic": arithmetic, "axis_log_mean": geometric,
+            "axis_arithmetic_rotated": rotation @ arithmetic @ rotation.T,
+            "axis_log_mean_rotated": rotation @ geometric @ rotation.T}
+
+
 def spectral_block_precisions(path, split, seed, *, orientation_control=False):
     _, axes = np.linalg.eigh(path)
     rng = np.random.default_rng(seed + 5100)
@@ -188,6 +202,8 @@ def fit_target(center, bias, init_head, supports, labels, queries, truth, precis
         if args.path_axes:
             index = ORBIT_ORDERS["vertical"][TEST_VIEWS["composition"]]
             metrics["vertical_composition"] = (correct[0] & correct[index]).float().mean().item()
+            metrics["both_compositions"] = (
+                correct[0] & correct[TEST_VIEWS["composition"]] & correct[index]).float().mean().item()
         if radii is not None:
             metrics["max_rms_gap"] = (torch.stack(history) - torch.stack(radii)).abs().max().item()
         return metrics, history
@@ -222,6 +238,8 @@ def run(train, test, args, seed, device, traffic_paths=None):
         _, vertical_priors, vertical_error, _ = source_adapter_priors(
             vertical_orbit, args.budget, seed, reference_views=centered)
         axes = shared_axis_precisions(priors["path"], vertical_priors["path"], seed)
+        if args.path_axis_mixture:
+            axes.update(axis_mixture_precisions(axes["axis_horizontal"], axes["axis_vertical"], seed))
         extra_precisions.update({name: torch.as_tensor(precision, device=device, dtype=weights.dtype)
                                  for name, precision in axes.items()})
         diagnostics["vertical_moment_error"] = vertical_error
@@ -366,6 +384,8 @@ def main():
                         help="test off-diagonal signs in the high-precision path eigenspace")
     parser.add_argument("--path-axes", action="store_true",
                         help="compare horizontal- and vertical-reflection paths with a shared precision spectrum")
+    parser.add_argument("--path-axis-mixture", action="store_true",
+                        help="mix the two equal-spectrum path precisions and test both compositions together")
     parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--output", type=Path, default=HERE / "results/adapter_paths/metrics.json")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
@@ -399,6 +419,8 @@ def main():
     output_prior.add_argument("--target-row-coupling", action="store_true",
                               help="compare additive and product penalties with equal marginal strengths")
     args = parser.parse_args()
+    if args.path_axis_mixture:
+        args.path_axes = True
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
     if (args.teacher_row_prior or args.intertwining_prior or args.target_row_prior or args.target_row_labels
