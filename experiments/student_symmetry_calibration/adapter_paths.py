@@ -24,7 +24,9 @@ def source_adapter_priors(views, budget, seed):
         precision = whitener.T @ np.linalg.solve(priors[key], whitener)
         precision = (precision + precision.T) / 2
         precisions[name] = precision / (np.trace(precision) / len(precision))
-    return whitener, precisions, diagnostics["composition_operators"]["relative_moment_error"]["mean_prediction"]
+    action = np.eye(len(whitener)) - np.sqrt(2) * np.linalg.solve(whitener, model[0] @ whitener)
+    error = diagnostics["composition_operators"]["relative_moment_error"]["mean_prediction"]
+    return whitener, precisions, error, action
 
 
 def coordinate_adapter(adapter, whitener, offset):
@@ -47,8 +49,23 @@ def teacher_row_precisions(views, seed):
             "reversed_rows": (axes * strengths[::-1]) @ axes.T}, strengths
 
 
+def composition_action_penalties(stem_action, teacher_views, seed):
+    centered = teacher_views - teacher_views.mean(axis=(0, 1))
+    _, teacher_action, _ = composition_moments(centered, path_composition=True)
+    rotation, _ = np.linalg.qr(np.random.default_rng(seed + 3100).normal(size=teacher_action.shape))
+    outputs = {"teacher_action": teacher_action,
+               "rotated_action": rotation @ teacher_action @ rotation.T,
+               "identity_action": np.eye(len(teacher_action))}
+    penalties = {}
+    for name, action in outputs.items():
+        trace_mean = np.sum(stem_action ** 2) / len(stem_action) + np.sum(action ** 2) / len(action)
+        trace_mean -= 2 * np.trace(stem_action) * np.trace(action) / (len(stem_action) * len(action))
+        penalties[name] = (stem_action, action, max(float(trace_mean), 1e-12))
+    return penalties
+
+
 def fit_target(center, bias, init_head, supports, labels, queries, truth, precision, args, *,
-               freeze=False, radii=None, record_radii=False, row_precision=None):
+               freeze=False, radii=None, record_radii=False, row_precision=None, action_penalty=None):
     weight = nn.Parameter(center.clone(), requires_grad=not freeze)
     intercept = nn.Parameter(bias.clone(), requires_grad=not freeze)
     head = nn.Parameter(init_head.clone())
@@ -62,7 +79,12 @@ def fit_target(center, bias, init_head, supports, labels, queries, truth, precis
         if precision is not None:
             displacement = weight - center
             output_penalty = displacement if row_precision is None else row_precision @ displacement
-            loss = loss + args.penalty * ((displacement @ precision) * output_penalty).mean()
+            penalty = ((displacement @ precision) * output_penalty).mean()
+            if action_penalty is not None:
+                stem_action, teacher_action, scale = action_penalty
+                commutator = stem_action @ displacement.T - displacement.T @ teacher_action
+                penalty = (penalty + commutator.square().mean() / scale) / 2
+            loss = loss + args.penalty * penalty
         loss.backward()
         optimizer.step()
         if radii is not None or record_radii:
@@ -93,19 +115,29 @@ def run(train, test, args, seed, device):
     stem = student[:-1]
     source_views = embed_orbit(stem, probe[1::2], device, args.batch_size)
     offset = source_views.mean(axis=(0, 1))
-    whitener, priors, moment_error = source_adapter_priors(source_views - offset, args.budget, seed)
+    whitener, priors, moment_error, stem_action = source_adapter_priors(source_views - offset, args.budget, seed)
     weights, bias = coordinate_adapter(student[-1],
                                        torch.as_tensor(whitener, device=device, dtype=torch.float32),
                                        torch.as_tensor(offset, device=device, dtype=torch.float32))
     precisions = {key: torch.as_tensor(value, device=device, dtype=torch.float32) for key, value in priors.items()}
     row_priors = {}
+    action_penalties = {}
     diagnostics = {}
-    if args.teacher_row_prior:
+    if args.teacher_row_prior or args.intertwining_prior:
         teacher_views = embed_orbit(lambda batch: (teacher.encode(batch) - mean) @ basis,
                                     probe[1::2], device, args.batch_size)
+    if args.teacher_row_prior:
         row_matrices, strengths = teacher_row_precisions(teacher_views, seed)
         row_priors = {key: torch.as_tensor(value, device=device, dtype=weights.dtype) for key, value in row_matrices.items()}
         diagnostics["row_precision_spectrum"] = strengths.tolist()
+    if args.intertwining_prior:
+        matrices = composition_action_penalties(stem_action, teacher_views, seed)
+        action_penalties = {
+            key: (torch.as_tensor(a, device=device, dtype=weights.dtype),
+                  torch.as_tensor(b, device=device, dtype=weights.dtype), scale)
+            for key, (a, b, scale) in matrices.items()
+        }
+        diagnostics["action_penalty_normalizers"] = {key: scale for key, (_, _, scale) in matrices.items()}
 
     def coordinates(views):
         return torch.as_tensor((views - offset) @ whitener, device=device, dtype=weights.dtype)
@@ -142,6 +174,11 @@ def run(train, test, args, seed, device):
                         weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
                         radii=reference_radii, row_precision=row_precision
                     )
+                for name, action_penalty in action_penalties.items():
+                    results[name], _ = fit_target(
+                        weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
+                        radii=reference_radii, action_penalty=action_penalty
+                    )
             rows[str(n)].append(results)
     print(seed, "completed", flush=True)
     return {"seed": seed, "latent_width": len(weights), "source_moment_error": moment_error,
@@ -169,10 +206,13 @@ def main():
     parser.add_argument("--budget", type=float, default=.25)
     parser.add_argument("--match-update-rms", action="store_true",
                         help="match the isotropic adapter displacement after each optimizer step")
-    parser.add_argument("--teacher-row-prior", action="store_true",
-                        help="vary the output precision using the teacher's composition stability")
+    output_prior = parser.add_mutually_exclusive_group()
+    output_prior.add_argument("--teacher-row-prior", action="store_true",
+                              help="vary the output precision using the teacher's composition stability")
+    output_prior.add_argument("--intertwining-prior", action="store_true",
+                              help="penalize changes that disrupt the composition action across the adapter")
     args = parser.parse_args()
-    if args.teacher_row_prior:
+    if args.teacher_row_prior or args.intertwining_prior:
         args.match_update_rms = True
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:
         parser.error("need at least two probe examples per class, a variance budget in (0, 1), and a nonnegative penalty")

@@ -19,6 +19,9 @@ MATCHED_METHODS = {"isotropic": "Isotropic reference", "rotated": "Rotated spect
 ROW_METHODS = {"path_matched": "Path · uniform rows", "split_matched": "Separate · uniform rows",
                "teacher_rows": "Path · teacher rows", "rotated_rows": "Path · rotated rows",
                "reversed_rows": "Path · reversed rows"}
+ACTION_METHODS = {"path_matched": "Input path prior", "split_matched": "Separate generator budgets",
+                  "teacher_action": "Teacher action", "rotated_action": "Rotated teacher action",
+                  "identity_action": "Identity output action"}
 
 
 def main():
@@ -31,6 +34,8 @@ def main():
     methods = MATCHED_METHODS if data["config"].get("match_update_rms", False) else METHODS
     if data["config"].get("teacher_row_prior", False):
         methods = ROW_METHODS
+    elif data["config"].get("intertwining_prior", False):
+        methods = ACTION_METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     for ax, (metric, title) in zip(axes, (("clean", "Clean"),
                                          ("composition", "Clean and composition"),
