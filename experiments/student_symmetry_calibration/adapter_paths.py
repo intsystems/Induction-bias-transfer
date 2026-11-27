@@ -34,13 +34,15 @@ def coordinate_adapter(adapter, whitener, offset):
     return weight, bias
 
 
-def fit_target(center, bias, init_head, supports, labels, queries, truth, precision, args, *, freeze=False):
+def fit_target(center, bias, init_head, supports, labels, queries, truth, precision, args, *,
+               freeze=False, radii=None, record_radii=False):
     weight = nn.Parameter(center.clone(), requires_grad=not freeze)
     intercept = nn.Parameter(bias.clone(), requires_grad=not freeze)
     head = nn.Parameter(init_head.clone())
     head_bias = nn.Parameter(center.new_zeros(len(head)))
     optimizer = torch.optim.AdamW([head, head_bias, *(() if freeze else (weight, intercept))], lr=args.lr)
-    for _ in range(args.epochs):
+    history = []
+    for step in range(args.epochs):
         optimizer.zero_grad(set_to_none=True)
         logits = F.linear(F.linear(supports, weight, intercept), head, head_bias)
         loss = F.cross_entropy(logits, labels)
@@ -49,12 +51,22 @@ def fit_target(center, bias, init_head, supports, labels, queries, truth, precis
             loss = loss + args.penalty * ((displacement @ precision) * displacement).mean()
         loss.backward()
         optimizer.step()
+        if radii is not None or record_radii:
+            with torch.no_grad():
+                displacement = weight - center
+                if radii is not None:
+                    rms = displacement.square().mean().sqrt().clamp_min(1e-12)
+                    weight.copy_(center + displacement * (radii[step] / rms))
+                history.append((weight - center).square().mean().sqrt())
     with torch.no_grad():
         correct = F.linear(F.linear(queries, weight, intercept), head, head_bias).argmax(-1) == truth
         residual = (weight - center).square().mean().sqrt()
-        return {"clean": correct[0].float().mean().item(), "all_views": correct.all(0).float().mean().item(),
-                "adapter_rms_change": residual.item(),
-                **{key: (correct[0] & correct[index]).float().mean().item() for key, index in TEST_VIEWS.items()}}
+        metrics = {"clean": correct[0].float().mean().item(), "all_views": correct.all(0).float().mean().item(),
+                   "adapter_rms_change": residual.item(),
+                   **{key: (correct[0] & correct[index]).float().mean().item() for key, index in TEST_VIEWS.items()}}
+        if radii is not None:
+            metrics["max_rms_gap"] = (torch.stack(history) - torch.stack(radii)).abs().max().item()
+        return metrics, history
 
 
 def run(train, test, args, seed, device):
@@ -89,9 +101,20 @@ def run(train, test, args, seed, device):
             design = torch.cat([supports[k][chosen[k][:n]] for k in target])
             labels = torch.arange(len(target), device=device).repeat_interleave(n)
             modes = {"frozen": None, "initialization": None, **precisions}
-            rows[str(n)].append({name: fit_target(weights, bias, head, design, labels, target_views, truth,
-                                                  precision, args, freeze=name == "frozen")
-                                 for name, precision in modes.items()})
+            results = {}
+            for name, precision in modes.items():
+                record = args.match_update_rms and name == "isotropic"
+                results[name], history = fit_target(weights, bias, head, design, labels, target_views, truth,
+                                                    precision, args, freeze=name == "frozen", record_radii=record)
+                if record:
+                    reference_radii = history
+            if args.match_update_rms:
+                for name in ("path", "rotated", "split"):
+                    results[f"{name}_matched"], _ = fit_target(
+                        weights, bias, head, design, labels, target_views, truth, precisions[name], args,
+                        radii=reference_radii
+                    )
+            rows[str(n)].append(results)
     print(seed, "completed", flush=True)
     return {"seed": seed, "latent_width": len(weights), "source_moment_error": moment_error, "shots": rows}
 
@@ -115,9 +138,13 @@ def main():
     parser.add_argument("--lr", type=float, default=.003)
     parser.add_argument("--penalty", type=float, default=25.)
     parser.add_argument("--budget", type=float, default=.25)
+    parser.add_argument("--match-update-rms", action="store_true",
+                        help="match the isotropic adapter displacement after each optimizer step")
     args = parser.parse_args()
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:
         parser.error("need at least two probe examples per class, a variance budget in (0, 1), and a nonnegative penalty")
+    if args.epochs < 1:
+        parser.error("need at least one target optimization step")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train, test = (CIFAR10(args.data, train=flag, download=True) for flag in (True, False))

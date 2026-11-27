@@ -13,6 +13,9 @@ RESULTS = Path(__file__).resolve().parent / "results/adapter_paths"
 METHODS = {"frozen": "Frozen adapter", "initialization": "Initialization only",
            "isotropic": "Isotropic prior", "split": "Separate generator budgets",
            "rotated": "Rotated path spectrum", "path": "Path prior"}
+MATCHED_METHODS = {"isotropic": "Isotropic reference", "rotated": "Rotated spectrum",
+                   "path": "Path prior", "rotated_matched": "Rotated · matched displacement",
+                   "path_matched": "Path · matched displacement", "split_matched": "Separate · matched displacement"}
 
 
 def main():
@@ -22,11 +25,12 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
+    methods = MATCHED_METHODS if data["config"].get("match_update_rms", False) else METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     for ax, (metric, title) in zip(axes, (("clean", "Clean"),
                                          ("composition", "Clean and composition"),
                                          ("all_views", "All eight views")), strict=True):
-        for name, label in METHODS.items():
+        for name, label in methods.items():
             values = [100 * np.mean([episode[name][metric] for run in data["runs"] for episode in run["shots"][str(n)]])
                       for n in shots]
             ax.plot(shots, values, marker="o", label=label)
