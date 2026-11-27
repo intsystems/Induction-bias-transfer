@@ -47,6 +47,8 @@ ANGLE_GATE_METHODS = {"raw": "Uncorrected",
                       "oracle": "Known inverse"}
 TRACK_METHODS = {"raw": "Uncorrected", "pose_point": "Absolute pose", "angle_same_point": "Paired angle",
                  "paired_full": "Paired pose", "angle_shuffled": "Shuffled paired angle"}
+TRACK_TRAINING_METHODS = {"raw": "Uncorrected", "pose_point": "Synthetic pose loss",
+                          "same_track": "Same track", "same_class": "Different tracks, same class"}
 
 
 def main():
@@ -70,7 +72,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if natural_track_pose:
+    if results["config"].get("train_track_canonicalizer", False):
+        methods = TRACK_TRAINING_METHODS
+    elif natural_track_pose:
         methods = TRACK_METHODS
     elif angle_gate:
         methods = ANGLE_GATE_METHODS
