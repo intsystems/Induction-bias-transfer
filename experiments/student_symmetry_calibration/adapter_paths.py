@@ -38,6 +38,20 @@ def coordinate_adapter(adapter, whitener, offset):
     return weight, bias
 
 
+def hybrid_precisions(path, split, seed):
+    identity = np.eye(len(path))
+    covariance_path = np.linalg.solve(path, identity)
+    covariance_split = np.linalg.solve(split, identity)
+    halfway = (path + split) / 2
+    rotation, _ = np.linalg.qr(np.random.default_rng(seed + 4100).normal(size=path.shape))
+    harmonic = np.linalg.solve((covariance_path + covariance_split) / 2, identity)
+    harmonic = (harmonic + harmonic.T) / 2
+    return {"hybrid_quarter": .25 * path + .75 * split, "hybrid_half": halfway,
+            "hybrid_three_quarters": .75 * path + .25 * split,
+            "hybrid_covariance": harmonic / (np.trace(harmonic) / len(harmonic)),
+            "hybrid_rotated": rotation @ halfway @ rotation.T}
+
+
 def teacher_row_precisions(views, seed):
     centered = views - views.mean(axis=(0, 1))
     moments, _, _ = composition_moments(centered, path_composition=True)
@@ -129,18 +143,23 @@ def run(train, test, args, seed, device, traffic_paths=None):
     row_priors = {}
     action_penalties = {}
     diagnostics = {}
-    auxiliary_precisions = {}
+    extra_precisions = {}
     if auxiliary_probe is not None:
         auxiliary_views = embed_orbit(stem, auxiliary_probe, device, args.batch_size)
         auxiliary_views -= auxiliary_views.mean(axis=(0, 1))
         _, auxiliary_priors, auxiliary_error, _ = source_adapter_priors(
             auxiliary_views, args.budget, seed, reference_views=source_views - offset
         )
-        auxiliary_precisions = {
-            key: torch.as_tensor(auxiliary_priors[key], device=device, dtype=weights.dtype)
+        extra_precisions.update({
+            f"auxiliary_{key}": torch.as_tensor(auxiliary_priors[key], device=device, dtype=weights.dtype)
             for key in ("path", "rotated", "split")
-        }
+        })
         diagnostics["auxiliary_moment_error"] = auxiliary_error
+    if args.hybrid_prior:
+        extra_precisions.update({
+            key: torch.as_tensor(value, device=device, dtype=weights.dtype)
+            for key, value in hybrid_precisions(priors["path"], priors["split"], seed).items()
+        })
     if args.teacher_row_prior or args.intertwining_prior:
         teacher_views = embed_orbit(lambda batch: (teacher.encode(batch) - mean) @ basis,
                                     probe[1::2], device, args.batch_size)
@@ -197,8 +216,8 @@ def run(train, test, args, seed, device, traffic_paths=None):
                         weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
                         radii=reference_radii, action_penalty=action_penalty
                     )
-                for name, precision in auxiliary_precisions.items():
-                    results[f"auxiliary_{name}_matched"], _ = fit_target(
+                for name, precision in extra_precisions.items():
+                    results[f"{name}_matched"], _ = fit_target(
                         weights, bias, head, design, labels, target_views, truth, precision, args,
                         radii=reference_radii
                     )
@@ -215,6 +234,8 @@ def main():
     parser.add_argument("--source-domain", choices=("cifar", "gtsrb"), default="cifar")
     parser.add_argument("--compare-probe-domain", action="store_true",
                         help="compare GTSRB and auxiliary CIFAR priors on the same GTSRB student")
+    parser.add_argument("--hybrid-prior", action="store_true",
+                        help="test mixtures of path and separate-generator precision")
     parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--output", type=Path, default=HERE / "results/adapter_paths/metrics.json")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
@@ -242,7 +263,7 @@ def main():
     args = parser.parse_args()
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
-    if args.teacher_row_prior or args.intertwining_prior or args.compare_probe_domain:
+    if args.teacher_row_prior or args.intertwining_prior or args.compare_probe_domain or args.hybrid_prior:
         args.match_update_rms = True
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:
         parser.error("need at least two probe examples per class, a variance budget in (0, 1), and a nonnegative penalty")

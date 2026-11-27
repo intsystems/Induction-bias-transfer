@@ -25,6 +25,10 @@ ACTION_METHODS = {"path_matched": "Input path prior", "split_matched": "Separate
 PROBE_METHODS = {"path_matched": "GTSRB paths", "rotated_matched": "GTSRB rotated",
                  "auxiliary_path_matched": "CIFAR-10 paths", "auxiliary_rotated_matched": "CIFAR-10 rotated",
                  "split_matched": "GTSRB generators", "auxiliary_split_matched": "CIFAR-10 generators"}
+HYBRID_METHODS = {"split_matched": "Separate generators", "hybrid_quarter_matched": "25% path precision",
+                  "hybrid_half_matched": "50% path precision", "hybrid_three_quarters_matched": "75% path precision",
+                  "path_matched": "Path prior", "hybrid_covariance_matched": "Covariance mixture",
+                  "hybrid_rotated_matched": "Rotated 50% mixture"}
 
 
 def main():
@@ -41,6 +45,8 @@ def main():
         methods = ACTION_METHODS
     if data["config"].get("compare_probe_domain", False):
         methods = PROBE_METHODS
+    if data["config"].get("hybrid_prior", False):
+        methods = HYBRID_METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     if source := data["config"].get("source_domain"):
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]
