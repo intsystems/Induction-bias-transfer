@@ -16,6 +16,9 @@ METHODS = {"clean": "Clean labels", "pair_only": "Unlabelled pairs", "combined":
 CENTERED = {"clean": "Clean labels", "combined": "Uncentered pairs", "centered_geometry": "Geometry-centered",
             "centered_random": "Random-head centered", "centered_labels": "Label-permutation centered",
             "centered_labels_shuffled": "Label-centered · shuffled pairs", "known_sign": "Known action"}
+TRACK_CV = {"clean": "Clean-label evidence", "track_cv": "Held-out track pairs",
+            "track_cv_centered": "Centered held-out score", "track_cv_pairs": "Held-out score and unlabelled pairs",
+            "centered_labels": "Clean evidence and centered pairs", "known_sign": "Known action"}
 
 
 def main():
@@ -27,6 +30,8 @@ def main():
     shots = data["config"]["shots"]
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), layout="constrained")
     methods = CENTERED if data["config"].get("centered_null", False) else METHODS
+    if data["config"].get("track_cv", False):
+        methods = TRACK_CV
     for key, label in methods.items():
         correct = []
         for ax, family in zip(axes[:2], ("invariant", "antisymmetric"), strict=True):

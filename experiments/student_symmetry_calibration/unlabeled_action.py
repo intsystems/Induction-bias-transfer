@@ -101,6 +101,37 @@ def action_estimates(x, labels, pairs, parity, isotropic, noise, shrink, rng, nu
     return weights, diagnostics
 
 
+def track_cross_validation(x, labels, parity, noise):
+    """Score held-out balanced track pairs and center the score under fold-wise label swaps."""
+    folds = list(zip(np.flatnonzero(labels < 0), np.flatnonzero(labels > 0), strict=True))
+    null_basis = np.zeros((len(labels), len(folds)))
+    for i, indices in enumerate(folds):
+        null_basis[list(indices), i] = labels[list(indices)]
+    covariance = x @ parity @ x.T + noise ** 2 * np.eye(len(labels))
+    precision = np.linalg.solve(covariance, np.eye(len(labels)))
+    projected = precision @ np.column_stack((labels, null_basis))
+    raw = np.zeros(len(parity))
+    centered = np.zeros_like(raw)
+    for indices in folds:
+        held = list(indices)
+        block = precision[:, held, :][:, :, held]
+        values = projected[:, held, :]
+        quadratic = (values * np.linalg.solve(block, values)).sum(axis=1)
+        raw += .5 * (np.linalg.slogdet(block)[1] - quadratic[:, 0])
+        centered += .5 * (quadratic[:, 1:].sum(axis=1) - quadratic[:, 0])
+    return raw, centered
+
+
+def cross_validated_weights(x, labels, parity, noise, null_diagnostics):
+    raw, centered = track_cross_validation(x, labels, parity, noise)
+    balance = null_diagnostics["head_log_odds"] - null_diagnostics["label_offset"]
+    return {
+        "track_cv": float(probabilities(raw)[0]),
+        "track_cv_centered": float(probabilities(centered)[0]),
+        "track_cv_pairs": float(expit(centered[0] - centered[1] + balance)),
+    }
+
+
 def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng, null_rng=None):
     query = np.concatenate([test[label] for label in pair], axis=1)
     truth = np.concatenate([np.full(len(test[label][0]), k)
@@ -118,6 +149,8 @@ def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng, 
             labels = np.repeat([-1., 1.], shots)
             weights, diagnostics = action_estimates(
                 x, labels, pairs, parity, isotropic, args.noise, args.shrink, rng, null_rng, args.null_draws)
+            if args.track_cv:
+                weights.update(cross_validated_weights(x, labels, parity, args.noise, diagnostics))
             _, posterior = predictive_probabilities(cache, x, labels, args.noise, query.shape[:-1])
             weights["known_sign"] = float(sign == 1)
             metrics = {key: judge_probabilities(p * posterior[0] + (1 - p) * posterior[1], truth, sign)
@@ -168,10 +201,15 @@ def main():
     parser.add_argument("--unlabeled-tracks", type=int, default=12)
     parser.add_argument("--shrink", type=float, default=4.)
     parser.add_argument("--centered-null", action="store_true")
+    parser.add_argument("--track-cv", action="store_true")
     parser.add_argument("--null-draws", type=int, default=63)
     args = parser.parse_args()
+    if args.track_cv:
+        args.centered_null = True
     if args.output is None:
         name = "centered_action" if args.centered_null else "unlabeled_action"
+        if args.track_cv:
+            name = "cross_validated_action"
         args.output = HERE / "results" / name / "metrics.json"
     if (min(args.shots) <= 0 or not np.isfinite(args.noise) or args.noise <= 0
             or args.unlabeled_tracks < 2 or not np.isfinite(args.shrink) or args.shrink <= 0 or args.null_draws < 1):
