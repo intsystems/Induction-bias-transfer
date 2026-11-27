@@ -912,6 +912,9 @@ def select_posterior_logits(choices):
 
 def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, head_kernels=None):
     parity = np.concatenate((kernels["fixed_even"], kernels["fixed_odd"]))
+    if args.track_head_evidence:
+        geometry = ("head_same_track", "head_same_class")
+        joint = np.concatenate((parity, *(head_kernels[name] for name in geometry)))
     batches_by_strength = {}
     for strength in map(str, args.strengths):
         a, b = (query[label][strength][0] for label in pair)
@@ -930,12 +933,17 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
             f = np.concatenate([support[label][j[:count]] for label, j in zip(pair, ids, strict=True)])
             y = np.repeat([-1, 1], count)
             # Compute the posterior head once, using only the clean support.
-            width = f.shape[1]
-            weights, probability = predict(parity, f, y, np.eye(width), args.noise, center_evidence=True)
-            even, _ = predict(kernels["fixed_even"], f, y, np.eye(width), args.noise)
-            heads = {name: predict(prior, f, y, np.eye(width), args.noise, center_evidence=True)[0]
+            identity = np.eye(f.shape[1])
+            weights, probability = predict(parity, f, y, identity, args.noise, center_evidence=True)
+            even, _ = predict(kernels["fixed_even"], f, y, identity, args.noise)
+            heads = {name: predict(prior, f, y, identity, args.noise, center_evidence=True)[0]
                      for name, prior in (head_kernels or {}).items()}
             values = {"posterior_same": float(probability[0]), "strengths": {}}
+            if args.track_head_evidence:
+                adaptive, joint_mass = predict(joint, f, y, identity, args.noise, center_evidence=True)
+                heads["head_evidence"] = adaptive
+                heads["head_equal_mix"] = np.mean([weights, *(heads[name] for name in geometry)], axis=0)
+                values["geometry_mass"] = joint_mass.reshape(3, 2).sum(axis=1)
             if args.track_parity_policy:
                 values["correct_action"] = float((probability[0] >= .5) == (sign == 1))
             for strength, (embeddings, truth, n_negative) in batches_by_strength.items():
@@ -971,6 +979,8 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
             "posterior_same": float(np.mean([ep["posterior_same"] for ep in episodes])),
             **({"correct_action": float(np.mean([ep["correct_action"] for ep in episodes]))}
                if args.track_parity_policy else {}),
+            **({"geometry_mass": np.mean([ep["geometry_mass"] for ep in episodes], axis=0).tolist()}
+               if args.track_head_evidence else {}),
             "strengths": {strength: {key: {metric: float(np.mean([
                 ep["strengths"][strength][key][metric] for ep in episodes]))
                 for metric in measures} for key, measures in methods.items()}
@@ -1139,10 +1149,11 @@ def main():
     selection.add_argument("--track-head-prior", action="store_true")
     selection.add_argument("--track-head-between", action="store_true")
     selection.add_argument("--track-head-student", action="store_true")
+    selection.add_argument("--track-head-evidence", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_head_between or args.track_head_student:
+    if args.track_head_between or args.track_head_student or args.track_head_evidence:
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1158,7 +1169,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_student:
+        if args.track_head_evidence:
+            name = "track_head_evidence"
+        elif args.track_head_student:
             name = "track_head_student"
         elif args.track_head_between:
             name = "track_head_between"

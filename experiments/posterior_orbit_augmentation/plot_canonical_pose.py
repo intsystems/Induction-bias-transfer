@@ -64,6 +64,8 @@ TRACK_HEAD_BETWEEN_METHODS = {**TRACK_HEAD_PRIOR_METHODS, "head_track_means": "T
 TRACK_HEAD_STUDENT_METHODS = {"raw": "Uniform parity blocks", "head_same_track": "Teacher · same track",
                               "head_same_class": "Teacher · same class", "head_student_track": "Student · same track",
                               "head_student_class": "Student · same class", "head_rotated": "Rotated basis"}
+TRACK_HEAD_EVIDENCE_METHODS = {"raw": "Uniform parity blocks", "head_same_class": "Same-class basis",
+                               "head_equal_mix": "Equal geometry mixture", "head_evidence": "Posterior geometry mixture"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -94,7 +96,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if results["config"].get("track_head_student", False):
+    if results["config"].get("track_head_evidence", False):
+        methods = TRACK_HEAD_EVIDENCE_METHODS
+    elif results["config"].get("track_head_student", False):
         methods = TRACK_HEAD_STUDENT_METHODS
     elif results["config"].get("track_head_between", False):
         methods = TRACK_HEAD_BETWEEN_METHODS

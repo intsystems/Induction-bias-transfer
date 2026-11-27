@@ -752,3 +752,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-head-student --seeds $(seq 393 408) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Выбор геометрии головы по чистой поддержке
+
+Сравниваем равномерный априор внутри блоков, априор по разностям одного трека и априор по разностям разных треков одного класса. У каждой геометрии есть два режима чётности. В адаптивной смеси вычисляем центрированные оценки свидетельства шести моделей по одной чистой поддержке. Изначальные веса трёх геометрий одинаковы. Контроль сначала усредняет режимы чётности внутри каждой геометрии по тому же правилу, затем даёт геометриям равные веса. Ни один из двух способов выбора не использует тестовые кадры или их метки.
+
+Основной парный контраст на seed 409–424 при трёх метках на класс сравнивает адаптивную смесь с равной. Метрика — сбалансированная точность отражённых кадров с равным весом двух семейств задач и трёх позиций кадра на отложенных треках. Также сравниваем с фиксированными геометриями и оцениваем апостериорные веса при одной, двух и трёх метках.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_head_evidence"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-head-evidence --seeds $(seq 409 424) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```
