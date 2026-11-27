@@ -9,7 +9,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-RESULTS = Path(__file__).resolve().parent / "results/partial_pairs"
+RESULTS = Path(__file__).resolve().parent / "results/partial_pairs_independent"
 METHODS = {"forced": "Forced assignment", "posthoc": "Post-hoc rejection",
            "nearest": "Nearest with rejection", "optional": "Joint rejection",
            "trusted_only": "Trusted anchors", "oracle": "Known pairs"}

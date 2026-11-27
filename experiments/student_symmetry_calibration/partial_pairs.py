@@ -3,6 +3,7 @@
 import argparse
 import json
 import time
+from copy import copy
 from pathlib import Path
 
 import numpy as np
@@ -62,8 +63,16 @@ def candidate_pools(probe_size, anchor_count, class_size, rng):
 
 def run(train, test, args, seed, device):
     source, target = class_split(seed, True)
-    x, probe, support, query = data_partitions(train, test, args, seed, device, source, target)
-    features = learn_domain(x, probe, source, support, query, args, seed, device)
+    partition_args = copy(args)
+    if not args.shared_basis_probe:
+        partition_args.probe_examples *= 2
+    x, probe, support, query = data_partitions(train, test, partition_args, seed, device, source, target)
+    basis_probe = None
+    if not args.shared_basis_probe:
+        by_class = probe.reshape(len(source), partition_args.probe_examples, *probe.shape[1:])
+        probe = by_class[:, :args.probe_examples].flatten(0, 1)
+        basis_probe = by_class[:, args.probe_examples:].flatten(0, 1)
+    features = learn_domain(x, probe, source, support, query, args, seed, device, basis_probe=basis_probe)
     probe = features["probe"].astype(np.float64)
     rng = np.random.default_rng(seed + 7700)
     anchors, left, reserve = candidate_pools(probe.shape[1], args.anchors // len(source),
@@ -94,18 +103,23 @@ def run(train, test, args, seed, device):
             local = (probe[0, rows] - probe[1, columns]) @ whitener / 2
             return covariance(local, np.ones(len(local)))
 
-        true_pairs = np.r_[anchors, left[:, :common].ravel()]
+        common_ids = left[:, :common].ravel()
+        true_pairs = np.r_[anchors, common_ids]
         matrices = {"trusted_only": orbit(anchors, anchors), "oracle": orbit(true_pairs, true_pairs)}
+        common_energy = np.trace(orbit(common_ids, common_ids))
         correspondence = {}
         for name, (rows, columns) in match(cost_matrix(scores, candidate_rows, candidate_rows), threshold).items():
             first, second = left.ravel()[rows], right[columns]
-            correct = np.count_nonzero(first == second)
+            recovered = first[first == second]
+            correct = len(recovered)
             matrices[name] = orbit(np.r_[anchors, first], np.r_[anchors, second])
             correspondence[name] = {
                 "accepted": int(len(first)),
                 "precision": float(correct / len(first)) if len(first) else None,
                 "recall": float(correct / (common * len(source))),
                 "coverage": float(len(first) / left.size),
+                "recovered_true_orbit_energy_ratio": float(np.trace(orbit(recovered, recovered)) / common_energy)
+                if correct and common_energy > 0 else None,
             }
         reference = matrices["oracle"]
         supports = {k: v - mean for k, v in features["supports"].items()}
@@ -128,7 +142,7 @@ def run(train, test, args, seed, device):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("/tmp/ibt-cifar-data"))
-    parser.add_argument("--output", type=Path, default=HERE / "results/partial_pairs/metrics.json")
+    parser.add_argument("--output", type=Path)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--seeds", type=int, nargs="+", default=list(range(301, 313)))
     parser.add_argument("--overlaps", type=float, nargs="+", default=[.25, .50, .75, 1.])
@@ -140,12 +154,16 @@ def main():
     parser.add_argument("--student-epochs", type=int, default=22)
     parser.add_argument("--source-examples", type=int, default=900)
     parser.add_argument("--probe-examples", type=int, default=128)
+    parser.add_argument("--shared-basis-probe", action="store_true")
     parser.add_argument("--target-pool", type=int, default=600)
     parser.add_argument("--test-per-class", type=int, default=600)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
+    if args.output is None:
+        result_dir = "partial_pairs" if args.shared_basis_probe else "partial_pairs_independent"
+        args.output = HERE / "results" / result_dir / "metrics.json"
     pool_size = (args.probe_examples - args.anchors // 4) // 2
     if args.anchors < 4 or args.anchors % 4 or pool_size < 2:
         parser.error("need a positive anchor count divisible by four and two candidates per class per pool")

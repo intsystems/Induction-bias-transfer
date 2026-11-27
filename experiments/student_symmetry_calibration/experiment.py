@@ -272,10 +272,10 @@ def evaluate(priors, supports, queries, target_classes, args, rng):
     }
 
 
-def learn_domain(source, probe, source_classes, target, target_test, args, seed, device):
+def learn_domain(source, probe, source_classes, target, target_test, args, seed, device, *, basis_probe=None):
     labels = torch.arange(len(source_classes), device=device).repeat_interleave(args.source_examples)
     teacher = fit_teacher(source, labels, args, seed, len(source_classes))
-    mean, basis, energies = discover_basis(teacher, probe, args)
+    mean, basis, energies = discover_basis(teacher, probe if basis_probe is None else basis_probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     odd = energies.cpu().numpy() > 0.5
     with torch.inference_mode():
