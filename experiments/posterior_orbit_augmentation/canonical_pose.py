@@ -512,6 +512,10 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             block_covariance = (axes * spectrum) @ axes.T
             for mode, proportion in enumerate(proportions):
                 priors[name][mode][index] = proportion * block_covariance
+    if args.track_head_blocks:
+        for name, mask in (("head_learned_even", ~odd), ("head_learned_odd", odd)):
+            keep = mask[:, None] & mask[None, :]
+            priors[name] = np.where(keep, priors["head_same_class"], priors["head_rotated"])
     return priors
 
 
@@ -1162,10 +1166,12 @@ def main():
     selection.add_argument("--track-head-student", action="store_true")
     selection.add_argument("--track-head-evidence", action="store_true")
     selection.add_argument("--track-head-budget", action="store_true")
+    selection.add_argument("--track-head-blocks", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget:
+    if (args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget
+            or args.track_head_blocks):
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1181,7 +1187,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_budget:
+        if args.track_head_blocks:
+            name = "track_head_blocks"
+        elif args.track_head_budget:
             name = "track_head_budget"
         elif args.track_head_evidence:
             name = "track_head_evidence"
