@@ -497,6 +497,14 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             values = latent[eligible]
             additional_residuals["head_cross_class"] = values[grouped] - values[np.roll(grouped, shift)]
             additional_residuals["head_random_pairs"] = values[shuffled] - values[np.roll(shuffled, 1)]
+        if args.track_head_distance:
+            energy = np.square(residuals[1]).mean(axis=1)
+            ranked = [group[np.argsort(energy[group], kind="stable")] for group in order]
+            near = np.concatenate([group[:len(group)//2] for group in ranked])
+            far = np.concatenate([group[len(group)-len(group)//2:] for group in ranked])
+            random_half = np.concatenate([group[:len(group)//2] for group in order])
+            additional_residuals.update(head_near=residuals[1][near], head_far=residuals[1][far],
+                                        head_random_half=residuals[1][random_half])
         names.extend(additional_residuals)
     priors = {name: np.zeros((2, width, width)) for name in names}
     for block, proportions in ((~odd, (1-MIXTURE[0], 1-MIXTURE[-1])), (odd, (MIXTURE[0], MIXTURE[-1]))):
@@ -1037,7 +1045,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
             head_kernels = natural_track_head_priors(
                 teacher, basis, odd, source, source_partners, args, seed + 250, source_paths=source_paths,
                 student=student if args.track_head_student else None,
-                source_labels=labels if args.track_head_budget or args.track_head_pair_control else None)
+                source_labels=labels if (args.track_head_budget or args.track_head_pair_control
+                                         or args.track_head_distance) else None)
         elif source_partners is None:
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
@@ -1178,11 +1187,12 @@ def main():
     selection.add_argument("--track-head-budget", action="store_true")
     selection.add_argument("--track-head-blocks", action="store_true")
     selection.add_argument("--track-head-pair-control", action="store_true")
+    selection.add_argument("--track-head-distance", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget
-            or args.track_head_blocks or args.track_head_pair_control):
+            or args.track_head_blocks or args.track_head_pair_control or args.track_head_distance):
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1198,7 +1208,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_pair_control:
+        if args.track_head_distance:
+            name = "track_head_distance"
+        elif args.track_head_pair_control:
             name = "track_head_pair_control"
         elif args.track_head_blocks:
             name = "track_head_blocks"
