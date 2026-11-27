@@ -37,8 +37,42 @@ def generator_moments(orbit, complete, actions=(ROTATION, REFLECTION)):
     for action in actions:
         error = ((orbit[start] - orbit[np.asarray(action)[start]]) / 2).reshape(-1, orbit.shape[-1])
         moment = error.T @ error / len(error)
-        outputs.append(moment / max(np.trace(moment) / len(moment), 1e-12))
+        outputs.append(normalize_moment(moment))
     return np.stack(outputs)
+
+
+def normalize_moment(moment):
+    return moment / max(np.trace(moment) / len(moment), 1e-12)
+
+
+def composition_moments(orbit):
+    """Build composition moments from disjoint sets of rotation and reflection pairs."""
+    width = orbit.shape[-1]
+    folds = np.arange(orbit.shape[1]) % 4
+    ridge = .001 * np.eye(width)
+    moments = {key: np.zeros((width, width)) for key in ("plug_in", "additive", "transported")}
+    for holdout in (folds < 2, folds >= 2):
+        operators, innovations = [], []
+        for parity, action in enumerate((ROTATION, REFLECTION)):
+            use_action = folds % 2 == parity
+            train = orbit[:, ~holdout & use_action]
+            x = train.reshape(-1, width)
+            y = train[np.asarray(action)].reshape(-1, width)
+            gram = x.T @ x / len(x)
+            operator = np.linalg.solve(gram + ridge, x.T @ y / len(x))
+            validation = orbit[:, holdout & use_action]
+            residual = (validation[np.asarray(action)] - validation @ operator).reshape(-1, width)
+            operators.append(operator)
+            innovations.append(residual.T @ residual / len(residual))
+        rotation, reflection = operators
+        rotation_error, reflection_error = innovations
+        points = orbit[:, holdout].reshape(-1, width)
+        difference = points - points @ rotation @ reflection
+        plug_in = difference.T @ difference / len(difference)
+        moments["plug_in"] += plug_in
+        moments["additive"] += plug_in + rotation_error + reflection_error
+        moments["transported"] += plug_in + reflection.T @ rotation_error @ reflection + reflection_error
+    return {key: normalize_moment(moment) for key, moment in moments.items()}
 
 
 def budget_covariance(moment, budget):
@@ -87,7 +121,7 @@ def generator_balanced(moments, requested):
     return covariance, achieved.tolist(), float(weight), float(budget)
 
 
-def source_priors(probe, budget, seed, generator_controls=False):
+def source_priors(probe, budget, seed, generator_controls=False, operator_composition=False):
     width = probe.shape[-1]
     flat = probe.reshape(-1, width)
     ridge = 1e-4 * max(float(np.mean(flat ** 2)), 1e-12)
@@ -109,7 +143,7 @@ def source_priors(probe, budget, seed, generator_controls=False):
             for i in range(4):
                 rotation, _ = np.linalg.qr(rng.normal(size=(width, width)))
                 natural[f"orbit_rotated_{i}"] = rotation @ joint @ rotation.T
-            if generator_controls:
+            if generator_controls or operator_composition:
                 composition, = generator_moments(orbit, complete, (COMPOSITION,))
                 action_moments = np.concatenate([moments, composition[None]], axis=0)
                 for key, moment in zip(("rotation", "reflection", "composition"), action_moments, strict=True):
@@ -118,6 +152,26 @@ def source_priors(probe, budget, seed, generator_controls=False):
                     diagnostics["orbit"][f"{key}_only"] = np.einsum("gij,ij->g", action_moments, control).tolist()
                 diagnostics["orbit"]["balanced_composition"] = float(np.sum(joint * composition))
                 diagnostics["orbit"]["average_composition"] = float(np.sum(average * composition))
+    if operator_composition:
+        split_moments = np.concatenate([
+            generator_moments(orbit[:, parity::2], True, (action,))
+            for parity, action in enumerate((ROTATION, REFLECTION))
+        ])
+        natural["split_balanced"], _, _, _ = generator_balanced(split_moments, budget)
+        inferred = composition_moments(orbit)
+        for key, moment in inferred.items():
+            natural[f"composition_{key}"] = budget_covariance(moment, budget)
+        for i in range(4):
+            axes, _ = np.linalg.qr(rng.normal(size=(width, width)))
+            natural[f"transported_rotated_{i}"] = axes @ natural["composition_transported"] @ axes.T
+        composition_scale = max(float(np.linalg.norm(composition)), 1e-12)
+        diagnostics["composition_operators"] = {
+            "relative_moment_error": {key: float(np.linalg.norm(moment - composition) / composition_scale)
+                                      for key, moment in inferred.items()},
+            "actual_composition_variance": {key: float(np.sum(prior * composition)) for key, prior in natural.items()},
+            "estimated_composition_variance": {key: float(np.sum(natural[f"composition_{key}"] * moment))
+                                               for key, moment in inferred.items()},
+        }
     return {k: whitener @ v @ whitener.T for k, v in natural.items()}, diagnostics
 
 
@@ -130,7 +184,8 @@ def run(train, test, args, seed, device):
     student = fit_student(x, teacher, basis, mean, args, seed + 100)
     source_views = embed_orbit(student, probe[1::2], device, args.batch_size)
     center = source_views.mean(axis=(0, 1))
-    priors, diagnostics = source_priors(source_views - center, args.budget, seed, args.generator_controls)
+    priors, diagnostics = source_priors(source_views - center, args.budget, seed,
+                                       args.generator_controls, args.operator_composition)
     supports = {k: embed_orbit(student, v, device, args.batch_size)[0] - center for k, v in support.items()}
     queries = np.concatenate([embed_orbit(student, test_views[k], device, args.batch_size)
                               for k in target], axis=1) - center
@@ -171,10 +226,14 @@ def main():
     parser.add_argument("--budget", type=float, default=.25)
     parser.add_argument("--generator-controls", action="store_true",
                         help="include full-orbit priors estimated from each action alone")
+    parser.add_argument("--operator-composition", action="store_true",
+                        help="infer composition moments from disjoint generator pairs")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
     if not 0 < args.budget < 1 or args.noise <= 0:
         parser.error("need a variance budget in (0, 1) and positive noise")
+    if args.operator_composition and args.probe_examples < 2:
+        parser.error("operator composition needs at least two probe examples per source class")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train, test = (CIFAR10(args.data, train=flag, download=True) for flag in (True, False))

@@ -16,6 +16,13 @@ METHODS = {"isotropic": "Isotropic", "canonical_average": "Canonical edges · av
 CONTROL_METHODS = {"orbit_rotation_only": "Quarter-turn only", "orbit_reflection_only": "Reflection only",
                    "orbit_composition_only": "Composition only", "orbit_average": "Shared budget",
                    "orbit_balanced": "Separate budgets", "orbit_rotated": "Rotated spectrum"}
+OPERATOR_METHODS = {"split_balanced": "Separate budgets · split pairs",
+                    "orbit_rotation_only": "Quarter-turn · all pairs",
+                    "composition_plug_in": "Composed operators",
+                    "composition_additive": "Additive residuals",
+                    "composition_transported": "Transported residuals",
+                    "orbit_composition_only": "Direct composition pairs",
+                    "transported_rotated": "Rotated transported spectrum"}
 
 
 def main():
@@ -28,13 +35,16 @@ def main():
     metrics = [("rotation", "Clean and quarter-turn"), ("composition", "Clean and composed transform"),
                ("all_views", "All eight views")]
     methods = METHODS
-    if data["config"].get("generator_controls", False):
+    if data["config"].get("operator_composition", False):
+        methods = OPERATOR_METHODS
+        metrics.insert(0, ("reflection", "Clean and reflection"))
+    elif data["config"].get("generator_controls", False):
         methods = CONTROL_METHODS
         metrics.insert(0, ("reflection", "Clean and reflection"))
     fig, axes = plt.subplots(1, len(metrics), figsize=(17 if len(metrics) == 4 else 13, 4), layout="constrained")
     for ax, (metric, title) in zip(axes, metrics, strict=True):
         for key, label in methods.items():
-            names = [f"{key}_{i}" for i in range(4)] if key == "orbit_rotated" else [key]
+            names = [f"{key}_{i}" for i in range(4)] if key.endswith("_rotated") else [key]
             values = [100 * np.mean([ep[name][metric] for r in data["runs"] for ep in r["shots"][str(n)]
                                      for name in names]) for n in shots]
             ax.plot(shots, values, marker="o", label=label)
