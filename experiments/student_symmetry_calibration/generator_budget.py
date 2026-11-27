@@ -155,9 +155,10 @@ def generator_balanced(moments, requested):
 
 
 def source_priors(probe, budget, seed, generator_controls=False, operator_composition=False,
-                  path_composition=False):
+                  path_composition=False, *, reference_probe=None):
     width = probe.shape[-1]
-    flat = probe.reshape(-1, width)
+    reference = probe if reference_probe is None else reference_probe
+    flat = reference.reshape(-1, width)
     ridge = 1e-4 * max(float(np.mean(flat ** 2)), 1e-12)
     metric = flat.T @ flat / len(flat) + ridge * np.eye(width)
     whitener = np.linalg.solve(np.linalg.cholesky(metric).T, np.eye(width))

@@ -22,6 +22,9 @@ ROW_METHODS = {"path_matched": "Path · uniform rows", "split_matched": "Separat
 ACTION_METHODS = {"path_matched": "Input path prior", "split_matched": "Separate generator budgets",
                   "teacher_action": "Teacher action", "rotated_action": "Rotated teacher action",
                   "identity_action": "Identity output action"}
+PROBE_METHODS = {"path_matched": "GTSRB paths", "rotated_matched": "GTSRB rotated",
+                 "auxiliary_path_matched": "CIFAR-10 paths", "auxiliary_rotated_matched": "CIFAR-10 rotated",
+                 "split_matched": "GTSRB generators", "auxiliary_split_matched": "CIFAR-10 generators"}
 
 
 def main():
@@ -36,6 +39,8 @@ def main():
         methods = ROW_METHODS
     elif data["config"].get("intertwining_prior", False):
         methods = ACTION_METHODS
+    if data["config"].get("compare_probe_domain", False):
+        methods = PROBE_METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     if source := data["config"].get("source_domain"):
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]

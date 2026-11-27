@@ -15,8 +15,9 @@ from experiment import (CIFAR10, GTSRB, HERE, TRAFFIC_SOURCE, class_split, data_
 from generator_budget import TEST_VIEWS, composition_moments, embed_orbit, source_priors
 
 
-def source_adapter_priors(views, budget, seed):
-    priors, diagnostics, model = source_priors(views, budget, seed, path_composition=True)
+def source_adapter_priors(views, budget, seed, *, reference_views=None):
+    priors, diagnostics, model = source_priors(views, budget, seed, path_composition=True,
+                                              reference_probe=reference_views)
     whitener = model[2]
     precisions = {}
     methods = {"path": "composition_mean_prediction", "rotated": "path_rotated_0",
@@ -109,6 +110,7 @@ def fit_target(center, bias, init_head, supports, labels, queries, truth, precis
 def run(train, test, args, seed, device, traffic_paths=None):
     source, target = class_split(seed, True)
     x, probe, support, queries = data_partitions(train, test, args, seed, device, source, target)
+    auxiliary_probe = probe[1::2] if args.compare_probe_domain else None
     if traffic_paths is not None:
         x, probe = traffic_source(traffic_paths, args, seed, device)
         source = TRAFFIC_SOURCE
@@ -127,6 +129,18 @@ def run(train, test, args, seed, device, traffic_paths=None):
     row_priors = {}
     action_penalties = {}
     diagnostics = {}
+    auxiliary_precisions = {}
+    if auxiliary_probe is not None:
+        auxiliary_views = embed_orbit(stem, auxiliary_probe, device, args.batch_size)
+        auxiliary_views -= auxiliary_views.mean(axis=(0, 1))
+        _, auxiliary_priors, auxiliary_error, _ = source_adapter_priors(
+            auxiliary_views, args.budget, seed, reference_views=source_views - offset
+        )
+        auxiliary_precisions = {
+            key: torch.as_tensor(auxiliary_priors[key], device=device, dtype=weights.dtype)
+            for key in ("path", "rotated", "split")
+        }
+        diagnostics["auxiliary_moment_error"] = auxiliary_error
     if args.teacher_row_prior or args.intertwining_prior:
         teacher_views = embed_orbit(lambda batch: (teacher.encode(batch) - mean) @ basis,
                                     probe[1::2], device, args.batch_size)
@@ -183,6 +197,11 @@ def run(train, test, args, seed, device, traffic_paths=None):
                         weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
                         radii=reference_radii, action_penalty=action_penalty
                     )
+                for name, precision in auxiliary_precisions.items():
+                    results[f"auxiliary_{name}_matched"], _ = fit_target(
+                        weights, bias, head, design, labels, target_views, truth, precision, args,
+                        radii=reference_radii
+                    )
             rows[str(n)].append(results)
     print(seed, "completed", flush=True)
     return {"seed": seed, "source_classes": source, "target_classes": target,
@@ -194,6 +213,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("/tmp/ibt-cifar-data"))
     parser.add_argument("--source-domain", choices=("cifar", "gtsrb"), default="cifar")
+    parser.add_argument("--compare-probe-domain", action="store_true",
+                        help="compare GTSRB and auxiliary CIFAR priors on the same GTSRB student")
     parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--output", type=Path, default=HERE / "results/adapter_paths/metrics.json")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
@@ -219,7 +240,9 @@ def main():
     output_prior.add_argument("--intertwining-prior", action="store_true",
                               help="penalize changes that disrupt the composition action across the adapter")
     args = parser.parse_args()
-    if args.teacher_row_prior or args.intertwining_prior:
+    if args.compare_probe_domain and args.source_domain != "gtsrb":
+        parser.error("probe-domain comparison requires --source-domain gtsrb")
+    if args.teacher_row_prior or args.intertwining_prior or args.compare_probe_domain:
         args.match_update_rms = True
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:
         parser.error("need at least two probe examples per class, a variance budget in (0, 1), and a nonnegative penalty")
