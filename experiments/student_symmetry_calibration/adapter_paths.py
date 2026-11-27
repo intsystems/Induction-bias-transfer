@@ -213,7 +213,7 @@ def fit_target(center, bias, init_head, supports, labels, queries, truth, precis
             metrics["max_rms_gap"] = (torch.stack(history) - torch.stack(radii)).abs().max().item()
     if return_parameters:
         return metrics, history, tuple(t.detach() for t in (weight, intercept, head, head_bias))
-        return metrics, history
+    return metrics, history
 
 
 @torch.inference_mode()
