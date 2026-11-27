@@ -87,7 +87,7 @@ def plot_target_pairs(rows, shots):
     return fig
 
 
-def plot_active_target_pairs(rows, shots, *, sequential=False, exact=False, uncertain=False):
+def plot_active_target_pairs(rows, shots, *, sequential=False, exact=False, uncertain=False, calibrated=False):
     fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
     n = 20 if 20 in shots else shots[0]
     counts = {0, 1, min(3, n), min(5, n)}
@@ -102,6 +102,11 @@ def plot_active_target_pairs(rows, shots, *, sequential=False, exact=False, unce
                    "full_predicted": "Full predicted update", "full_observed": "Full observed update"}
     if uncertain:
         methods.update({"marginal_anisotropic": "Propagated covariance", "marginal_isotropic": "Isotropic uncertainty"})
+    if calibrated:
+        methods = {"marginal_anisotropic": "Propagated · full", "marginal_isotropic": "Isotropic · full",
+                   "marginal_anisotropic_half": "Propagated · half", "marginal_isotropic_half": "Isotropic · half",
+                   "marginal_anisotropic_calibrated": "Propagated · calibrated",
+                   "marginal_isotropic_calibrated": "Isotropic · calibrated"}
     counts = sorted(counts)
     for ax, prior, title in zip(axes, ("split_balanced", "composition_mean_moment"),
                                 ("Separate source budgets", "Source path moments"), strict=True):
@@ -138,7 +143,8 @@ def main():
             fig = plot_active_target_pairs(rows, shots,
                                            sequential=data["config"].get("sequential_target_pairs", False),
                                            exact=data["config"].get("exact_pair_update", False),
-                                           uncertain=data["config"].get("uncertain_pair_update", False))
+                                           uncertain=data["config"].get("uncertain_pair_update", False),
+                                           calibrated=data["config"].get("calibrated_pair_update", False))
         else:
             fig = plot_target_pairs(rows, shots)
         args.output.parent.mkdir(parents=True, exist_ok=True)

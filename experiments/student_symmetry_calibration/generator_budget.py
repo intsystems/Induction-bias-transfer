@@ -217,7 +217,8 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
 
 def measure_orbit_prior(student, probe, support, test_views, target, args, seed, device, *, both_axes=False):
     source_views = embed_orbit(student, probe, device, args.batch_size)
-    center = source_views.mean(axis=(0, 1))
+    center_views = np.delete(source_views, np.s_[::4], axis=1) if args.calibrated_pair_update else source_views
+    center = center_views.mean(axis=(0, 1))
     support_views = {k: embed_orbit(student, v, device, args.batch_size) for k, v in support.items()}
     supports = {k: v[0] - center for k, v in support_views.items()}
     queries = np.concatenate([embed_orbit(student, test_views[k], device, args.batch_size)
@@ -298,14 +299,20 @@ def full_pair_update_scores(inputs, labels, prior, metric, noise, counterpart_se
     return scores
 
 
-def uncertainty_draws(residual_model, seed):
+def uncertainty_draws(residual_model, seed, *, calibrated_variance=None):
     _, _, whitener, covariance = residual_model
     values, axes = np.linalg.eigh(covariance)
     root = (axes * np.sqrt(np.maximum(values, 0))) @ axes.T
     noise = np.random.default_rng(seed).normal(size=(4, len(whitener)))
     noise = np.concatenate((noise, -noise), axis=0)
-    isotropic = noise * np.sqrt(np.trace(covariance) / len(whitener))
+    variance = float(np.trace(covariance) / len(whitener))
+    isotropic = noise * np.sqrt(variance)
     samples = {"marginal_anisotropic": noise @ root, "marginal_isotropic": isotropic}
+    if calibrated_variance is not None:
+        scales = {"half": np.sqrt(.5), "calibrated": np.sqrt(calibrated_variance / max(variance, 1e-12))}
+        for name, scale in scales.items():
+            samples[f"marginal_anisotropic_{name}"] = samples["marginal_anisotropic"] * scale
+            samples[f"marginal_isotropic_{name}"] = samples["marginal_isotropic"] * scale
     return {name: np.linalg.solve(whitener.T, draws.T).T for name, draws in samples.items()}
 
 
@@ -370,15 +377,24 @@ def sequential_pair_masks(inputs, labels, feedback, prior, residual_model, noise
 
 
 def evaluate_orbit(source_views, supports, queries, truth, target, args, seed, *, paired=None):
+    validation_views = source_views
+    if args.calibrated_pair_update:
+        validation_views = source_views[:, ::4]
+        source_views = np.delete(source_views, np.s_[::4], axis=1)
     priors, diagnostics, residual_model = source_priors(
         source_views, args.budget, seed, args.generator_controls, args.operator_composition, args.path_composition
     )
+    calibrated_variance = None
     if args.uncertain_pair_update:
         operator, _, whitener, covariance = residual_model
-        predicted = source_views - np.sqrt(2) * (source_views @ operator)
-        actual_error = (source_views[list(COMPOSITION)] - predicted) @ whitener
+        predicted = validation_views - np.sqrt(2) * (validation_views @ operator)
+        actual_error = (validation_views[list(COMPOSITION)] - predicted) @ whitener
+        observed_variance = float(np.mean(actual_error ** 2))
         diagnostics["pair_uncertainty"] = {"estimated_per_coordinate": float(np.trace(covariance) / len(whitener)),
-                                          "observed_per_coordinate": float(np.mean(actual_error ** 2))}
+                                          "observed_per_coordinate": observed_variance}
+        if args.calibrated_pair_update:
+            calibrated_variance = observed_variance
+            diagnostics["pair_uncertainty"]["reserved_source_images"] = validation_views.shape[1]
     if args.compare_teacher_views:
         difference = (source_views - source_views[list(REFLECTION)]) / 2
         diagnostics["reflection_feature_energy"] = float(np.mean(difference ** 2)
@@ -387,7 +403,10 @@ def evaluate_orbit(source_views, supports, queries, truth, target, args, seed, *
     rng = np.random.default_rng(seed + 422)
     for episode in range(args.episodes):
         chosen = {k: rng.choice(len(supports[k]), max(args.shots), replace=False) for k in target}
-        uncertainty = uncertainty_draws(residual_model, seed * 1000 + episode) if args.uncertain_pair_update else None
+        uncertainty = None
+        if args.uncertain_pair_update:
+            uncertainty = uncertainty_draws(residual_model, seed * 1000 + episode,
+                                            calibrated_variance=calibrated_variance)
         for n in args.shots:
             inputs = np.concatenate([supports[k][chosen[k][:n]] for k in target])
             labels = np.repeat(np.eye(len(target)), n, axis=0) - 1 / len(target)
@@ -517,6 +536,8 @@ def main():
                         help="score pair acquisition by the full change in the posterior mean")
     parser.add_argument("--uncertain-pair-update", action="store_true",
                         help="average the full pair score over source-estimated feature uncertainty")
+    parser.add_argument("--calibrated-pair-update", action="store_true",
+                        help="separate covariance shape from scale using held-out source composition pairs")
     teacher_comparison = parser.add_mutually_exclusive_group()
     teacher_comparison.add_argument("--compare-teacher-training", action="store_true",
                                     help="compare trained and initialized teachers with matched parity ranks")
@@ -524,6 +545,8 @@ def main():
                                     help="compare horizontal and vertical parity with the same training views")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
+    if args.calibrated_pair_update:
+        args.uncertain_pair_update = True
     if args.uncertain_pair_update:
         args.exact_pair_update = True
     if args.sequential_target_pairs or args.exact_pair_update:
@@ -534,6 +557,8 @@ def main():
         parser.error("need a variance budget in (0, 1) and positive noise")
     if (args.operator_composition or args.path_composition) and args.probe_examples < 2:
         parser.error("operator composition needs at least two probe examples per source class")
+    if args.calibrated_pair_update and args.probe_examples < 4:
+        parser.error("calibrated acquisition needs at least four probe examples per source class")
     if args.compare_teacher_views and not args.path_composition:
         parser.error("teacher view comparison needs --path-composition")
     if args.target_pairs and not args.path_composition:
