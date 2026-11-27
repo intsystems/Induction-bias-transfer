@@ -29,9 +29,14 @@ MIXTURE = (0.02, 0.2, 0.5, 0.8, 0.98)
 TRANSFORM = Compose([Resize((32, 32)), PILToTensor()])
 
 
+def reflect(x):
+    return x.flip(-1)
+
+
 class Teacher(nn.Module):
-    def __init__(self, classes=len(SOURCE_IDS)):
+    def __init__(self, classes=len(SOURCE_IDS), *, view=reflect):
         super().__init__()
+        self.view = view
         self.base = nn.Sequential(
             nn.Conv2d(3, 24, 5, padding=2), nn.GELU(), nn.AvgPool2d(2),
             nn.Conv2d(24, 32, 3, padding=1), nn.GELU(),
@@ -40,7 +45,7 @@ class Teacher(nn.Module):
         self.head = nn.Linear(256, classes)
 
     def encode(self, x):
-        clean, mirrored = self.base(torch.cat([x, x.flip(-1)])).chunk(2)
+        clean, mirrored = self.base(torch.cat([x, self.view(x)])).chunk(2)
         return torch.cat(((clean + mirrored) / 2, (clean - mirrored) / 2), dim=1)
 
     def forward(self, x):
@@ -101,9 +106,9 @@ def preprocess(train, test, args, *, target_ids=None):
     )
 
 
-def fit_teacher(x, y, args, seed, classes=len(SOURCE_IDS)):
+def fit_teacher(x, y, args, seed, classes=len(SOURCE_IDS), *, view=reflect):
     torch.manual_seed(seed)
-    teacher = Teacher(classes).to(x.device)
+    teacher = Teacher(classes, view=view).to(x.device)
     optimizer = torch.optim.AdamW(teacher.parameters(), lr=0.003)
     rng = torch.Generator().manual_seed(seed)
     for _ in range(args.teacher_epochs):
@@ -117,7 +122,7 @@ def fit_teacher(x, y, args, seed, classes=len(SOURCE_IDS)):
 @torch.no_grad()
 def discover_basis(teacher, probe, args):
     clean = torch.cat([teacher.encode(x) for x in probe.split(args.batch_size)]).double()
-    mirror = torch.cat([teacher.encode(x.flip(-1)) for x in probe.split(args.batch_size)]).double()
+    mirror = torch.cat([teacher.encode(teacher.view(x)) for x in probe.split(args.batch_size)]).double()
     mean = (clean + mirror).mean(dim=0) / 2
     all_centered = torch.cat([clean - mean, mirror - mean])
     total = all_centered.T @ all_centered / len(all_centered)
@@ -140,12 +145,12 @@ def fit_student(x, teacher, basis, mean, args, seed):
     rng = torch.Generator().manual_seed(seed)
     with torch.no_grad():
         target = torch.cat([(teacher.encode(batch) - mean) @ basis for batch in x.split(args.batch_size)])
-        target_flip = torch.cat([(teacher.encode(batch.flip(-1)) - mean) @ basis
+        target_flip = torch.cat([(teacher.encode(teacher.view(batch)) - mean) @ basis
                                  for batch in x.split(args.batch_size)])
     for _ in range(args.student_epochs):
         for ix in batches(len(x), args.batch_size, rng):
             optimizer.zero_grad(set_to_none=True)
-            prediction = student(torch.cat([x[ix], x[ix].flip(-1)]))
+            prediction = student(torch.cat([x[ix], teacher.view(x[ix])]))
             F.mse_loss(prediction, torch.cat([target[ix], target_flip[ix]])).backward()
             optimizer.step()
     return student.eval()
@@ -190,14 +195,14 @@ def predict(kernels, inputs, values, test, noise, center_evidence=False):
 
 
 @torch.inference_mode()
-def embed(student, dataset, args, device):
+def embed(student, dataset, args, device, *, view=reflect):
     embeddings = {}
     for label, images_by_class in dataset.items():
         clean, mirrored = [], []
         for batch in images_by_class.split(args.batch_size):
             batch = batch.to(device, dtype=torch.float32) / 255
             clean.append(student(batch).cpu())
-            mirrored.append(student(batch.flip(-1)).cpu())
+            mirrored.append(student(view(batch)).cpu())
         embeddings[label] = np.stack([torch.cat(clean).numpy(), torch.cat(mirrored).numpy()])
     return embeddings
 

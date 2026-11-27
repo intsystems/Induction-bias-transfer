@@ -48,6 +48,11 @@ def main():
         methods = {"clean": "Clean-label evidence", "track_cv": "Held-out track pairs",
                    "restricted": "Joint contrasts", "restricted_scale_matched": "Joint contrasts · matched scale",
                    "known_sign": "Known action"}
+    rotation = "source_digits" in data
+    if rotation:
+        methods = {"clean": "Clean-label evidence", "track_cv": "Held-out pairs",
+                   "restricted": "Joint contrasts", "restricted_scale_matched": "Joint contrasts · matched scale",
+                   "known_sign": "Known action"}
     for key, label in methods.items():
         correct = []
         for ax, family in zip(axes[:2], ("invariant", "antisymmetric"), strict=True):
@@ -58,8 +63,9 @@ def main():
             sign = np.array([[ep["same_weights"][key] for ep in row] for row in rows])
             correct.append(sign.mean(axis=1) if family == "invariant" else 1 - sign.mean(axis=1))
         axes[2].plot(shots, (correct[0] + correct[1]) / 2, marker="o", label=label)
-    axes[0].set_title("Reflection preserves label")
-    axes[1].set_title("Reflection swaps labels")
+    action = "Half-turn" if rotation else "Reflection"
+    axes[0].set_title(f"{action} preserves label")
+    axes[1].set_title(f"{action} swaps labels")
     axes[2].set_title("Action inference")
     for ax in axes[:2]:
         ax.set_ylabel("Both views correct (%)")
