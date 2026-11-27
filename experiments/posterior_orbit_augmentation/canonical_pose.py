@@ -14,6 +14,7 @@ from experiment import (GTSRB, HERE, TASKS, PoseGenerator, batches, discover_bas
 
 ANGLE = math.radians(32)
 SHIFT = .24
+STEPS = (0., .25, .5, .75, 1.)
 
 
 def pose_warp(images, pose):
@@ -67,6 +68,104 @@ def fit_canonicalizer(source, teacher, basis, odd, args, seed, hidden_weight):
             loss.backward()
             optimizer.step()
     return model.eval()
+
+
+def parity_energy(values, odd):
+    return torch.stack((values[..., ~odd].square().mean(-1), values[..., odd].square().mean(-1)), dim=-1)
+
+
+def candidate_views(observed, model, teacher, basis, odd):
+    """Describe the corrections available for an image before seeing its clean view."""
+    location, log_std = parameters(model, observed)
+    bounded = location.clamp(-2, 2)
+    views = torch.cat([observed, *(pose_warp(observed, bounded * step) for step in STEPS[1:])])
+    features = (teacher.encode(views) @ basis).reshape(len(STEPS), len(observed), -1)
+    delta = parity_energy(features[1:] - features[:1], odd)
+    pose_features = torch.cat((location.abs(), log_std, location.abs() * (-log_std).exp()), dim=1)
+    response = torch.cat((delta.transpose(0, 1).flatten(1), parity_energy(features[0], odd)), dim=1)
+    return views, features, pose_features, torch.log1p(response)
+
+
+def fit_risk(features, losses, ridge):
+    mean = features.mean(0)
+    scale = features.std(0, correction=0).clamp_min(1e-6)
+    predictors = ((features - mean) / scale).clamp(-6, 6)
+    gram = predictors.T @ predictors / len(predictors)
+    regularized = gram + ridge * torch.eye(len(gram), device=gram.device, dtype=gram.dtype)
+    intercept = losses.mean(0)
+    coefficients = torch.linalg.solve(regularized, predictors.T @ (losses - intercept) / len(predictors))
+    return mean, scale, intercept, coefficients
+
+
+def select_step(calibration, features):
+    mean, scale, intercept, coefficients = calibration
+    normalized = ((features - mean) / scale).clamp(-6, 6)
+    return (intercept + normalized @ coefficients).argmin(1)
+
+
+@torch.inference_mode()
+def calibrate_selectors(probe, model, teacher, basis, odd, args, seed):
+    random = torch.Generator(device=probe.device).manual_seed(seed)
+    levels = probe.new_tensor(args.strengths)
+    risk, poses, responses = [], [], []
+    for samples in probe.split(args.batch_size):
+        clean = torch.cat((samples, samples.flip(-1)))
+        scale = levels[torch.randint(len(levels), (len(clean),), generator=random, device=probe.device)]
+        pose = (2 * torch.rand(len(clean), 3, generator=random, device=probe.device) - 1) * scale[:, None]
+        _, features, pose_features, response = candidate_views(pose_warp(clean, pose), model, teacher, basis, odd)
+        expected = teacher.encode(clean) @ basis
+        losses = parity_energy(features - expected, odd).mean(dim=-1)
+        risk.append((losses - losses[:1]).T)
+        poses.append(pose_features)
+        responses.append(response)
+    risk, poses, responses = (torch.cat(values).double() for values in (risk, poses, responses))
+    fixed = int(risk.mean(0).argmin())
+    return fixed, fit_risk(poses, risk, args.selector_ridge), fit_risk(
+        torch.cat((poses, responses), dim=1), risk, args.selector_ridge)
+
+
+@torch.inference_mode()
+def selective_embeddings(student, model, teacher, basis, odd, calibration, images, args, device, seed):
+    fixed, pose_model, semantic_model = calibration
+    rng = torch.Generator(device=device).manual_seed(seed)
+    output, policies = {}, {}
+    steps = torch.tensor(STEPS, device=device)
+    for label, samples in images.items():
+        order = torch.randperm(len(samples), generator=rng, device=device)[:args.test_per_class]
+        chunks = {str(s): [] for s in args.strengths}
+        selections = {str(s): [] for s in args.strengths}
+        for batch in samples[order.cpu()].split(args.batch_size):
+            batch = batch.to(device, dtype=torch.float32) / 255
+            clean = torch.cat((batch, batch.flip(-1)))
+            unit_pose = 2 * torch.rand(len(clean), 3, device=device, generator=rng) - 1
+            rows = torch.arange(len(clean), device=device)
+            for strength in args.strengths:
+                pose = unit_pose * strength
+                observed = pose_warp(clean, pose)
+                views, _, pose_features, response = candidate_views(observed, model, teacher, basis, odd)
+                features = student(views).reshape(len(STEPS), len(clean), -1)
+                pose_step = select_step(pose_model, pose_features.double())
+                semantic_step = select_step(semantic_model, torch.cat((pose_features, response), dim=1).double())
+                methods = {"raw": features[0], "pose_point": features[-1], "half": features[2],
+                           "source_fixed": features[fixed], "pose_selector": features[pose_step, rows],
+                           "teacher_selector": features[semantic_step, rows],
+                           "oracle": student(pose_warp(observed, inverse_pose(pose)))}
+                chunks[str(strength)].append(
+                    {key: values.reshape(2, len(batch), -1).cpu().numpy() for key, values in methods.items()})
+                chosen = torch.stack((pose_step, semantic_step))
+                stats = torch.stack((steps[chosen].mean(dim=1), (chosen == 0).float().mean(dim=1)))
+                selections[str(strength)].append((len(batch), stats.cpu().numpy()))
+        output[label] = {s: ({k: np.concatenate([c[k] for c in values], axis=1)
+                              for k in values[0]}, None) for s, values in chunks.items()}
+        policies[label] = {s: np.average([x for _, x in values], axis=0, weights=[n for n, _ in values])
+                           for s, values in selections.items()}
+    summary = {}
+    for strength in map(str, args.strengths):
+        means, skipped = np.mean([v[strength] for v in policies.values()], axis=0)
+        summary[strength] = {name: {"mean_step": float(step), "skipped": float(fraction)}
+                             for name, step, fraction in zip(("pose_selector", "teacher_selector"),
+                                                             means, skipped, strict=True)}
+    return output, summary
 
 
 @torch.inference_mode()
@@ -145,7 +244,8 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng):
             values = {"posterior_same": float(probability[0]), "strengths": {}}
             for strength, (embeddings, truth, n_negative) in batches_by_strength.items():
                 choices = {name: features @ weights for name, features in embeddings.items()}
-                choices["hidden_posterior_even"] = embeddings["hidden_posterior"] @ even
+                if "hidden_posterior" in embeddings:
+                    choices["hidden_posterior_even"] = embeddings["hidden_posterior"] @ even
                 metrics = {}
                 for key, logits in choices.items():
                     clean, reflected = np.where(logits >= 0, 1, -1)
@@ -172,30 +272,38 @@ def run(data, args, device, seed):
     source = source.to(device, dtype=torch.float32) / 255
     probe = probe.to(device, dtype=torch.float32) / 255
     teacher = fit_teacher(source, labels.to(device), args, seed)
-    mean, basis, energies = discover_basis(teacher, probe, args)
+    basis_probe = probe[::2] if args.selective else probe
+    mean, basis, energies = discover_basis(teacher, basis_probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     odd = energies > .5
-    models = {k: fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, weight)
-              for k, weight in (("pose", 0.), ("hidden", args.hidden_weight))}
+    pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
-    query = canonical_embeddings(student, models, test, args, device, seed + 300)
+    if args.selective:
+        selection = calibrate_selectors(probe[1::2], pose_model, teacher, basis, odd, args, seed + 250)
+        query, policy_stats = selective_embeddings(
+            student, pose_model, teacher, basis, odd, selection, test, args, device, seed + 300)
+        diagnostics = {"source_fixed_step": STEPS[selection[0]], "policy_statistics": policy_stats}
+    else:
+        models = {"pose": pose_model, "hidden": fit_canonicalizer(
+            source, teacher, basis, odd, args, seed + 200, args.hidden_weight)}
+        query = canonical_embeddings(student, models, test, args, device, seed + 300)
+        diagnostics = {"pose_calibration": {strength: {
+            method: {measure: np.mean([v[strength][1][method][measure] for v in query.values()], axis=0).tolist()
+                     for measure in ("mse", "nll")}
+            for method in models} for strength in map(str, args.strengths)}}
     rng = np.random.default_rng(seed)
     kernels = prior_kernels(energies.cpu().numpy(), rng)
     tasks = {family: {"-".join(map(str, pair)): evaluate_task(
         pair, 1 if family == "invariant" else -1, support, query, tracks, kernels, args, rng)
         for pair in pairs} for family, pairs in TASKS.items()}
-    calibration = {strength: {
-        method: {measure: np.mean([v[strength][1][method][measure] for v in query.values()], axis=0).tolist()
-                 for measure in ("mse", "nll")}
-        for method in models} for strength in map(str, args.strengths)}
     print(seed, "completed", flush=True)
-    return {"seed": seed, "tasks": tasks, "pose_calibration": calibration}
+    return {"seed": seed, "tasks": tasks, **diagnostics}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
-    parser.add_argument("--output", type=Path, default=HERE / "results/canonical_pose/metrics.json")
+    parser.add_argument("--output", type=Path)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--seeds", type=int, nargs="+", default=list(range(81, 93)))
     parser.add_argument("--shots", type=int, nargs="+", default=[1, 2, 4, 5])
@@ -211,11 +319,18 @@ def main():
     parser.add_argument("--views", type=int, default=6)
     parser.add_argument("--noise", type=float, default=.5)
     parser.add_argument("--hidden-weight", type=float, default=.5)
+    parser.add_argument("--selective", action="store_true")
+    parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.output is None:
+        name = "selective_pose" if args.selective else "canonical_pose"
+        args.output = HERE / "results" / name / "metrics.json"
     if args.views < 2 or args.views % 2 or args.test_per_class < 1:
         parser.error("need a positive test size and an even number of at least two posterior views")
     if not all(math.isfinite(s) and s >= 0 for s in args.strengths):
         parser.error("strengths must be finite and nonnegative")
+    if not math.isfinite(args.selector_ridge) or args.selector_ridge <= 0:
+        parser.error("selector ridge must be finite and positive")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     data = preprocess(GTSRB(args.data, split="train", download=True),

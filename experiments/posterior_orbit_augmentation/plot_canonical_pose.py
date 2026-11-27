@@ -13,6 +13,8 @@ RESULTS = Path(__file__).resolve().parent / "results/canonical_pose"
 METHODS = {"raw": "Uncorrected", "oracle": "Known inverse", "pose_posterior": "Pose-only posterior",
            "hidden_point": "Teacher loss · point", "hidden_posterior": "Teacher loss · posterior",
            "hidden_shuffled": "Shuffled posterior"}
+POLICIES = {"raw": "Uncorrected", "pose_point": "Full correction", "source_fixed": "Source fixed",
+            "pose_selector": "Pose selector", "teacher_selector": "Teacher selector", "oracle": "Known inverse"}
 
 
 def main():
@@ -24,9 +26,10 @@ def main():
     runs = results["runs"]
     levels = results["config"]["strengths"]
     shots = str(4 if 4 in results["config"]["shots"] else results["config"]["shots"][0])
+    selective = results["config"].get("selective", False)
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
-        for key, label in METHODS.items():
+        for key, label in (POLICIES if selective else METHODS).items():
             accuracy = np.array([[100 * np.mean([
                 task[shots]["strengths"][str(level)][key]["reflected"]
                 for task in r["tasks"][family].values()]) for level in levels] for r in runs])
@@ -34,11 +37,19 @@ def main():
         ax.set_title("Reflection preserves the label" if family == "invariant" else "Reflection changes the label")
         ax.set_ylabel(f"Reflected balanced accuracy (%), {shots} labels/class")
     axes[0].legend(fontsize=8)
-    for key, label in (("pose", "Pose-only training"), ("hidden", "Teacher loss")):
-        mse = np.array([[r["pose_calibration"][str(level)][key]["mse"] for level in levels] for r in runs])
-        axes[2].plot(levels, np.sqrt(mse.mean(axis=0)[:, 0]) * 32, marker="o", label=label)
-    axes[2].set_title("Inverse rotation")
-    axes[2].set_ylabel("Angle RMSE (degrees)")
+    if selective:
+        for key in ("pose_selector", "teacher_selector"):
+            steps = [[r["policy_statistics"][str(level)][key]["mean_step"] for level in levels] for r in runs]
+            axes[2].plot(levels, np.mean(steps, axis=0), marker="o", label=POLICIES[key])
+        axes[2].set_title("Selected correction")
+        axes[2].set_ylabel("Mean correction fraction")
+        axes[2].set_ylim(0, 1)
+    else:
+        for key, label in (("pose", "Pose-only training"), ("hidden", "Teacher loss")):
+            mse = np.array([[r["pose_calibration"][str(level)][key]["mse"] for level in levels] for r in runs])
+            axes[2].plot(levels, np.sqrt(mse.mean(axis=0)[:, 0]) * 32, marker="o", label=label)
+        axes[2].set_title("Inverse rotation")
+        axes[2].set_ylabel("Angle RMSE (degrees)")
     axes[2].legend(fontsize=8)
     for ax in axes:
         ax.set_xlabel("Pose distortion scale")
