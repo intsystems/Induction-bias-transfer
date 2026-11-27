@@ -834,3 +834,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-head-blocks --seeds $(seq 441 456) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Значение класса в исходных парах головы
+
+Сохраняем одни и те же исходные кадры и спектр априорных дисперсий внутри каждого блока чётности. Сравниваем три базиса разностей. Первый сопоставляет кадры разных треков одного исходного класса. Второй сопоставляет кадры разных исходных классов. Для него объединяем группы кадров по классам и циклически сдвигаем второй список на размер самой большой группы. Третий использует случайный порядок кадров и сдвиг на один. В каждом варианте каждый подходящий кадр встречается один раз в каждой позиции пары.
+
+Основной парный контраст на seed 457–472 при трёх метках сравнивает пары одного класса с парами разных классов. Сбалансированная точность отражённых кадров усредняется по двум семействам задач и трём позициям кадра. Дополнительно сравниваем случайные пары, разности одного трека и контроль поворота базиса. Студент и чистая поддержка общие для всех вариантов.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_head_pair_control"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-head-pair-control --seeds $(seq 457 472) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```
