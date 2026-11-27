@@ -16,6 +16,7 @@ ANGLE = math.radians(32)
 SHIFT = .24
 STEPS = (0., .25, .5, .75, 1.)
 POSTERIOR_STEPS = (0., .5, 1.)
+MIXED_LEVELS = (0., .5, 1.)
 
 
 def pose_warp(images, pose):
@@ -71,6 +72,45 @@ def fit_canonicalizer(source, teacher, basis, odd, args, seed, hidden_weight):
                 loss = loss + hidden_weight * hidden
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
+            optimizer.step()
+    return model.eval()
+
+
+def mixture_parameters(model, images):
+    output = model.network(images)
+    return output[:, :3], output[:, 3:6].clamp(-3.5, .6), output[:, 6]
+
+
+def fit_mixture_canonicalizer(source, args, seed, *, hurdle):
+    torch.manual_seed(seed)
+    model = PoseGenerator()
+    model.network[-1] = torch.nn.Linear(model.network[-1].in_features, 7)
+    torch.nn.init.zeros_(model.network[-1].weight)
+    torch.nn.init.zeros_(model.network[-1].bias)
+    model.to(source.device)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=.003)
+    ordering = torch.Generator().manual_seed(seed)
+    rng = torch.Generator(device=source.device).manual_seed(seed + 100)
+    levels = source.new_tensor(MIXED_LEVELS)
+    for _ in range(args.generator_epochs):
+        for indices in batches(len(source), args.batch_size, ordering):
+            clean = source[indices]
+            reflected = torch.rand(len(clean), generator=rng, device=source.device) < .5
+            clean = torch.where(reflected[:, None, None, None], clean.flip(-1), clean)
+            scale = levels[torch.randint(len(levels), (len(clean),), device=source.device, generator=rng)]
+            no_warp = scale == 0
+            pose = (2 * torch.rand(len(clean), 3, generator=rng, device=source.device) - 1) * scale[:, None]
+            observed = torch.where(no_warp[:, None, None, None], clean, pose_warp(clean, pose))
+            center, log_std, logit = mixture_parameters(model, observed)
+            pose_loss = normal_nll(center, log_std, inverse_pose(pose)).mean(dim=-1)
+            if hurdle:
+                active = ~no_warp
+                pose_loss = (pose_loss * active).sum() / active.sum().clamp_min(1)
+            else:
+                pose_loss = pose_loss.mean()
+            identity_loss = torch.nn.functional.binary_cross_entropy_with_logits(logit, no_warp.float())
+            optimizer.zero_grad(set_to_none=True)
+            (pose_loss + identity_loss).backward()
             optimizer.step()
     return model.eval()
 
@@ -296,6 +336,59 @@ def symmetric_pose_embeddings(student, model, second_model, images, args, device
 
 
 @torch.inference_mode()
+def identity_pose_embeddings(student, gaussian, hurdle, images, args, device, seed):
+    rng = torch.Generator(device=device).manual_seed(seed)
+    sampling = torch.Generator(device=device).manual_seed(seed + 1000)
+    output, diagnostics = {}, {str(s): [] for s in args.strengths}
+    for label, samples in images.items():
+        order = torch.randperm(len(samples), generator=rng, device=device)[:args.test_per_class]
+        chunks = {str(s): [] for s in args.strengths}
+        label_stats = {str(s): [] for s in args.strengths}
+        for batch in samples[order.cpu()].split(args.batch_size):
+            batch = batch.to(device, dtype=torch.float32) / 255
+            clean = torch.cat((batch, batch.flip(-1)))
+            unit_pose = 2 * torch.rand(len(clean), 3, device=device, generator=rng) - 1
+            noise = torch.randn(args.views // 2, len(clean), 3, device=device, generator=sampling)
+            noise = torch.cat((noise, -noise))
+            for strength in args.strengths:
+                key = str(strength)
+                pose = strength * unit_pose
+                inverse = inverse_pose(pose)
+                observed = clean if strength == 0 else pose_warp(clean, pose)
+                gaussian_mean, gaussian_log_std, gaussian_logit = mixture_parameters(gaussian, observed)
+                slab_mean, slab_log_std, logit = mixture_parameters(hurdle, observed)
+                no_warp = logit.sigmoid().unsqueeze(1)
+                centers = {"gaussian_point": gaussian_mean, "slab_point": slab_mean,
+                           "fixed_prior": slab_mean * (1 - 1 / len(MIXED_LEVELS)),
+                           "identity_mean": slab_mean * (1 - no_warp)}
+                features = {"raw": student(observed), "oracle": student(pose_warp(observed, inverse))}
+                for name, center in centers.items():
+                    features[name] = student(pose_warp(observed, center.clamp(-2, 2)))
+                repeated = observed.repeat(args.views, 1, 1, 1)
+                for name, location, log_std in (("gaussian_posterior", gaussian_mean, gaussian_log_std),
+                                                 ("identity_posterior", slab_mean, slab_log_std)):
+                    draws = (location + noise * log_std.exp()).clamp(-2, 2)
+                    generated = student(pose_warp(repeated, draws.flatten(0, 1)))
+                    features[name] = generated.reshape(args.views, len(clean), -1).mean(0)
+                features["identity_posterior"] = no_warp * features["raw"] + (1 - no_warp) * features["identity_posterior"]
+                chunks[key].append({name: value.reshape(2, len(batch), -1).cpu().numpy()
+                                    for name, value in features.items()})
+                measures = {name: (center.clamp(-2, 2) - inverse).square().mean(0).cpu().numpy()
+                            for name, center in centers.items()}
+                measures.update(hurdle_p_zero=no_warp.mean().item(), gaussian_p_zero=gaussian_logit.sigmoid().mean().item())
+                label_stats[key].append((len(batch), measures))
+        output[label] = {s: ({name: np.concatenate([c[name] for c in values], axis=1)
+                              for name in values[0]}, None) for s, values in chunks.items()}
+        for strength, values in label_stats.items():
+            diagnostics[strength].append({
+                name: np.average([scores[name] for _, scores in values], axis=0, weights=[n for n, _ in values])
+                for name in values[0][1]
+            })
+    return output, {strength: {name: np.mean([value[name] for value in values], axis=0).tolist()
+                               for name in values[0]} for strength, values in diagnostics.items()}
+
+
+@torch.inference_mode()
 def posterior_selection_embeddings(student, model, global_scale, images, args, device, seed):
     rng = torch.Generator(device=device).manual_seed(seed)
     sampling = torch.Generator(device=device).manual_seed(seed + 1000)
@@ -410,9 +503,15 @@ def run(data, args, device, seed):
     mean, basis, energies = discover_basis(teacher, basis_probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     odd = energies > .5
-    pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
+    if not args.identity_mixture:
+        pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
-    if args.symmetrize_pose:
+    if args.identity_mixture:
+        gaussian = fit_mixture_canonicalizer(source, args, seed + 200, hurdle=False)
+        hurdle = fit_mixture_canonicalizer(source, args, seed + 200, hurdle=True)
+        query, calibration = identity_pose_embeddings(student, gaussian, hurdle, test, args, device, seed + 300)
+        diagnostics = {"identity_calibration": calibration}
+    elif args.symmetrize_pose:
         second_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 1200, 0.)
         query, errors = symmetric_pose_embeddings(student, pose_model, second_model, test, args, device, seed + 300)
         diagnostics = {"symmetric_pose_mse": errors}
@@ -465,10 +564,13 @@ def main():
     selection.add_argument("--selective", action="store_true")
     selection.add_argument("--posterior-selection", action="store_true")
     selection.add_argument("--symmetrize-pose", action="store_true")
+    selection.add_argument("--identity-mixture", action="store_true")
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if args.output is None:
-        if args.symmetrize_pose:
+        if args.identity_mixture:
+            name = "identity_mixture"
+        elif args.symmetrize_pose:
             name = "symmetric_pose"
         elif args.posterior_selection:
             name = "posterior_selection"

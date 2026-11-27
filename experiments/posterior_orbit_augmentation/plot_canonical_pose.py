@@ -21,6 +21,9 @@ POSTERIOR_POLICIES = {"raw": "Uncorrected", "pose_point": "Full correction", "po
 SYMMETRIC_METHODS = {"raw": "Uncorrected", "pose_point": "Single prediction", "reflected_point": "Reflected prediction",
                      "symmetric_point": "Reflection-symmetric mean", "independent_point": "Independent-model mean",
                      "symmetric_posterior": "Reflection-symmetric posterior", "oracle": "Known inverse"}
+IDENTITY_METHODS = {"raw": "Uncorrected", "gaussian_point": "Gaussian point", "slab_point": "Continuous component",
+                    "fixed_prior": "Fixed identity mass", "identity_mean": "Conditional identity mass",
+                    "identity_posterior": "Marginalized mixture", "oracle": "Known inverse"}
 
 
 def main():
@@ -35,8 +38,11 @@ def main():
     selective = results["config"].get("selective", False)
     posterior = results["config"].get("posterior_selection", False)
     symmetric = results["config"].get("symmetrize_pose", False)
+    identity = results["config"].get("identity_mixture", False)
     methods = METHODS
-    if symmetric:
+    if identity:
+        methods = IDENTITY_METHODS
+    elif symmetric:
         methods = SYMMETRIC_METHODS
     elif posterior:
         methods = POSTERIOR_POLICIES
@@ -52,7 +58,14 @@ def main():
         ax.set_title("Reflection preserves the label" if family == "invariant" else "Reflection changes the label")
         ax.set_ylabel(f"Reflected balanced accuracy (%), {shots} labels/class")
     axes[0].legend(fontsize=8)
-    if symmetric:
+    if identity:
+        for key, label in (("hurdle_p_zero", "Mixture model"), ("gaussian_p_zero", "Gaussian control")):
+            probs = [[r["identity_calibration"][str(level)][key] for level in levels] for r in runs]
+            axes[2].plot(levels, np.mean(probs, axis=0), marker="o", label=label)
+        axes[2].set_title("Predicted identity mass")
+        axes[2].set_ylabel("Probability of zero distortion")
+        axes[2].set_ylim(0, 1)
+    elif symmetric:
         for key in ("pose_point", "reflected_point", "symmetric_point", "symmetric_precision", "independent_point"):
             mse = [[r["symmetric_pose_mse"][str(level)][key][0] for level in levels] for r in runs]
             axes[2].plot(levels, np.sqrt(np.mean(mse, axis=0)) * 32, marker="o",
