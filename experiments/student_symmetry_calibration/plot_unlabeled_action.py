@@ -19,6 +19,10 @@ CENTERED = {"clean": "Clean labels", "combined": "Uncentered pairs", "centered_g
 TRACK_CV = {"clean": "Clean-label evidence", "track_cv": "Held-out track pairs",
             "track_cv_centered": "Centered held-out score", "track_cv_pairs": "Held-out score and unlabelled pairs",
             "centered_labels": "Clean evidence and centered pairs", "known_sign": "Known action"}
+TARGET_BLOCKS = {"clean": "Clean-label evidence", "track_cv": "Held-out track pairs",
+                 "scale_only": "Matched predictive variance", "source_blocks": "Source block metric",
+                 "target_marginals": "Target marginals", "target_pairs": "Paired target block metric",
+                 "known_sign": "Known action"}
 
 
 def main():
@@ -32,6 +36,8 @@ def main():
     methods = CENTERED if data["config"].get("centered_null", False) else METHODS
     if data["config"].get("track_cv", False):
         methods = TRACK_CV
+    if data["config"].get("target_blocks", False):
+        methods = TARGET_BLOCKS
     for key, label in methods.items():
         correct = []
         for ax, family in zip(axes[:2], ("invariant", "antisymmetric"), strict=True):

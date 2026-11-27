@@ -132,7 +132,40 @@ def cross_validated_weights(x, labels, parity, noise, null_diagnostics):
     }
 
 
-def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng, null_rng=None):
+def block_precision(observations):
+    centered = observations - observations.mean(axis=0)
+    covariance = centered.T @ centered / len(centered)
+    dimension = len(covariance)
+    scale = max(np.trace(covariance) / dimension, 1e-12)
+    inverse = np.linalg.solve(covariance + scale * np.eye(dimension), np.eye(dimension))
+    return inverse / np.trace(inverse)
+
+
+def calibrated_block_priors(pairs, source_pairs, odd, parity):
+    """Keep block shares before matching predicted variance across actions."""
+    pool = pairs.reshape(-1, len(odd))
+    reference = np.mean(np.sum((pool @ parity) * pool, axis=-1), axis=-1)
+    target_scale = max(float(reference.mean()), 1e-12)
+    shapes = {kind: parity.copy() for kind in ("scale_only", "source_blocks", "target_marginals", "target_pairs")}
+    for k, allowed in enumerate((~odd, odd)):
+        sign = (1, -1)[k]
+        region = np.ix_(allowed, allowed)
+        source = (source_pairs[0] + sign * source_pairs[1])[:, allowed] / 2
+        target = (pairs[0] + sign * pairs[1])[:, allowed] / 2
+        mass = np.trace(parity[k][region])
+        for kind, observations in (("source_blocks", source), ("target_marginals", pool[:, allowed]),
+                                   ("target_pairs", target)):
+            shapes[kind][k][region] = mass * block_precision(observations)
+    factors = {}
+    for kind, priors in shapes.items():
+        scale = np.mean(np.sum((pool @ priors) * pool, axis=-1), axis=-1)
+        ratio = target_scale / np.maximum(scale, 1e-12)
+        shapes[kind] = priors * ratio[:, None, None]
+        factors[kind] = ratio.tolist()
+    return shapes, factors
+
+
+def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng, null_rng=None, block_source=None):
     query = np.concatenate([test[label] for label in pair], axis=1)
     truth = np.concatenate([np.full(len(test[label][0]), k)
                             for label, k in zip(pair, (-1, 1), strict=True)])
@@ -143,6 +176,9 @@ def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng, 
         if len(calibration) < 2:
             raise ValueError(f"task {pair} needs at least two tracks outside the support")
         pairs = np.stack([train[label][:, i] for label, i in calibration], axis=1)
+        augmented_priors, factors = {}, {}
+        if block_source is not None:
+            augmented_priors, factors = calibrated_block_priors(pairs, *block_source, parity)
         for shots in args.shots:
             x = np.concatenate([train[label][0, indices[:shots]]
                                 for label, indices in zip(pair, selected, strict=True)])
@@ -151,12 +187,16 @@ def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng, 
                 x, labels, pairs, parity, isotropic, args.noise, args.shrink, rng, null_rng, args.null_draws)
             if args.track_cv:
                 weights.update(cross_validated_weights(x, labels, parity, args.noise, diagnostics))
+            for kind, prior in augmented_priors.items():
+                score, _ = track_cross_validation(x, labels, prior, args.noise)
+                weights[kind] = float(probabilities(score)[0])
             _, posterior = predictive_probabilities(cache, x, labels, args.noise, query.shape[:-1])
             weights["known_sign"] = float(sign == 1)
             metrics = {key: judge_probabilities(p * posterior[0] + (1 - p) * posterior[1], truth, sign)
                        for key, p in weights.items()}
             rows[str(shots)].append({"metrics": metrics, "same_weights": weights,
-                                     "calibration_tracks": len(calibration), "null_diagnostics": diagnostics})
+                                     "calibration_tracks": len(calibration), "null_diagnostics": diagnostics,
+                                     "block_scale_factors": factors})
     return rows
 
 
@@ -177,8 +217,13 @@ def run(data, args, device, seed):
     null_rng = np.random.default_rng(seed + 600) if args.centered_null else None
     kernels = prior_kernels(energies.cpu().numpy(), rng)
     parity = np.concatenate((kernels["fixed_even"], kernels["fixed_odd"]))
+    block_source = None
+    if args.target_blocks:
+        source_pairs = np.stack((reference.cpu().numpy(), reflected.cpu().numpy())) - center
+        block_source = (source_pairs, energies.cpu().numpy() > .5)
     tasks = {family: {"-".join(map(str, pair)): measure_task(
-        pair, 1 if family == "invariant" else -1, train, test, tracks, parity, kernels["isotropic"][0], args, rng, null_rng)
+        pair, 1 if family == "invariant" else -1, train, test, tracks, parity, kernels["isotropic"][0],
+        args, rng, null_rng, block_source)
         for pair in pairs} for family, pairs in TASKS.items()}
     print(seed, "completed", flush=True)
     return {"seed": seed, "tasks": tasks}
@@ -202,14 +247,19 @@ def main():
     parser.add_argument("--shrink", type=float, default=4.)
     parser.add_argument("--centered-null", action="store_true")
     parser.add_argument("--track-cv", action="store_true")
+    parser.add_argument("--target-blocks", action="store_true")
     parser.add_argument("--null-draws", type=int, default=63)
     args = parser.parse_args()
+    if args.target_blocks:
+        args.track_cv = True
     if args.track_cv:
         args.centered_null = True
     if args.output is None:
         name = "centered_action" if args.centered_null else "unlabeled_action"
         if args.track_cv:
             name = "cross_validated_action"
+        if args.target_blocks:
+            name = "target_block_action"
         args.output = HERE / "results" / name / "metrics.json"
     if (min(args.shots) <= 0 or not np.isfinite(args.noise) or args.noise <= 0
             or args.unlabeled_tracks < 2 or not np.isfinite(args.shrink) or args.shrink <= 0 or args.null_draws < 1):
