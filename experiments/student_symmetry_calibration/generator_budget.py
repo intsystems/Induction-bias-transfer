@@ -11,12 +11,17 @@ import torch
 from experiment import (CIFAR10, GTSRB, HERE, TRAFFIC_SOURCE, budget_weights, class_split,
                         data_partitions, discover_basis, fit_student, fit_teacher, paths_by_class,
                         predict, traffic_source)
-from reflection_evidence.experiment import Teacher
+from reflection_evidence.experiment import Teacher, reflect
 
 ROTATION = (2, 7, 4, 1, 6, 3, 0, 5)
 REFLECTION = (1, 0, 3, 2, 5, 4, 7, 6)
 COMPOSITION = tuple(REFLECTION[i] for i in ROTATION)
 TEST_VIEWS = {"reflection": 1, "rotation": 2, "composition": 3, "half_turn": 4}
+ORBIT_ORDERS = {"horizontal": tuple(range(8)), "vertical": (0, 5, 2, 7, 4, 1, 6, 3)}
+
+
+def vertical_reflect(x):
+    return x.flip(-2)
 
 
 @torch.inference_mode()
@@ -196,15 +201,28 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
     return {k: whitener @ v @ whitener.T for k, v in natural.items()}, diagnostics
 
 
-def measure_orbit_prior(student, probe, support, test_views, target, args, seed, device):
+def measure_orbit_prior(student, probe, support, test_views, target, args, seed, device, *, both_axes=False):
     source_views = embed_orbit(student, probe, device, args.batch_size)
     center = source_views.mean(axis=(0, 1))
-    priors, diagnostics = source_priors(source_views - center, args.budget, seed,
-                                       args.generator_controls, args.operator_composition, args.path_composition)
     supports = {k: embed_orbit(student, v, device, args.batch_size)[0] - center for k, v in support.items()}
     queries = np.concatenate([embed_orbit(student, test_views[k], device, args.batch_size)
                               for k in target], axis=1) - center
     truth = np.repeat(np.arange(len(target)), args.test_per_class)
+    source_views -= center
+    if both_axes:
+        return {axis: evaluate_orbit(source_views[list(order)], supports, queries[list(order)], truth,
+                                     target, args, seed)
+                for axis, order in ORBIT_ORDERS.items()}
+    return evaluate_orbit(source_views, supports, queries, truth, target, args, seed)
+
+
+def evaluate_orbit(source_views, supports, queries, truth, target, args, seed):
+    priors, diagnostics = source_priors(source_views, args.budget, seed,
+                                       args.generator_controls, args.operator_composition, args.path_composition)
+    if args.compare_teacher_views:
+        difference = (source_views - source_views[list(REFLECTION)]) / 2
+        diagnostics["reflection_feature_energy"] = float(np.mean(difference ** 2)
+                                                         / max(float(np.mean(source_views ** 2)), 1e-12))
     rows = {str(n): [] for n in args.shots}
     rng = np.random.default_rng(seed + 422)
     for _ in range(args.episodes):
@@ -232,16 +250,43 @@ def match_teacher_basis(basis, odd, ranks, seed):
     return torch.cat(blocks, dim=1)
 
 
+def compare_reflection_teachers(x, probe, support, test_views, source, target, args, seed, device):
+    views = {"horizontal": reflect, "vertical": vertical_reflect}
+    teachers, bases, ranks_by_axis = {}, {}, {}
+    for axis, view in views.items():
+        torch.manual_seed(seed)
+        teacher = Teacher(len(source), view=view).to(device).eval()
+        mean, basis, energies = discover_basis(teacher, probe[::2], args)
+        odd = energies > .5
+        teachers[axis] = teacher
+        bases[axis] = (mean, basis, odd)
+        ranks_by_axis[axis] = (int((~odd).sum()), int(odd.sum()))
+    ranks = tuple(map(min, zip(*ranks_by_axis.values(), strict=True)))
+    measurements = {}
+    for axis, teacher in teachers.items():
+        mean, basis, odd = bases[axis]
+        basis = match_teacher_basis(basis, odd, ranks, seed + 727)
+        student = fit_student(x, teacher, basis, mean, args, seed + 100, training_views=tuple(views.values()))
+        measurements[axis] = measure_orbit_prior(
+            student, probe[1::2], support, test_views, target, args, seed, device, both_axes=True
+        )
+    return {"teacher_views": measurements, "teacher_ranks": {"matched": ranks, **ranks_by_axis}}
+
+
 def run(train, test, args, seed, device, traffic_paths=None):
     source, target = class_split(seed, True)
     x, probe, support, test_views = data_partitions(train, test, args, seed, device, source, target)
     if traffic_paths is not None:
         x, probe = traffic_source(traffic_paths, args, seed, device)
         source = TRAFFIC_SOURCE
+    result = {"seed": seed, "source_classes": source, "target_classes": target}
+    if args.compare_teacher_views:
+        result.update(compare_reflection_teachers(x, probe, support, test_views, source, target, args, seed, device))
+        print(seed, "completed", flush=True)
+        return result
     training_labels = torch.arange(len(source), device=device).repeat_interleave(args.source_examples)
     teacher = fit_teacher(x, training_labels, args, seed, classes=len(source))
     mean, basis, energies = discover_basis(teacher, probe[::2], args)
-    result = {"seed": seed, "source_classes": source, "target_classes": target}
     if args.compare_teacher_training:
         torch.manual_seed(seed)
         frozen = Teacher(len(source)).to(device).eval()
@@ -287,14 +332,19 @@ def main():
                         help="infer composition moments from disjoint generator pairs")
     parser.add_argument("--path-composition", action="store_true",
                         help="compare two equivalent paths estimated from disjoint generator pairs")
-    parser.add_argument("--compare-teacher-training", action="store_true",
-                        help="compare trained and initialized teachers with matched parity ranks")
+    teacher_comparison = parser.add_mutually_exclusive_group()
+    teacher_comparison.add_argument("--compare-teacher-training", action="store_true",
+                                    help="compare trained and initialized teachers with matched parity ranks")
+    teacher_comparison.add_argument("--compare-teacher-views", action="store_true",
+                                    help="compare horizontal and vertical parity with the same training views")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
     if not 0 < args.budget < 1 or args.noise <= 0:
         parser.error("need a variance budget in (0, 1) and positive noise")
     if (args.operator_composition or args.path_composition) and args.probe_examples < 2:
         parser.error("operator composition needs at least two probe examples per source class")
+    if args.compare_teacher_views and not args.path_composition:
+        parser.error("teacher view comparison needs --path-composition")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train, test = (CIFAR10(args.data, train=flag, download=True) for flag in (True, False))

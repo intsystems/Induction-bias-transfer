@@ -32,6 +32,39 @@ PATH_METHODS = {"composition_plug_in": "Quarter-turn, then reflection",
                 "path_rotated": "Rotated mean-prediction spectrum"}
 
 
+def plot_teacher_views(rows, shots):
+    fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
+    views = ("horizontal", "vertical")
+    gains = {}
+    for ax, test_axis in zip(axes[:2], views, strict=True):
+        for teacher, color in zip(views, ("tab:blue", "tab:orange"), strict=True):
+            selected = [r["teacher_views"][teacher][test_axis] for r in rows]
+            methods = {"composition_mean_moment": ("Mean moments", "-"),
+                       "split_balanced": ("Separate budgets", "--")}
+            curves = {}
+            for method, (label, style) in methods.items():
+                values = [100 * np.mean([ep[method]["composition"] for r in selected
+                                         for ep in r["shots"][str(n)]]) for n in shots]
+                curves[method] = np.asarray(values)
+                ax.plot(shots, values, marker="o", linestyle=style, color=color, label=f"{teacher.title()} · {label}")
+            gains[teacher, test_axis] = curves["composition_mean_moment"] - curves["split_balanced"]
+        ax.set_title(f"Quarter-turn then {test_axis} reflection")
+        ax.set_ylabel("Correct on clean and composition (%)")
+    ax = axes[2]
+    ax.plot(shots, (gains["horizontal", "horizontal"] + gains["vertical", "vertical"]) / 2,
+            marker="o", label="Matching teacher reflection")
+    ax.plot(shots, (gains["vertical", "horizontal"] + gains["horizontal", "vertical"]) / 2,
+            marker="o", label="Other teacher reflection")
+    ax.set_title("Effect of averaging the two path moments")
+    ax.set_ylabel("Gain over separate budgets (pp)")
+    for ax in axes:
+        ax.set_xlabel("Labels per class")
+        ax.grid(alpha=.2)
+    axes[0].legend(fontsize=7)
+    axes[2].legend(fontsize=7)
+    return fig
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=RESULTS / "metrics.json")
@@ -40,12 +73,17 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     rows = data["runs"]
+    shots = data["config"]["shots"]
+    if data["config"].get("compare_teacher_views", False):
+        fig = plot_teacher_views(rows, shots)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(args.output, dpi=170)
+        return
     teacher_comparison = data["config"].get("compare_teacher_training", False)
     if args.teacher_state == "initialized":
         if not teacher_comparison:
             parser.error("initialized teacher results are unavailable in these metrics")
         rows = [r["initialized_teacher"] for r in rows]
-    shots = data["config"]["shots"]
     metrics = [("rotation", "Clean and quarter-turn"), ("composition", "Clean and composed transform"),
                ("all_views", "All eight views")]
     methods = METHODS

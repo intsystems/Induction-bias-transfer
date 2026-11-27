@@ -137,21 +137,23 @@ def discover_basis(teacher, probe, args):
     return mean.float(), (stencil @ directions).float(), energies.clamp(0, 1).float()
 
 
-def fit_student(x, teacher, basis, mean, args, seed):
+def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, 192), nn.GELU(),
                             nn.Linear(192, basis.shape[1])).to(x.device)
     optimizer = torch.optim.AdamW(student.parameters(), lr=0.002)
     rng = torch.Generator().manual_seed(seed)
+    views = (teacher.view,) if training_views is None else training_views
     with torch.no_grad():
         target = torch.cat([(teacher.encode(batch) - mean) @ basis for batch in x.split(args.batch_size)])
-        target_flip = torch.cat([(teacher.encode(teacher.view(batch)) - mean) @ basis
-                                 for batch in x.split(args.batch_size)])
+        targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
+                                     for batch in x.split(args.batch_size)]) for view in views]
     for _ in range(args.student_epochs):
         for ix in batches(len(x), args.batch_size, rng):
             optimizer.zero_grad(set_to_none=True)
-            prediction = student(torch.cat([x[ix], teacher.view(x[ix])]))
-            F.mse_loss(prediction, torch.cat([target[ix], target_flip[ix]])).backward()
+            batch = x[ix]
+            prediction = student(torch.cat([batch, *(view(batch) for view in views)]))
+            F.mse_loss(prediction, torch.cat([target[ix], *(values[ix] for values in targets_by_view)])).backward()
             optimizer.step()
     return student.eval()
 
