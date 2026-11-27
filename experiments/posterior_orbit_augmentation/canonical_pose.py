@@ -458,16 +458,20 @@ def calibrate_teacher_parity(teacher, basis, odd, source, partners, args):
 
 
 @torch.no_grad()
-def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed):
+def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed, *, source_paths=None):
     rng = np.random.default_rng(seed)
-    names = ("head_same_track", "head_same_class", "head_rotated")
+    names = ["head_same_track", "head_same_class", "head_rotated"]
     width = basis.shape[1]
     odd = odd.cpu().numpy()
-    priors = {name: np.zeros((2, width, width)) for name in names}
     eligible = np.flatnonzero(partners["same_track"].numpy() >= 0)
     latent = torch.cat([teacher.encode(batch) @ basis for batch in source.split(args.batch_size)]).cpu().numpy()
     residuals = [latent[eligible] - latent[partners[name].numpy()[eligible]]
                  for name in ("same_track", "same_class")]
+    centroids = None
+    if source_paths is not None:
+        centroids = natural_centroid_differences(latent, source_paths, eligible)
+        names.extend(("head_track_means", "head_split_means"))
+    priors = {name: np.zeros((2, width, width)) for name in names}
     for block, proportions in ((~odd, (1-MIXTURE[0], 1-MIXTURE[-1])), (odd, (MIXTURE[0], MIXTURE[-1]))):
         moments = []
         for residual in residuals:
@@ -476,14 +480,34 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed)
         energies, same = np.linalg.eigh(moments[0])
         _, other = np.linalg.eigh(moments[1])
         rotated, _ = np.linalg.qr(rng.normal(size=same.shape))
+        bases = [same, other, rotated]
+        if centroids is not None:
+            whole, first, second = [member[:, block].astype(np.float64) for member in centroids]
+            cross = first.T @ second
+            bases.extend(np.linalg.eigh(moment)[1] for moment in (whole.T @ whole, (cross + cross.T) / 2))
         spectrum = 1 / (.25 + np.maximum(energies, 0) / max(float(energies.mean()), 1e-12))
         spectrum /= spectrum.sum()
         index = np.ix_(block, block)
-        for name, axes in zip(names, (same, other, rotated), strict=True):
+        for name, axes in zip(names, bases, strict=True):
             block_covariance = (axes * spectrum) @ axes.T
             for mode, proportion in enumerate(proportions):
                 priors[name][mode][index] = proportion * block_covariance
     return priors
+
+
+def natural_centroid_differences(latent, paths, eligible):
+    by_class = defaultdict(lambda: defaultdict(list))
+    for index in eligible:
+        path = paths[index]
+        track, frame = path.stem.rsplit("_", 1)
+        by_class[path.parent][track].append((int(frame), index))
+    centered = []
+    for groups in by_class.values():
+        frames = [latent[[i for _, i in sorted(group)]] for group in groups.values()]
+        aggregates = [np.stack([track[part].mean(axis=0) for track in frames])
+                      for part in (slice(None), slice(0, None, 2), slice(1, None, 2))]
+        centered.append([means - means.mean(axis=0) for means in aggregates])
+    return tuple(np.concatenate(parts) for parts in zip(*centered, strict=True))
 
 
 @torch.inference_mode()
@@ -945,7 +969,7 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
     }
 
 
-def run(data, args, device, seed, *, source_partners=None):
+def run(data, args, device, seed, *, source_partners=None, source_paths=None):
     (source, labels), (probe, _), train, test, tracks = data
     source = source.to(device, dtype=torch.float32) / 255
     probe = probe.to(device, dtype=torch.float32) / 255
@@ -966,7 +990,8 @@ def run(data, args, device, seed, *, source_partners=None):
         teacher_parity = None
         if args.track_head_prior:
             models = {}
-            head_kernels = natural_track_head_priors(teacher, basis, odd, source, source_partners, args, seed + 250)
+            head_kernels = natural_track_head_priors(
+                teacher, basis, odd, source, source_partners, args, seed + 250, source_paths=source_paths)
         elif source_partners is None:
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
@@ -1101,9 +1126,12 @@ def main():
     selection.add_argument("--track-teacher-parity", action="store_true")
     selection.add_argument("--track-parity-policy", action="store_true")
     selection.add_argument("--track-head-prior", action="store_true")
+    selection.add_argument("--track-head-between", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_head_between:
+        args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
     if args.track_consistency or args.track_pooling or args.track_teacher_basis or args.track_teacher_parity:
@@ -1118,7 +1146,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_prior:
+        if args.track_head_between:
+            name = "track_head_between"
+        elif args.track_head_prior:
             name = "track_head_prior"
         elif args.track_parity_policy:
             name = "track_parity_policy"
@@ -1174,6 +1204,7 @@ def main():
     data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args,
                       include_source_paths=use_source_paths)
     source_partners = None
+    source_paths = None
     if use_source_paths:
         data, source_paths = data[:-1], data[-1]
         source_partners = natural_source_partners(source_paths)
@@ -1191,9 +1222,11 @@ def main():
         if not count:
             parser.error("training on tracks requires at least two source tracks with multiple selected frames")
         output["source_pair_count"] = count
+    retained_paths = source_paths if args.track_head_between else None
     start = time.monotonic()
     for seed in args.seeds:
-        output["runs"].append(run(data, args, device, seed, source_partners=source_partners))
+        output["runs"].append(run(data, args, device, seed, source_partners=source_partners,
+                                  source_paths=retained_paths))
         output["elapsed_seconds"] = time.monotonic() - start
         temporary = args.output.with_suffix(".tmp")
         temporary.write_text(json.dumps(output, indent=2, allow_nan=False) + "\n")
