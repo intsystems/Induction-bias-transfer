@@ -17,6 +17,10 @@ CROSSED = {"teacher_parity": "Teacher head and action", "paired_centered": "Pair
            "paired_teacher_sign": "Paired head · teacher action", "teacher_paired_sign": "Teacher head · paired action",
            "proxy_teacher_sign": "Marginal proxy · teacher action", "teacher_known_sign": "Teacher head · known action",
            "paired_known_sign": "Paired head · known action"}
+BLOCKS = {"teacher_parity": "Teacher parity", "block_fixed_teacher_sign": "Within-block orbit",
+          "block_adaptive_teacher_sign": "Adaptive within-block orbit", "teacher_known_sign": "Parity · known action",
+          "block_fixed_known_sign": "Within-block orbit · known action",
+          "block_rotated_known_sign": "Within-block rotation · known action"}
 
 
 def main():
@@ -27,14 +31,18 @@ def main():
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
     crossed = data["config"].get("crossed", False)
+    blocked = data["config"].get("parity_blocks", False)
+    methods = BLOCKS if blocked else CROSSED if crossed else METHODS
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
         title = "Reflection preserves label" if family == "invariant" else "Reflection swaps labels"
         ax.set_title(title)
-        for key, label in (CROSSED if crossed else METHODS).items():
-            values = [100 * np.mean([ep["metrics"][key]["reflected"]
+        for key, label in methods.items():
+            names = ([f"{key}_{i}" for i in range(data["block_orientation_controls"])]
+                     if key == "block_rotated_known_sign" else [key])
+            values = [100 * np.mean([ep["metrics"][model]["reflected"]
                                      for r in data["runs"] for task in r["tasks"][family].values()
-                                     for ep in task[str(n)]]) for n in shots]
+                                     for ep in task[str(n)] for model in names]) for n in shots]
             ax.plot(shots, values, marker="o", label=label)
         ax.set_ylabel("Reflected balanced accuracy (%)")
     for key in ("teacher_parity", "proxy_centered", "paired_marginal", "paired_centered"):
