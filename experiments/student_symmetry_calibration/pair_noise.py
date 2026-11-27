@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from scipy.optimize import linear_sum_assignment
 
 from experiment import (CIFAR10, HERE, budget_weights, class_split, data_partitions,
                         evaluate, learn_domain)
@@ -20,6 +21,40 @@ def mismatched_indices(size, fraction, rng):
     mapping = np.arange(size)
     mapping[selected] = np.roll(selected, 1)
     return mapping
+
+
+def corrupted_mapping(candidates, fraction, seed, class_size=None):
+    rng = np.random.default_rng(seed)
+    if class_size is None:
+        return mismatched_indices(len(candidates), fraction, rng)
+    groups = candidates // class_size
+    mapping = np.arange(len(candidates))
+    for label in np.unique(groups):
+        rows = np.flatnonzero(groups == label)
+        capped = min(fraction, (len(rows) - 1) / len(rows))
+        mapping[rows] = rows[mismatched_indices(len(rows), capped, rng)]
+    return mapping
+
+
+def repair_pairs(scores, candidates, assigned, positive, negative, clean_fraction):
+    # Evaluate in blocks to avoid a full [pairs, pairs, features] buffer.
+    cost = np.concatenate([
+        scores(block[:, None], assigned[None, :])
+        for block in np.array_split(candidates, (len(candidates) + 63) // 64)
+    ])
+    nearest = cost.argmin(axis=1)
+    _, bijective = linear_sum_assignment(cost)
+    # Equal-variance Gaussian log odds reduce to a linear distance cost.
+    slope = max(float(negative.mean() - positive.mean()), 0) / max(
+        float((negative.var() + positive.var()) / 2), 0.05
+    )
+    probability = np.clip(clean_fraction, .005, .995)
+    bonus = np.log((len(candidates) - 1) * probability / (1 - probability))
+    anchored_cost = slope * cost
+    diagonal = np.diag_indices_from(anchored_cost)
+    anchored_cost[diagonal] -= bonus
+    _, anchored = linear_sum_assignment(anchored_cost)
+    return {"nearest": nearest, "bijection": bijective, "anchored_bijection": anchored}
 
 
 def covariance(residual, weights):
@@ -37,7 +72,7 @@ def pair_scores(probe, odd):
 
     def scores(left, right):
         distance = coordinates[0, left] - coordinates[1, right]
-        return np.log(np.mean(distance ** 2, axis=1) + 1e-10)
+        return np.log(np.mean(distance ** 2, axis=-1) + 1e-10)
 
     return scores
 
@@ -96,7 +131,8 @@ def run(train, test, args, seed, device):
     centered_query = {k: v - total.mean(axis=0) for k, v in features["queries"].items()}
     measurements = {}
     for fraction in args.fractions:
-        mapping = mismatched_indices(len(candidates), fraction, np.random.default_rng(seed + 7200))
+        mapping = corrupted_mapping(candidates, fraction, seed + 7200,
+                                    args.probe_examples if args.within_class_noise else None)
         assigned = candidates[mapping]
         observed = residual(candidates, assigned)
         matched = mapping == np.arange(len(mapping))
@@ -108,6 +144,18 @@ def run(train, test, args, seed, device):
             "confidence": covariance(observed, confidence),
             "oracle": covariance(observed, matched.astype(float)),
         }
+        recovered = {"original": float(matched.mean())}
+        repaired_wrong, preserved_clean = {}, {}
+        if args.repair:
+            for method, columns in repair_pairs(
+                scores, candidates, assigned, positive, negative, confidence.mean()
+            ).items():
+                repaired = assigned[columns]
+                matrices[method] = covariance(residual(candidates, repaired), np.ones(len(candidates)))
+                correct = repaired == candidates
+                recovered[method] = float(correct.mean())
+                repaired_wrong[method] = float(correct[~matched].mean()) if not matched.all() else None
+                preserved_clean[method] = float(correct[matched].mean())
         priors, achieved = {}, {}
         for key, matrix in matrices.items():
             priors[key], achieved[key] = budget_prior(matrix, whitener, args.budget)
@@ -116,6 +164,9 @@ def run(train, test, args, seed, device):
             "scores": evaluate(priors, centered_support, centered_query, target, args,
                                np.random.default_rng(seed + 422)),
             "actual_clean_fraction": float(matched.mean()),
+            "recovered_correspondence": recovered,
+            "repaired_initially_wrong": repaired_wrong,
+            "preserved_initially_clean": preserved_clean,
             "estimated_clean_fraction": float(confidence.mean()),
             "effective_pairs": float(confidence.sum() ** 2 / (confidence @ confidence)),
             "achieved_budgets": achieved,
@@ -134,6 +185,8 @@ def main():
     parser.add_argument("--seeds", type=int, nargs="+", default=list(range(89, 101)))
     parser.add_argument("--fractions", type=float, nargs="+", default=[0., .25, .5, .75])
     parser.add_argument("--anchors", type=int, default=32)
+    parser.add_argument("--repair", action="store_true")
+    parser.add_argument("--within-class-noise", action="store_true")
     parser.add_argument("--budget", type=float, default=.25)
     parser.add_argument("--shots", type=int, nargs="+", default=[5, 20, 60])
     parser.add_argument("--teacher-epochs", type=int, default=26)
