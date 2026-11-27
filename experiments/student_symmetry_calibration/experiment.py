@@ -280,13 +280,28 @@ def run(train, test, args, seed, device):
         )
     else:
         comparison, coordinate_diagnostics = {}, {}
+    calibration = {}
+    if args.calibration_pairs:
+        probe_by_class = probe_z.reshape(2, len(source_classes), args.probe_examples, -1)
+        sample_rng = np.random.default_rng(seed + 3700)
+        orders = [sample_rng.permutation(args.probe_examples) for _ in source_classes]
+        for size in args.calibration_pairs:
+            per_class = size // len(source_classes)
+            sample = np.concatenate([
+                np.take(probe_by_class[:, index], order[:per_class], axis=1)
+                for index, order in enumerate(orders)
+            ], axis=1)
+            calibrated, measured = gauge_evaluation(sample, supports, queries, target_classes, args, seed)
+            calibration[str(size)] = {"coordinate_comparison": calibrated,
+                                      "coordinate_diagnostics": measured}
     print(seed, round(accuracy_source, 4), len(odd), main[str(max(args.shots))]["joint"], flush=True)
     return {"seed": seed, "source_classes": source_classes, "target_classes": target_classes,
             "teacher_probe_accuracy": accuracy_source, "latent_width": len(odd),
             "teacher_odd_count": int(odd.sum()), "student_orbit_spectrum": spectrum.tolist(),
             "source_even_flip_mse": float(((probe_z[0, :, ~odd] - probe_z[1, :, ~odd]) ** 2).mean()),
             "shots": main, "coordinate_comparison": comparison,
-            "coordinate_diagnostics": coordinate_diagnostics}
+            "coordinate_diagnostics": coordinate_diagnostics,
+            "calibration_pair_results": calibration}
 
 
 def main():
@@ -310,6 +325,7 @@ def main():
     parser.add_argument("--gauge-check", action="store_true")
     parser.add_argument("--vary-classes", action="store_true")
     parser.add_argument("--variance-budgets", type=float, nargs="+")
+    parser.add_argument("--calibration-pairs", type=int, nargs="+")
     parser.add_argument("--odd-ratio", type=float, default=0.02)
     parser.add_argument("--reference-ridge", type=float, default=1e-4)
     args = parser.parse_args()
@@ -318,6 +334,12 @@ def main():
     if args.variance_budgets and (not args.gauge_check or
                                   any(not 0 < b < 1 for b in args.variance_budgets)):
         parser.error("--variance-budgets requires --gauge-check and values in (0, 1)")
+    if args.calibration_pairs and (
+        not args.variance_budgets or any(
+            size < 4 or size % 4 or size >= args.probe_examples * 4 for size in args.calibration_pairs
+        )
+    ):
+        parser.error("--calibration-pairs needs variance budgets and multiples of four below the full probe")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train = CIFAR10(args.data, train=True, download=True)

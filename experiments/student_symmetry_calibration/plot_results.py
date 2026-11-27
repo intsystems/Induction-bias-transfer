@@ -103,6 +103,43 @@ def plot_variance_budgets(data):
     return fig
 
 
+def plot_pair_counts(data):
+    config = data["config"]
+    full_count = 4 * config["probe_examples"]
+    counts = sorted(config["calibration_pairs"]) + [full_count]
+    budget = min(config["variance_budgets"])
+    shots = config["shots"]
+    seeds = data["runs"]
+    chosen = f"natural_budget_{budget:g}"
+    rotated = f"natural_budget_rotated_{budget:g}"
+    fig, axes = plt.subplots(1, 2, figsize=(10.9, 4.2), layout="constrained")
+    for ax, name, label in zip(axes, [
+        ("matched_view_accuracy", "Both views correct"),
+        ("clean_accuracy", "Clean accuracy"),
+    ], strict=True):
+        for n in shots:
+            values = []
+            for run in seeds:
+                complete = run["coordinate_comparison"]["native"][str(n)]
+                subsamples = [run["calibration_pair_results"][str(count)]["coordinate_comparison"]
+                              ["native"][str(n)] for count in counts[:-1]]
+                values.append([100 * (metrics[chosen][name] - metrics[rotated][name])
+                               for metrics in (*subsamples, complete)])
+            delta = np.array(values)
+            center, spread = delta.mean(axis=0), delta.std(axis=0)
+            line, = ax.plot(counts, center, marker="o", label=f"{n} labels per class")
+            ax.fill_between(counts, center - spread, center + spread,
+                            color=line.get_color(), alpha=0.12)
+        ax.axhline(0, color="black", alpha=0.35, linewidth=1)
+        ax.set_xscale("log", base=2)
+        ax.set_xticks(counts, [str(n) for n in counts])
+        ax.set_xlabel("Source calibration pairs")
+        ax.set_ylabel(f"{label} · orbit minus rotated (pp)")
+        ax.grid(alpha=0.2)
+    axes[-1].legend(fontsize=8)
+    return fig
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=HERE / "results/metrics.json")
@@ -110,8 +147,12 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     if data["config"].get("gauge_check"):
-        fig = (plot_variance_budgets(data) if data["config"].get("variance_budgets")
-               else plot_coordinate_check(data))
+        if data["config"].get("calibration_pairs"):
+            fig = plot_pair_counts(data)
+        elif data["config"].get("variance_budgets"):
+            fig = plot_variance_budgets(data)
+        else:
+            fig = plot_coordinate_check(data)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(args.output, dpi=170)
         return
