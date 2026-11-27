@@ -17,6 +17,9 @@ MOMENT_METHODS = {"trusted_only": "Trusted anchors", "forced": "Forced assignmen
                   "teacher_model": "Teacher projection", "teacher_corrected": "Corrected projection",
                   "teacher_adaptive": "Adaptive correction", "rotated_corrected": "Rotated control",
                   "population_oracle": "All true pairs"}
+CONTROL_METHODS = {"trusted_only": "Trusted anchors", "forced": "Forced assignment",
+                   "teacher_adaptive": "Adaptive teacher basis", "random": "Adaptive random bases",
+                   "all_features_adaptive": "Adaptive full basis", "population_oracle": "All true pairs"}
 
 
 def main():
@@ -29,6 +32,7 @@ def main():
     shots = str(20 if 20 in data["config"]["shots"] else data["config"]["shots"][0])
     runs = [[r["measurements"][str(level)] for level in overlaps] for r in data["runs"]]
     moments = data["config"].get("teacher_moments", False)
+    control_count = data["config"].get("adaptive_controls", 0)
     if moments:
         fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
     else:
@@ -43,15 +47,18 @@ def main():
         line, = ax.plot(overlaps, means, marker="o", color=color, label=label)
         return line.get_color()
 
-    for key, label in (MOMENT_METHODS if moments else METHODS).items():
-        color = add(accuracy, lambda row: 100 * row["scores"][shots][key]["matched_view_accuracy"], label)
-        add(error, lambda row: row["relative_orbit_error"][key], label, color)
+    methods = CONTROL_METHODS if control_count else MOMENT_METHODS if moments else METHODS
+    for key, label in methods.items():
+        series = [f"rotated_adaptive_{index}" for index in range(control_count)] if key == "random" else [key]
+        color = add(accuracy, lambda row: 100 * np.mean([row["scores"][shots][k]["matched_view_accuracy"]
+                                                        for k in series]), label)
+        add(error, lambda row: np.mean([row["relative_orbit_error"][k] for k in series]), label, color)
         if key in runs[0][0]["correspondence"]:
             for axis, metric in zip(correspondence_axes, ("precision", "recall")):
                 add(axis, lambda row: row["correspondence"][key][metric], label, color)
     accuracy.set_ylabel(f"Both views correct (%) · {shots} labels/class")
     error.set_ylabel("Relative covariance error")
-    if moments:
+    if moments and not control_count:
         error.set_yscale("symlog", linthresh=.1)
     for axis, label in zip(correspondence_axes, ("Pair precision", "Pair recall")):
         axis.set_ylabel(label)

@@ -98,6 +98,12 @@ def teacher_moment_estimates(projected, actual, anchors, candidates):
     return estimates, {"slope": float(slope), "clipped_mass": clipped_mass}
 
 
+def random_bases(width, odd, count, rng):
+    for _ in range(count):
+        rotation, _ = np.linalg.qr(rng.normal(size=(width, width)))
+        yield rotation[:, odd]
+
+
 def run(train, test, args, seed, device):
     source, target = class_split(seed, True)
     partition_args = copy(args)
@@ -119,8 +125,7 @@ def run(train, test, args, seed, device):
     if args.teacher_moments:
         width = probe.shape[-1]
         odd_basis = np.eye(width)[:, features["odd"]]
-        rotated, _ = np.linalg.qr(rng.normal(size=(width, width)))
-        rotated_basis = rotated[:, features["odd"]]
+        controls = list(random_bases(width, features["odd"], max(1, args.adaptive_controls), rng))
     measurements = {}
     for overlap in args.overlaps:
         common = round(overlap * left.shape[1])
@@ -168,12 +173,27 @@ def run(train, test, args, seed, device):
         if args.teacher_moments:
             paired = (observed[0, anchor_rows] - observed[1, anchor_rows]) @ whitener / 2
             projected = project_teacher_action(observed, odd_basis, whitener, args.conditional_teacher_moments)
-            random_projection = project_teacher_action(observed, rotated_basis, whitener,
+            random_projection = project_teacher_action(observed, controls[0], whitener,
                                                        args.conditional_teacher_moments)
             estimates, moment_diagnostics = teacher_moment_estimates(projected, paired, anchor_rows, candidate_rows)
-            randomized, _ = teacher_moment_estimates(random_projection, paired, anchor_rows, candidate_rows)
+            randomized, random_diagnostics = teacher_moment_estimates(
+                random_projection, paired, anchor_rows, candidate_rows)
             matrices.update(estimates)
             matrices["rotated_corrected"] = randomized["teacher_corrected"]
+            if args.adaptive_controls:
+                matrices["rotated_adaptive_0"] = randomized["teacher_adaptive"]
+                slopes = [random_diagnostics["slope"]]
+                for index, basis in enumerate(controls[1:], start=1):
+                    projection = project_teacher_action(observed, basis, whitener, True)
+                    estimate, diagnostics = teacher_moment_estimates(projection, paired, anchor_rows, candidate_rows)
+                    matrices[f"rotated_adaptive_{index}"] = estimate["teacher_adaptive"]
+                    slopes.append(diagnostics["slope"])
+                all_projection = project_teacher_action(observed, identity, whitener, True)
+                all_estimates, all_diagnostics = teacher_moment_estimates(
+                    all_projection, paired, anchor_rows, candidate_rows)
+                matrices["all_features_adaptive"] = all_estimates["teacher_adaptive"]
+                moment_diagnostics["rotated_slopes"] = slopes
+                moment_diagnostics["all_features_slope"] = all_diagnostics["slope"]
             population = np.r_[anchors, left.ravel()]
             reference = matrices["population_oracle"] = orbit(population, population)
             moment_diagnostics["proxy_orbit_energy_ratio"] = float(
@@ -214,6 +234,7 @@ def main():
     parser.add_argument("--shared-basis-probe", action="store_true")
     parser.add_argument("--teacher-moments", action="store_true")
     parser.add_argument("--conditional-teacher-moments", action="store_true")
+    parser.add_argument("--adaptive-controls", type=int, default=0)
     parser.add_argument("--target-pool", type=int, default=600)
     parser.add_argument("--test-per-class", type=int, default=600)
     parser.add_argument("--batch-size", type=int, default=128)
@@ -222,10 +243,14 @@ def main():
     args = parser.parse_args()
     if args.conditional_teacher_moments and not args.teacher_moments:
         parser.error("--conditional-teacher-moments requires --teacher-moments")
+    if args.adaptive_controls < 0 or (args.adaptive_controls and not args.conditional_teacher_moments):
+        parser.error("--adaptive-controls requires a nonnegative count and conditional teacher moments")
     if args.output is None:
         result_dir = "partial_pairs" if args.shared_basis_probe else "partial_pairs_independent"
         if args.teacher_moments:
             result_dir = "teacher_moments_conditional" if args.conditional_teacher_moments else "teacher_moments"
+        if args.adaptive_controls:
+            result_dir = "teacher_moments_controls"
         args.output = HERE / "results" / result_dir / "metrics.json"
     pool_size = (args.probe_examples - args.anchors // 4) // 2
     if args.anchors < 4 or args.anchors % 4 or pool_size < 2:
