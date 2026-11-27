@@ -24,6 +24,9 @@ SYMMETRIC_METHODS = {"raw": "Uncorrected", "pose_point": "Single prediction", "r
 IDENTITY_METHODS = {"raw": "Uncorrected", "gaussian_point": "Gaussian point", "slab_point": "Continuous component",
                     "fixed_prior": "Fixed identity mass", "identity_mean": "Conditional identity mass",
                     "identity_posterior": "Marginalized mixture", "oracle": "Known inverse"}
+REFINEMENT_METHODS = {"raw": "Uncorrected", "pose_point": "One pass", "iterative": "Two passes",
+                      "damped": "Damped second pass", "calibrated_first": "Calibrated first pass",
+                      "calibrated_refinement": "Calibrated refinement", "oracle": "Known inverse"}
 
 
 def main():
@@ -39,8 +42,11 @@ def main():
     posterior = results["config"].get("posterior_selection", False)
     symmetric = results["config"].get("symmetrize_pose", False)
     identity = results["config"].get("identity_mixture", False)
+    refinement = results["config"].get("pose_refinement", False)
     methods = METHODS
-    if identity:
+    if refinement:
+        methods = REFINEMENT_METHODS
+    elif identity:
         methods = IDENTITY_METHODS
     elif symmetric:
         methods = SYMMETRIC_METHODS
@@ -58,7 +64,13 @@ def main():
         ax.set_title("Reflection preserves the label" if family == "invariant" else "Reflection changes the label")
         ax.set_ylabel(f"Reflected balanced accuracy (%), {shots} labels/class")
     axes[0].legend(fontsize=8)
-    if identity:
+    if refinement:
+        for key in ("pose_point", "iterative", "damped", "calibrated_first", "calibrated_refinement"):
+            mse = [[r["refinement_pose_mse"][str(level)][key][0] for level in levels] for r in runs]
+            axes[2].plot(levels, np.sqrt(np.mean(mse, axis=0)) * 32, marker="o", label=methods[key])
+        axes[2].set_title("Inverse rotation")
+        axes[2].set_ylabel("Angle RMSE (degrees)")
+    elif identity:
         for key, label in (("hurdle_p_zero", "Mixture model"), ("gaussian_p_zero", "Gaussian control")):
             probs = [[r["identity_calibration"][str(level)][key] for level in levels] for r in runs]
             axes[2].plot(levels, np.mean(probs, axis=0), marker="o", label=label)

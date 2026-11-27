@@ -33,6 +33,13 @@ def inverse_pose(pose):
     return torch.stack((-angle, -cosine * dx - sine * dy, sine * dx - cosine * dy), dim=-1)
 
 
+def compose_pose(first, second):
+    angle, dx, dy = first.unbind(dim=-1)
+    turn, tx, ty = second.unbind(dim=-1)
+    cosine, sine = (angle * ANGLE).cos(), (angle * ANGLE).sin()
+    return torch.stack((angle + turn, dx + cosine * tx - sine * ty, dy + sine * tx + cosine * ty), dim=-1)
+
+
 def reflect_pose(pose):
     return pose * pose.new_tensor((-1, -1, 1))
 
@@ -143,9 +150,13 @@ def fit_risk(features, losses, ridge):
 
 
 def select_step(calibration, features):
+    return calibrated_prediction(calibration, features).argmin(1)
+
+
+def calibrated_prediction(calibration, features):
     mean, scale, intercept, coefficients = calibration
     normalized = ((features - mean) / scale).clamp(-6, 6)
-    return (intercept + normalized @ coefficients).argmin(1)
+    return intercept + normalized @ coefficients
 
 
 @torch.inference_mode()
@@ -275,6 +286,74 @@ def global_pose_scale(probe, model, args, seed):
         _, log_std = parameters(model, pose_warp(samples, unit_pose * levels_for_batch[:, None]))
         variances.append((2 * log_std).exp())
     return torch.cat(variances).mean(dim=0).sqrt()
+
+
+def pose_passes(model, observed):
+    first = parameters(model, observed)[0].clamp(-2, 2)
+    residual = parameters(model, pose_warp(observed, first))[0].clamp(-2, 2)
+    return first, residual
+
+
+@torch.inference_mode()
+def fit_pose_refinement(probe, model, args, seed):
+    rng = torch.Generator(device=probe.device).manual_seed(seed)
+    levels = probe.new_tensor(MIXED_LEVELS)
+    points, passes, targets = [], [], []
+    for batch in probe.split(args.batch_size):
+        samples = torch.cat((batch, batch.flip(-1)))
+        scale = levels[torch.randint(len(levels), (len(samples),), device=probe.device, generator=rng)]
+        pose = (2 * torch.rand(len(samples), 3, device=probe.device, generator=rng) - 1) * scale[:, None]
+        first, residual = pose_passes(model, pose_warp(samples, pose))
+        points.append(first)
+        passes.append(torch.cat((first, residual), dim=1))
+        targets.append(compose_pose(inverse_pose(first), inverse_pose(pose)))
+    target = torch.cat(targets).double()
+    return tuple(fit_risk(torch.cat(features).double(), target, args.selector_ridge) for features in (points, passes))
+
+
+@torch.inference_mode()
+def refinement_embeddings(student, model, calibration, images, args, device, seed):
+    rng = torch.Generator(device=device).manual_seed(seed)
+    output, errors = {}, {str(s): [] for s in args.strengths}
+    for label, samples in images.items():
+        order = torch.randperm(len(samples), generator=rng, device=device)[:args.test_per_class]
+        chunks = {str(s): [] for s in args.strengths}
+        class_errors = {str(s): [] for s in args.strengths}
+        for batch in samples[order.cpu()].split(args.batch_size):
+            batch = batch.to(device, dtype=torch.float32) / 255
+            clean = torch.cat((batch, batch.flip(-1)))
+            unit_pose = 2 * torch.rand(len(clean), 3, device=device, generator=rng) - 1
+            for strength in args.strengths:
+                key = str(strength)
+                pose = strength * unit_pose
+                inverse = inverse_pose(pose)
+                observed = pose_warp(clean, pose)
+                first, residual = pose_passes(model, observed)
+                first_adjustment = calibrated_prediction(calibration[0], first.double()).to(first.dtype)
+                both = torch.cat((first, residual), dim=1).double()
+                both_adjustment = calibrated_prediction(calibration[1], both).to(first.dtype)
+                centers = {"pose_point": first, "iterative": compose_pose(first, residual),
+                           "damped": compose_pose(first, residual / 2),
+                           "calibrated_first": compose_pose(first, first_adjustment),
+                           "calibrated_refinement": compose_pose(first, both_adjustment)}
+                features = {"raw": student(observed), "oracle": student(pose_warp(observed, inverse))}
+                for name, location in centers.items():
+                    features[name] = student(pose_warp(observed, location.clamp(-2, 2)))
+                chunks[key].append({name: values.reshape(2, len(batch), -1).cpu().numpy()
+                                    for name, values in features.items()})
+                class_errors[key].append((len(batch), {
+                    name: (location.clamp(-2, 2) - inverse).square().mean(0).cpu().numpy()
+                    for name, location in centers.items()
+                }))
+        output[label] = {s: ({name: np.concatenate([c[name] for c in values], axis=1)
+                              for name in values[0]}, None) for s, values in chunks.items()}
+        for strength, values in class_errors.items():
+            errors[strength].append({
+                name: np.average([scores[name] for _, scores in values], axis=0, weights=[n for n, _ in values])
+                for name in values[0][1]
+            })
+    return output, {strength: {name: np.mean([value[name] for value in values], axis=0).tolist()
+                               for name in values[0]} for strength, values in errors.items()}
 
 
 @torch.inference_mode()
@@ -499,14 +578,18 @@ def run(data, args, device, seed):
     source = source.to(device, dtype=torch.float32) / 255
     probe = probe.to(device, dtype=torch.float32) / 255
     teacher = fit_teacher(source, labels.to(device), args, seed)
-    basis_probe = probe[::2] if args.selective or args.posterior_selection else probe
+    basis_probe = probe[::2] if args.selective or args.posterior_selection or args.pose_refinement else probe
     mean, basis, energies = discover_basis(teacher, basis_probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     odd = energies > .5
     if not args.identity_mixture:
         pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
-    if args.identity_mixture:
+    if args.pose_refinement:
+        calibration = fit_pose_refinement(probe[1::2], pose_model, args, seed + 250)
+        query, errors = refinement_embeddings(student, pose_model, calibration, test, args, device, seed + 300)
+        diagnostics = {"refinement_pose_mse": errors}
+    elif args.identity_mixture:
         gaussian = fit_mixture_canonicalizer(source, args, seed + 200, hurdle=False)
         hurdle = fit_mixture_canonicalizer(source, args, seed + 200, hurdle=True)
         query, calibration = identity_pose_embeddings(student, gaussian, hurdle, test, args, device, seed + 300)
@@ -565,10 +648,13 @@ def main():
     selection.add_argument("--posterior-selection", action="store_true")
     selection.add_argument("--symmetrize-pose", action="store_true")
     selection.add_argument("--identity-mixture", action="store_true")
+    selection.add_argument("--pose-refinement", action="store_true")
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if args.output is None:
-        if args.identity_mixture:
+        if args.pose_refinement:
+            name = "pose_refinement"
+        elif args.identity_mixture:
             name = "identity_mixture"
         elif args.symmetrize_pose:
             name = "symmetric_pose"
