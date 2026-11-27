@@ -68,6 +68,46 @@ def parity_block_banks(h, odd, rng):
     return np.asarray(priors).swapaxes(0, 1), diagnostics
 
 
+def relative_block_banks(h, odd, rng):
+    """Penalize orbit errors relative to variation compatible with the label action."""
+    leakage = MIXTURE[0]
+    priors, diagnostics = [], []
+    identity = np.eye(len(odd))
+    for sign in SIGNS:
+        allowed = ~odd if sign == 1 else odd
+        vectors = identity[:, allowed]
+        left, right = h[..., allowed]
+        compatible = (left + sign * right) / 2
+        residual = (left - sign * right) / 2
+        signal = compatible.T @ compatible / len(compatible)
+        error = residual.T @ residual / len(residual)
+        dimension = len(signal)
+        ridge = .05 * max(float(np.trace(signal) / dimension), 1e-12)
+        factor = np.linalg.cholesky(signal + ridge * np.eye(dimension))
+        whitener = np.linalg.solve(factor.T, np.eye(dimension))
+        energies, basis = np.linalg.eigh(whitener.T @ error @ whitener)
+        axes = whitener @ basis
+        budgets = [budget_weights(np.maximum(energies, 0), budget) for budget in BLOCK_BUDGETS]
+        measured = []
+        for diagonal, _, _ in budgets:
+            covariance = (axes * diagonal) @ axes.T
+            measured.append(covariance / np.trace(covariance))
+        measured = np.stack(measured)
+        eigenvalues = np.linalg.eigvalsh(measured)
+        controls = [measured]
+        for _ in range(BLOCK_CONTROLS):
+            orientation, _ = np.linalg.qr(rng.normal(size=(dimension, dimension)))
+            controls.append((orientation * eigenvalues[:, None, :]) @ orientation.T)
+        complement = leakage * np.diag(~allowed) / np.sum(~allowed)
+        priors.append((1 - leakage) * (vectors @ np.stack(controls) @ vectors.T) + complement)
+        diagnostics.append({
+            "achieved_budgets": [value for _, _, value in budgets],
+            "native_signal": (measured * signal).sum(axis=(-2, -1)).tolist(),
+            "native_orbit_error": (measured * error).sum(axis=(-2, -1)).tolist(),
+        })
+    return np.asarray(priors).swapaxes(0, 1), diagnostics
+
+
 def support_fit(kernels, x, labels, noise):
     """Calculate log evidence and its exact balanced-permutation centering."""
     products = x @ kernels
@@ -141,20 +181,23 @@ def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, b
             "teacher_known_sign": modes["teacher"][selected],
             "proxy_known_sign": modes["proxy"][selected],
         })
-    if block_banks is not None:
-        fitted, scores = support_fit(block_banks, x, labels, noise)
+    for name, kernels in (block_banks or {}).items():
+        fitted, scores = support_fit(kernels, x, labels, noise)
         measured = fitted[0, ..., 0]
         conditionals = conditional_coefficients(measured, scores["centered"][0])
         fixed = measured[:, BLOCK_FIXED]
         estimates.update({
-            "block_fixed_teacher_sign": weights @ fixed,
-            "block_fixed_known_sign": fixed[selected],
-            "block_adaptive_teacher_sign": weights @ conditionals,
-            "block_adaptive_known_sign": conditionals[selected],
+            f"{name}_fixed_teacher_sign": weights @ fixed,
+            f"{name}_fixed_known_sign": fixed[selected],
+            f"{name}_adaptive_teacher_sign": weights @ conditionals,
+            f"{name}_adaptive_known_sign": conditionals[selected],
         })
+        if name == "relative":
+            estimates["relative_metric_known_sign"] = measured[selected, 0]
+            estimates["relative_metric_teacher_sign"] = weights @ measured[:, 0]
         for control, candidate in enumerate(fitted[1:, :, BLOCK_FIXED, :, 0]):
-            estimates[f"block_rotated_known_sign_{control}"] = candidate[selected]
-            estimates[f"block_rotated_teacher_sign_{control}"] = weights @ candidate
+            estimates[f"{name}_rotated_known_sign_{control}"] = candidate[selected]
+            estimates[f"{name}_rotated_teacher_sign_{control}"] = weights @ candidate
     return {"metrics": {key: judge(test, truth, sign, coefficient) for key, coefficient in estimates.items()},
             "diagnostics": diagnostics}
 
@@ -194,9 +237,13 @@ def run(data, args, device, seed):
     rng = np.random.default_rng(seed)
     kernels = prior_kernels(energies.cpu().numpy(), rng)
     parity = np.concatenate((kernels["fixed_even"], kernels["fixed_odd"]))
-    block_banks = None
+    block_banks = {}
     if args.parity_blocks:
-        block_banks, achieved["parity_blocks"] = parity_block_banks(h - mean, odd, np.random.default_rng(seed + 670))
+        block_banks["block"], achieved["parity_blocks"] = parity_block_banks(
+            h - mean, odd, np.random.default_rng(seed + 670))
+    if args.relative_blocks:
+        block_banks["relative"], achieved["relative_blocks"] = relative_block_banks(
+            h - mean, odd, np.random.default_rng(seed + 670))
     tasks = {family: {"-".join(map(str, pair)): measure_task(
         pair, 1 if family == "invariant" else -1, train, test, tracks, banks, parity, args, rng, block_banks)
         for pair in pairs} for family, pairs in TASKS.items()}
@@ -220,12 +267,15 @@ def main():
     parser.add_argument("--noise", type=float, default=.5)
     parser.add_argument("--crossed", action="store_true")
     parser.add_argument("--parity-blocks", action="store_true")
+    parser.add_argument("--relative-blocks", action="store_true")
     args = parser.parse_args()
+    if args.relative_blocks:
+        args.parity_blocks = True
     if args.parity_blocks:
         args.crossed = True
     if args.output is None:
         name = "parity_blocks" if args.parity_blocks else "signed_budget_crossed" if args.crossed else "signed_budget"
-        args.output = HERE / "results" / name / "metrics.json"
+        args.output = HERE / "results" / ("relative_blocks" if args.relative_blocks else name) / "metrics.json"
     if not np.isfinite(args.noise) or args.noise <= 0 or min(args.shots) <= 0:
         parser.error("shots and noise must be positive")
     torch.set_num_threads(2)
@@ -243,7 +293,7 @@ def main():
         output["runs"].append(run(data, args, device, seed))
         output["elapsed_seconds"] = time.monotonic() - start
         temporary = args.output.with_suffix(".tmp")
-        temporary.write_text(json.dumps(output, indent=2, allow_nan=False) + "\n")
+        temporary.write_text(json.dumps(output, indent=None if args.relative_blocks else 2, allow_nan=False) + "\n")
         temporary.replace(args.output)
 
 

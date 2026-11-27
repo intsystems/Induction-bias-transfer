@@ -21,6 +21,10 @@ BLOCKS = {"teacher_parity": "Teacher parity", "block_fixed_teacher_sign": "Withi
           "block_adaptive_teacher_sign": "Adaptive within-block orbit", "teacher_known_sign": "Parity · known action",
           "block_fixed_known_sign": "Within-block orbit · known action",
           "block_rotated_known_sign": "Within-block rotation · known action"}
+RELATIVE = {"teacher_known_sign": "Teacher parity", "block_fixed_known_sign": "Absolute orbit error",
+            "relative_metric_known_sign": "Compatible metric only", "relative_fixed_known_sign": "Relative orbit error",
+            "relative_rotated_known_sign": "Relative spectrum · rotated",
+            "relative_adaptive_known_sign": "Relative error · adaptive"}
 
 
 def main():
@@ -32,31 +36,44 @@ def main():
     shots = data["config"]["shots"]
     crossed = data["config"].get("crossed", False)
     blocked = data["config"].get("parity_blocks", False)
-    methods = BLOCKS if blocked else CROSSED if crossed else METHODS
+    relative = data["config"].get("relative_blocks", False)
+    methods = RELATIVE if relative else BLOCKS if blocked else CROSSED if crossed else METHODS
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
         title = "Reflection preserves label" if family == "invariant" else "Reflection swaps labels"
         ax.set_title(title)
         for key, label in methods.items():
             names = ([f"{key}_{i}" for i in range(data["block_orientation_controls"])]
-                     if key == "block_rotated_known_sign" else [key])
+                     if key.endswith("_rotated_known_sign") else [key])
             values = [100 * np.mean([ep["metrics"][model]["reflected"]
                                      for r in data["runs"] for task in r["tasks"][family].values()
                                      for ep in task[str(n)] for model in names]) for n in shots]
             ax.plot(shots, values, marker="o", label=label)
         ax.set_ylabel("Reflected balanced accuracy (%)")
-    for key in ("teacher_parity", "proxy_centered", "paired_marginal", "paired_centered"):
-        values = []
-        for n in shots:
-            groups = [[ep["diagnostics"][key]["same_probability"]
-                       for r in data["runs"] for task in r["tasks"][family].values() for ep in task[str(n)]]
-                      for family in ("invariant", "antisymmetric")]
-            values.append((np.mean(groups[0]) + 1 - np.mean(groups[1])) / 2)
-        axes[2].plot(shots, values, marker="o", label=METHODS[key])
-    axes[2].set_title("Label action from clean support")
-    axes[2].set_ylabel("Mean probability assigned to true action")
-    for ax in axes:
+    if relative:
+        for i, label in enumerate(("Even", "Odd")):
+            records = [r["achieved_budgets"]["relative_blocks"][i] for r in data["runs"]]
+            signal = np.array([r["native_signal"] for r in records])
+            error = np.array([r["native_orbit_error"] for r in records])
+            values = np.divide(error, signal, out=np.full_like(error, np.nan), where=signal > 0)
+            axes[2].plot(data["block_budgets"], np.nanmean(values, axis=0), marker="o", label=label)
+        axes[2].set_xlabel("Requested residual variance budget")
+        axes[2].set_ylabel("Prior-weighted residual / compatible variance")
+    else:
+        for key in ("teacher_parity", "proxy_centered", "paired_marginal", "paired_centered"):
+            values = []
+            for n in shots:
+                groups = [[ep["diagnostics"][key]["same_probability"]
+                           for r in data["runs"] for task in r["tasks"][family].values() for ep in task[str(n)]]
+                          for family in ("invariant", "antisymmetric")]
+                values.append((np.mean(groups[0]) + 1 - np.mean(groups[1])) / 2)
+            axes[2].plot(shots, values, marker="o", label=METHODS[key])
+        axes[2].set_title("Label action from clean support")
+        axes[2].set_ylabel("Mean probability assigned to true action")
+        axes[2].set_xlabel("Labels per class")
+    for ax in axes[:2]:
         ax.set_xlabel("Labels per class")
+    for ax in axes:
         ax.grid(alpha=.2)
     axes[0].legend(fontsize=7)
     axes[2].legend(fontsize=7)
