@@ -72,6 +72,10 @@ AXIS_OUTPUT_METHODS = {"axis_arithmetic_matched": "Mean precision · uniform out
                        "target_rows_axis_arithmetic_rotated": "Mean precision · rotated centroids",
                        "target_rows_axis_horizontal_aligned": "Horizontal path · target centroids",
                        "target_rows_axis_vertical_aligned": "Vertical path · target centroids"}
+AXIS_DIRECT_METHODS = {"target_rows_axis_arithmetic_aligned": "Quarter-rotation path",
+                       "target_rows_axis_arithmetic_rotated_aligned": "Rotated path basis",
+                       "target_rows_axis_direct_45_aligned": "Direct source pairs · 45°",
+                       "target_rows_axis_direct_135_aligned": "Direct source pairs · 135°"}
 
 
 def main():
@@ -124,6 +128,8 @@ def main():
         panels = (("both_compositions_45", "Both compositions · 45°"),
                   ("both_compositions", "Both compositions · 90°"),
                   ("both_compositions_135", "Both compositions · 135°"))
+    if data["config"].get("path_axis_direct", False):
+        methods = AXIS_DIRECT_METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     if source := data["config"].get("source_domain"):
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]

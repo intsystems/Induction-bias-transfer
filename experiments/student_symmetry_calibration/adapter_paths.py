@@ -80,6 +80,17 @@ def axis_mixture_precisions(horizontal, vertical, seed, *, include_log=True):
     return result
 
 
+def direct_axis_bases(intermediate, clean, whitener, spectrum_reference):
+    spectrum = np.linalg.eigvalsh(spectrum_reference)
+    priors = {}
+    for i, angle in enumerate(INTERMEDIATE_ANGLES):
+        residual = (intermediate[2 * i:2 * i + 2] - clean) @ whitener
+        residual = residual.reshape(-1, residual.shape[-1])
+        _, basis = np.linalg.eigh(residual.T @ residual / len(residual))
+        priors[f"axis_direct_{angle}"] = (basis * spectrum) @ basis.T
+    return priors
+
+
 def spectral_block_precisions(path, split, seed, *, orientation_control=False):
     _, axes = np.linalg.eigh(path)
     rng = np.random.default_rng(seed + 5100)
@@ -300,6 +311,9 @@ def run(train, test, args, seed, device, traffic_paths=None):
         if args.path_axis_mixture or args.path_axis_output:
             axes.update(axis_mixture_precisions(axes["axis_horizontal"], axes["axis_vertical"], seed,
                                                 include_log=args.path_axis_mixture))
+        if args.path_axis_direct:
+            intermediate = embed_intermediate_compositions(stem, probe[1::2], device, args.batch_size)
+            axes.update(direct_axis_bases(intermediate, source_views[0], whitener, axes["axis_arithmetic"]))
         if args.path_axis_ensemble:
             axes["axis_arithmetic"] = (axes["axis_horizontal"] + axes["axis_vertical"]) / 2
             axes["axis_rotated_partner"] = shared_axis_precisions(priors["path"], vertical_priors["path"], seed + 9000)[
@@ -362,8 +376,10 @@ def run(train, test, args, seed, device, traffic_paths=None):
     couplings = ("product", "additive") if args.target_row_coupling else (None,)
     if target_rows_enabled:
         if args.path_axis_output:
-            target_inputs = {name: extra_precisions[name] for name in
-                             ("axis_horizontal", "axis_vertical", "axis_arithmetic", "axis_arithmetic_rotated")}
+            names = ("axis_horizontal", "axis_vertical", "axis_arithmetic", "axis_arithmetic_rotated")
+            if args.path_axis_direct:
+                names += tuple(f"axis_direct_{angle}" for angle in INTERMEDIATE_ANGLES)
+            target_inputs = {name: extra_precisions[name] for name in names}
         else:
             target_inputs = {name: precisions[name] for name in ("path", "rotated")}
         shape = (len(weights), len(weights))
@@ -507,7 +523,11 @@ def main():
                               help="cross target centroid output geometry with two-axis input priors")
     output_prior.add_argument("--path-axis-interpolation", action="store_true",
                               help="evaluate two-axis output priors at unseen intermediate rotation angles")
+    output_prior.add_argument("--path-axis-direct", action="store_true",
+                              help="match path spectra to direct source covariances at intermediate angles")
     args = parser.parse_args()
+    if args.path_axis_direct:
+        args.path_axis_interpolation = True
     if args.path_axis_interpolation:
         args.path_axis_output = True
     if args.path_axis_mixture or args.path_axis_ensemble or args.path_axis_output:
