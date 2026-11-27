@@ -87,7 +87,7 @@ def plot_target_pairs(rows, shots):
     return fig
 
 
-def plot_active_target_pairs(rows, shots, *, sequential=False, exact=False):
+def plot_active_target_pairs(rows, shots, *, sequential=False, exact=False, uncertain=False):
     fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
     n = 20 if 20 in shots else shots[0]
     counts = {0, 1, min(3, n), min(5, n)}
@@ -100,6 +100,8 @@ def plot_active_target_pairs(rows, shots, *, sequential=False, exact=False):
     if exact:
         methods = {"constraint": "Random", "expected_update": "Difference-only update",
                    "full_predicted": "Full predicted update", "full_observed": "Full observed update"}
+    if uncertain:
+        methods.update({"marginal_anisotropic": "Propagated covariance", "marginal_isotropic": "Isotropic uncertainty"})
     counts = sorted(counts)
     for ax, prior, title in zip(axes, ("split_balanced", "composition_mean_moment"),
                                 ("Separate source budgets", "Source path moments"), strict=True):
@@ -135,7 +137,8 @@ def main():
         if data["config"].get("active_target_pairs", False):
             fig = plot_active_target_pairs(rows, shots,
                                            sequential=data["config"].get("sequential_target_pairs", False),
-                                           exact=data["config"].get("exact_pair_update", False))
+                                           exact=data["config"].get("exact_pair_update", False),
+                                           uncertain=data["config"].get("uncertain_pair_update", False))
         else:
             fig = plot_target_pairs(rows, shots)
         args.output.parent.mkdir(parents=True, exist_ok=True)

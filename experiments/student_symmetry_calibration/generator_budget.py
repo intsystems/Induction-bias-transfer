@@ -63,6 +63,7 @@ def composition_moments(orbit, path_composition=False):
         names += ("reverse_path", "mean_prediction", "mean_moment", "wrong_prediction")
     moments = {key: np.zeros((width, width)) for key in names}
     composition_operator = np.zeros((width, width))
+    composition_error = np.zeros((width, width))
     for holdout in (folds < 2, folds >= 2):
         operators, innovations = [], []
         for parity, action in enumerate((ROTATION, REFLECTION)):
@@ -80,6 +81,9 @@ def composition_moments(orbit, path_composition=False):
             residual = (validation[np.asarray(action)] - validation @ operator).reshape(-1, width)
             operators.append(operator)
             innovations.append(residual.T @ residual / len(residual))
+            if path_composition and parity == 0:
+                inverse_error = (validation - validation[np.asarray(action)] @ inverse_rotation).reshape(-1, width)
+                inverse_error = inverse_error.T @ inverse_error / len(inverse_error)
         rotation, reflection = operators
         rotation_error, reflection_error = innovations
         points = orbit[:, holdout].reshape(-1, width)
@@ -87,9 +91,12 @@ def composition_moments(orbit, path_composition=False):
         plug_in = difference.T @ difference / len(difference)
         moments["plug_in"] += plug_in
         moments["additive"] += plug_in + rotation_error + reflection_error
-        moments["transported"] += plug_in + reflection.T @ rotation_error @ reflection + reflection_error
+        forward_error = reflection.T @ rotation_error @ reflection + reflection_error
+        moments["transported"] += plug_in + forward_error
         if path_composition:
             composition_operator += (rotation @ reflection + reflection @ inverse_rotation) / 4
+            reverse_error = inverse_rotation.T @ reflection_error @ inverse_rotation + inverse_error
+            composition_error += (forward_error + reverse_error) / 4
             reverse = points - points @ reflection @ inverse_rotation
             mean = (difference + reverse) / 2
             wrong = (difference + points - points @ reflection @ rotation) / 2
@@ -98,7 +105,7 @@ def composition_moments(orbit, path_composition=False):
             moments["mean_prediction"] += mean.T @ mean / len(mean)
             moments["mean_moment"] += (plug_in + reverse_moment) / 2
             moments["wrong_prediction"] += wrong.T @ wrong / len(wrong)
-    return {key: normalize_moment(moment) for key, moment in moments.items()}, composition_operator
+    return {key: normalize_moment(moment) for key, moment in moments.items()}, composition_operator, composition_error
 
 
 def budget_covariance(moment, budget):
@@ -186,10 +193,10 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
             for parity, action in enumerate((ROTATION, REFLECTION))
         ])
         natural["split_balanced"], _, _, _ = generator_balanced(split_moments, budget)
-        inferred, composition_operator = composition_moments(orbit, path_composition)
+        inferred, composition_operator, composition_error = composition_moments(orbit, path_composition)
         if path_composition:
             residual = whitener @ (np.eye(width) - composition_operator) / np.sqrt(2)
-            residual_model = np.linalg.solve(whitener.T, residual.T).T, metric
+            residual_model = np.linalg.solve(whitener.T, residual.T).T, metric, whitener, composition_error
         for key, moment in inferred.items():
             natural[f"composition_{key}"] = budget_covariance(moment, budget)
         for i in range(4):
@@ -254,7 +261,7 @@ def orbit_accuracy(prior, inputs, labels, queries, truth, noise):
 
 
 def active_pair_scores(inputs, labels, prior, residual_model, noise, *, design=None):
-    operator, metric = residual_model
+    operator, metric = residual_model[:2]
     differences = inputs @ operator
     x, y = (inputs, labels) if design is None else design
     precision = np.linalg.solve(prior, np.eye(len(prior))) + x.T @ x / noise ** 2
@@ -269,35 +276,55 @@ def active_pair_scores(inputs, labels, prior, residual_model, noise, *, design=N
     return {"expected_update": update, "action_leverage": leverage, "clean_leverage": clean_leverage}
 
 
-def full_pair_update_scores(inputs, labels, prior, metric, noise, predicted, observed):
+def full_pair_update_scores(inputs, labels, prior, metric, noise, counterpart_sets):
     precision = np.linalg.solve(prior, np.eye(len(prior))) + inputs.T @ inputs / noise ** 2
     weight = np.linalg.solve(precision, inputs.T @ labels / noise ** 2)
     targets = np.stack((labels, labels, np.zeros_like(labels)), axis=1)
     # Downdate the original row, then add the pair mean and difference.
     signs = np.diag([-1., 1., 1.]) * noise ** 2
     scores = {}
-    for name, counterparts in (("full_predicted", predicted), ("full_observed", observed)):
-        means = (inputs + counterparts) / 2
-        differences = (inputs - counterparts) / np.sqrt(2)
-        directions = np.stack((inputs, means, differences), axis=-1)
-        rhs = directions.transpose(1, 0, 2).reshape(len(prior), -1)
-        root = np.linalg.solve(precision, rhs).reshape(len(prior), len(inputs), 3).transpose(1, 0, 2)
-        dual = directions.swapaxes(1, 2)
-        change = root @ np.linalg.solve(signs + dual @ root, targets - dual @ weight)
-        scores[name] = np.sum(change * (metric @ change), axis=(1, 2))
+    covariance = np.linalg.solve(precision, np.eye(len(prior)))
+    for name, draws in counterpart_sets.items():
+        per_draw = []
+        for counterparts in draws:
+            means = (inputs + counterparts) / 2
+            differences = (inputs - counterparts) / np.sqrt(2)
+            directions = np.stack((inputs, means, differences), axis=-1)
+            root = covariance @ directions
+            dual = directions.swapaxes(1, 2)
+            change = root @ np.linalg.solve(signs + dual @ root, targets - dual @ weight)
+            per_draw.append(np.sum(change * (metric @ change), axis=(1, 2)))
+        scores[name] = np.mean(per_draw, axis=0)
     return scores
 
 
-def compare_active_pairs(inputs, labels, counterparts, priors, residual_model, queries, truth, args, n):
+def uncertainty_draws(residual_model, seed):
+    _, _, whitener, covariance = residual_model
+    values, axes = np.linalg.eigh(covariance)
+    root = (axes * np.sqrt(np.maximum(values, 0))) @ axes.T
+    noise = np.random.default_rng(seed).normal(size=(4, len(whitener)))
+    noise = np.concatenate((noise, -noise), axis=0)
+    isotropic = noise * np.sqrt(np.trace(covariance) / len(whitener))
+    samples = {"marginal_anisotropic": noise @ root, "marginal_isotropic": isotropic}
+    return {name: np.linalg.solve(whitener.T, draws.T).T for name, draws in samples.items()}
+
+
+def compare_active_pairs(inputs, labels, counterparts, priors, residual_model, queries, truth, args, n,
+                         *, uncertainty=None):
     metrics = {}
     if args.sequential_target_pairs or args.exact_pair_update:
         predicted = inputs - np.sqrt(2) * (inputs @ residual_model[0])
+    if args.exact_pair_update:
+        counterpart_sets = {"full_predicted": predicted[None], "full_observed": counterparts[None]}
+        if uncertainty is not None:
+            counterpart_sets.update({name: predicted[None] + offsets[:, None]
+                                     for name, offsets in uncertainty.items()})
     for key in TARGET_PAIR_PRIORS[1:]:
         prior = priors[key]
         orders = active_pair_scores(inputs, labels, prior, residual_model, args.noise)
         if args.exact_pair_update:
             orders.update(full_pair_update_scores(
-                inputs, labels, prior, residual_model[1], args.noise, predicted, counterparts
+                inputs, labels, prior, residual_model[1], args.noise, counterpart_sets
             ))
         ranks = {policy: np.argsort(np.argsort(-scores.reshape(-1, n), axis=1, kind="stable"), axis=1).ravel()
                  for policy, scores in orders.items()}
@@ -311,7 +338,7 @@ def compare_active_pairs(inputs, labels, counterparts, priors, residual_model, q
                 mask = rank < count
                 x_pair, y_pair = target_pair_constraint(inputs, labels, counterparts[mask], mask)
                 result = orbit_accuracy(prior, x_pair, y_pair, queries, truth, args.noise)
-                if policy in ("full_predicted", "full_observed"):
+                if policy.startswith(("full_", "marginal_")):
                     result["static_overlap"] = float(np.mean(static_rank[mask] < count))
                 metrics[f"{key}_{policy}_{count}"] = result
         if args.sequential_target_pairs:
@@ -346,14 +373,21 @@ def evaluate_orbit(source_views, supports, queries, truth, target, args, seed, *
     priors, diagnostics, residual_model = source_priors(
         source_views, args.budget, seed, args.generator_controls, args.operator_composition, args.path_composition
     )
+    if args.uncertain_pair_update:
+        operator, _, whitener, covariance = residual_model
+        predicted = source_views - np.sqrt(2) * (source_views @ operator)
+        actual_error = (source_views[list(COMPOSITION)] - predicted) @ whitener
+        diagnostics["pair_uncertainty"] = {"estimated_per_coordinate": float(np.trace(covariance) / len(whitener)),
+                                          "observed_per_coordinate": float(np.mean(actual_error ** 2))}
     if args.compare_teacher_views:
         difference = (source_views - source_views[list(REFLECTION)]) / 2
         diagnostics["reflection_feature_energy"] = float(np.mean(difference ** 2)
                                                          / max(float(np.mean(source_views ** 2)), 1e-12))
     rows = {str(n): [] for n in args.shots}
     rng = np.random.default_rng(seed + 422)
-    for _ in range(args.episodes):
+    for episode in range(args.episodes):
         chosen = {k: rng.choice(len(supports[k]), max(args.shots), replace=False) for k in target}
+        uncertainty = uncertainty_draws(residual_model, seed * 1000 + episode) if args.uncertain_pair_update else None
         for n in args.shots:
             inputs = np.concatenate([supports[k][chosen[k][:n]] for k in target])
             labels = np.repeat(np.eye(len(target)), n, axis=0) - 1 / len(target)
@@ -367,7 +401,8 @@ def evaluate_orbit(source_views, supports, queries, truth, target, args, seed, *
                     if args.sequential_target_pairs:
                         counts.add(min(2, n))
                     methods.update(compare_active_pairs(
-                        inputs, labels, counterparts, priors, residual_model, queries, truth, args, n
+                        inputs, labels, counterparts, priors, residual_model, queries, truth, args, n,
+                        uncertainty=uncertainty
                     ))
                 for count in sorted(counts):
                     mask = np.tile(np.arange(n) < count, len(target))
@@ -480,6 +515,8 @@ def main():
                         help="compare real and predicted feedback after revealing each batch of pairs")
     parser.add_argument("--exact-pair-update", action="store_true",
                         help="score pair acquisition by the full change in the posterior mean")
+    parser.add_argument("--uncertain-pair-update", action="store_true",
+                        help="average the full pair score over source-estimated feature uncertainty")
     teacher_comparison = parser.add_mutually_exclusive_group()
     teacher_comparison.add_argument("--compare-teacher-training", action="store_true",
                                     help="compare trained and initialized teachers with matched parity ranks")
@@ -487,6 +524,8 @@ def main():
                                     help="compare horizontal and vertical parity with the same training views")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
+    if args.uncertain_pair_update:
+        args.exact_pair_update = True
     if args.sequential_target_pairs or args.exact_pair_update:
         args.active_target_pairs = True
     if args.active_target_pairs:
