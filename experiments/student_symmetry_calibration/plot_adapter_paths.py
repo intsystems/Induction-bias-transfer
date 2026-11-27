@@ -76,6 +76,10 @@ AXIS_DIRECT_METHODS = {"target_rows_axis_arithmetic_aligned": "Quarter-rotation 
                        "target_rows_axis_arithmetic_rotated_aligned": "Rotated path basis",
                        "target_rows_axis_direct_45_aligned": "Direct source pairs · 45°",
                        "target_rows_axis_direct_135_aligned": "Direct source pairs · 135°"}
+ANGLE_MIXTURE_METHODS = {"target_rows_axis_arithmetic_aligned": "Quarter-rotation path",
+                         "target_rows_axis_angle_average_aligned": "Three-angle mean",
+                         "target_rows_axis_angle_matched_aligned": "Three-angle basis · path spectrum",
+                         "target_rows_axis_angle_rotated_aligned": "Three-angle mean · rotated"}
 
 
 def main():
@@ -130,6 +134,8 @@ def main():
                   ("both_compositions_135", "Both compositions · 135°"))
     if data["config"].get("path_axis_direct", False):
         methods = AXIS_DIRECT_METHODS
+    if data["config"].get("path_angle_mixture", False):
+        methods = ANGLE_MIXTURE_METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     if source := data["config"].get("source_domain"):
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]
