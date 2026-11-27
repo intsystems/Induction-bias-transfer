@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from scipy.special import expit, logit
 
 from experiment import GTSRB, HERE, discover_basis, embed, fit_student, fit_teacher
 from reflection_evidence.experiment import TASKS, preprocess, prior_kernels
@@ -14,12 +15,12 @@ from signed_budget import (judge_probabilities, predictive_bank, predictive_prob
                            probabilities, support_fit)
 
 
-def common_head(x, labels, kernel, noise):
+def head_projection(x, kernel, noise):
     products = x @ kernel
     chol = np.linalg.cholesky(products @ x.T + noise ** 2 * np.eye(len(x)))
     features = np.linalg.solve(chol, products)
-    mean = features.T @ np.linalg.solve(chol, labels)
-    return mean, kernel - features.T @ features
+    projection = np.linalg.solve(chol.T, features).T
+    return projection, kernel - features.T @ features
 
 
 def sign_weight(pairs, weight_moment, shrink):
@@ -37,6 +38,34 @@ def combine_signs(first, second):
                                        max((1 - first) * (1 - second), 1e-12)]))[0])
 
 
+def direction_log_odds(pairs, directions, shrink):
+    """Evaluate each linear head on the same pair geometry."""
+    scores = (pairs - pairs.mean(axis=1, keepdims=True)) @ directions
+    left, right = scores
+    energy = np.sum(left ** 2, axis=0) * np.sum(right ** 2, axis=0)
+    rho = np.clip(np.sum(left * right, axis=0) / np.sqrt(np.maximum(energy, 1e-24)), -1, 1)
+    return 2 * np.arctanh(rho * len(left) / (len(left) + shrink))
+
+
+def centered_action_weights(labels, pairs, shuffled, projection, mean, clean, prior, shrink, draws, rng):
+    random = rng.normal(size=(len(mean), draws))
+    permuted = np.stack([labels[rng.permutation(len(labels))] for _ in range(draws)], axis=1)
+    extra = np.column_stack((mean, random, projection @ permuted))
+    odds = direction_log_odds(pairs, extra, shrink)
+    random_offset = odds[1:draws + 1].mean()
+    label_offset = odds[draws + 1:].mean()
+    geometry_offset = logit(prior)
+    clean_odds = logit(np.clip(clean, 1e-12, 1 - 1e-12))
+    placebo = direction_log_odds(shuffled, np.column_stack((mean, extra[:, draws + 1:])), shrink)
+    return {
+        "centered_geometry": float(expit(clean_odds + odds[0] - geometry_offset)),
+        "centered_random": float(expit(clean_odds + odds[0] - random_offset)),
+        "centered_labels": float(expit(clean_odds + odds[0] - label_offset)),
+        "centered_labels_shuffled": float(expit(clean_odds + placebo[0] - placebo[1:].mean())),
+    }, {"head_log_odds": float(odds[0]), "geometry_offset": float(geometry_offset),
+        "random_offset": float(random_offset), "label_offset": float(label_offset)}
+
+
 def allocate_episode(pair, tracks, shots, calibration_tracks, rng):
     support, available = [], []
     for label in pair:
@@ -49,22 +78,30 @@ def allocate_episode(pair, tracks, shots, calibration_tracks, rng):
     return support, calibration
 
 
-def action_estimates(x, labels, pairs, parity, isotropic, noise, shrink, rng):
+def action_estimates(x, labels, pairs, parity, isotropic, noise, shrink, rng, null_rng=None, draws=63):
     _, evidence = support_fit(parity, x, labels, noise)
     clean = float(probabilities(evidence["centered"])[0])
-    mean, covariance = common_head(x, labels, isotropic, noise)
+    projection, covariance = head_projection(x, isotropic, noise)
+    mean = projection @ labels
     moment = np.outer(mean, mean)
     point = sign_weight(pairs, moment, shrink)
     posterior = sign_weight(pairs, moment + covariance, shrink)
     shuffled = pairs.copy()
     shuffled[1] = shuffled[1, rng.permutation(len(shuffled[1]))]
     placebo = sign_weight(shuffled, moment, shrink)
-    return {"clean": clean, "pair_only": point, "combined": combine_signs(clean, point),
-            "combined_posterior": combine_signs(clean, posterior), "combined_shuffled": combine_signs(clean, placebo),
-            "prior_geometry": sign_weight(pairs, isotropic, shrink), "uniform": .5}
+    prior = sign_weight(pairs, isotropic, shrink)
+    weights = {"clean": clean, "pair_only": point, "combined": combine_signs(clean, point),
+               "combined_posterior": combine_signs(clean, posterior), "combined_shuffled": combine_signs(clean, placebo),
+               "prior_geometry": prior, "uniform": .5}
+    diagnostics = {}
+    if null_rng is not None:
+        centered, diagnostics = centered_action_weights(
+            labels, pairs, shuffled, projection, mean, clean, prior, shrink, draws, null_rng)
+        weights.update(centered)
+    return weights, diagnostics
 
 
-def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng):
+def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng, null_rng=None):
     query = np.concatenate([test[label] for label in pair], axis=1)
     truth = np.concatenate([np.full(len(test[label][0]), k)
                             for label, k in zip(pair, (-1, 1), strict=True)])
@@ -79,13 +116,14 @@ def measure_task(pair, sign, train, test, tracks, parity, isotropic, args, rng):
             x = np.concatenate([train[label][0, indices[:shots]]
                                 for label, indices in zip(pair, selected, strict=True)])
             labels = np.repeat([-1., 1.], shots)
-            weights = action_estimates(x, labels, pairs, parity, isotropic, args.noise, args.shrink, rng)
+            weights, diagnostics = action_estimates(
+                x, labels, pairs, parity, isotropic, args.noise, args.shrink, rng, null_rng, args.null_draws)
             _, posterior = predictive_probabilities(cache, x, labels, args.noise, query.shape[:-1])
             weights["known_sign"] = float(sign == 1)
             metrics = {key: judge_probabilities(p * posterior[0] + (1 - p) * posterior[1], truth, sign)
                        for key, p in weights.items()}
             rows[str(shots)].append({"metrics": metrics, "same_weights": weights,
-                                     "calibration_tracks": len(calibration)})
+                                     "calibration_tracks": len(calibration), "null_diagnostics": diagnostics})
     return rows
 
 
@@ -103,10 +141,11 @@ def run(data, args, device, seed):
     train = {k: v - center for k, v in embed(student, target, args, device).items()}
     test = {k: v - center for k, v in embed(student, target_test, args, device).items()}
     rng = np.random.default_rng(seed)
+    null_rng = np.random.default_rng(seed + 600) if args.centered_null else None
     kernels = prior_kernels(energies.cpu().numpy(), rng)
     parity = np.concatenate((kernels["fixed_even"], kernels["fixed_odd"]))
     tasks = {family: {"-".join(map(str, pair)): measure_task(
-        pair, 1 if family == "invariant" else -1, train, test, tracks, parity, kernels["isotropic"][0], args, rng)
+        pair, 1 if family == "invariant" else -1, train, test, tracks, parity, kernels["isotropic"][0], args, rng, null_rng)
         for pair in pairs} for family, pairs in TASKS.items()}
     print(seed, "completed", flush=True)
     return {"seed": seed, "tasks": tasks}
@@ -115,7 +154,7 @@ def run(data, args, device, seed):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
-    parser.add_argument("--output", type=Path, default=HERE / "results/unlabeled_action/metrics.json")
+    parser.add_argument("--output", type=Path)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--seeds", type=int, nargs="+", default=list(range(291, 307)))
     parser.add_argument("--shots", type=int, nargs="+", default=[1, 2, 4, 5])
@@ -128,10 +167,15 @@ def main():
     parser.add_argument("--noise", type=float, default=.5)
     parser.add_argument("--unlabeled-tracks", type=int, default=12)
     parser.add_argument("--shrink", type=float, default=4.)
+    parser.add_argument("--centered-null", action="store_true")
+    parser.add_argument("--null-draws", type=int, default=63)
     args = parser.parse_args()
+    if args.output is None:
+        name = "centered_action" if args.centered_null else "unlabeled_action"
+        args.output = HERE / "results" / name / "metrics.json"
     if (min(args.shots) <= 0 or not np.isfinite(args.noise) or args.noise <= 0
-            or args.unlabeled_tracks < 2 or not np.isfinite(args.shrink) or args.shrink <= 0):
-        parser.error("need positive shots, noise, shrink and two unlabelled tracks")
+            or args.unlabeled_tracks < 2 or not np.isfinite(args.shrink) or args.shrink <= 0 or args.null_draws < 1):
+        parser.error("need positive shots, noise, shrink and null draws, and at least two unlabelled tracks")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     data = preprocess(GTSRB(args.data, split="train", download=True),

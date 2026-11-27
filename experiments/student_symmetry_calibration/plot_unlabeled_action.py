@@ -13,6 +13,9 @@ RESULTS = Path(__file__).resolve().parent / "results/unlabeled_action"
 METHODS = {"clean": "Clean labels", "pair_only": "Unlabelled pairs", "combined": "Combined evidence",
            "combined_posterior": "Combined · posterior moment", "combined_shuffled": "Shuffled pairs",
            "known_sign": "Known action"}
+CENTERED = {"clean": "Clean labels", "combined": "Uncentered pairs", "centered_geometry": "Geometry-centered",
+            "centered_random": "Random-head centered", "centered_labels": "Label-permutation centered",
+            "centered_labels_shuffled": "Label-centered · shuffled pairs", "known_sign": "Known action"}
 
 
 def main():
@@ -23,7 +26,8 @@ def main():
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), layout="constrained")
-    for key, label in METHODS.items():
+    methods = CENTERED if data["config"].get("centered_null", False) else METHODS
+    for key, label in methods.items():
         correct = []
         for ax, family in zip(axes[:2], ("invariant", "antisymmetric"), strict=True):
             rows = [[ep for r in data["runs"] for task in r["tasks"][family].values()
