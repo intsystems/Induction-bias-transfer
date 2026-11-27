@@ -826,3 +826,13 @@ python experiments/student_symmetry_calibration/plot_partial_pairs.py \
     --metrics experiments/student_symmetry_calibration/results/teacher_moments/metrics.json \
     --output experiments/student_symmetry_calibration/results/teacher_moments/curves.png
 ```
+
+В повторе восстанавливаем стандартизованные признаки линейной ridge-регрессией на нечётные координаты. Регрессия видит только непарные маргинали и признаки якорей без их соответствий. В пространстве наблюдений оператор подгонки имеет спектр в интервале от нуля до единицы, поэтому не усиливает суммарную энергию стандартизованных признаков. Контроль того же ранга использует случайный базис вместо нечётных координат учителя. Повторяем исходные seed 401–412 и проверяем эффект на новых seed 413–424. Основной контраст на новых разбиениях сравнивает коррекцию с фиксированным весом с оценкой по якорям при нулевом пересечении.
+
+```bash
+python experiments/student_symmetry_calibration/partial_pairs.py --teacher-moments \
+    --conditional-teacher-moments --seeds $(seq 401 424) --overlaps 0 .25 .5 1
+python experiments/student_symmetry_calibration/plot_partial_pairs.py \
+    --metrics experiments/student_symmetry_calibration/results/teacher_moments_conditional/metrics.json \
+    --output experiments/student_symmetry_calibration/results/teacher_moments_conditional/curves.png
+```

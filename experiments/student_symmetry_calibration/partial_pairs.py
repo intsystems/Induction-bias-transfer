@@ -61,10 +61,23 @@ def candidate_pools(probe_size, anchor_count, class_size, rng):
     return np.concatenate(anchors), np.stack(left), np.stack(reserve)
 
 
-def teacher_moment_estimates(observed, anchors, candidates, projector, whitener):
+def project_teacher_action(observed, basis, whitener, conditional):
+    if not conditional:
+        return observed @ (basis @ basis.T) @ whitener
+    # Reconstruct standardized features from the teacher-odd coordinates.
+    # The fitted map is a contraction on the pooled sample.
+    centered = observed - observed.mean(axis=(0, 1))
+    odd = centered @ basis
+    inputs = odd.reshape(-1, odd.shape[-1])
+    targets = centered.reshape(-1, centered.shape[-1]) @ whitener
+    gram = inputs.T @ inputs / len(inputs)
+    ridge = 1e-4 * max(float(np.trace(gram) / len(gram)), 1e-12)
+    coefficients = np.linalg.solve(gram + ridge * np.eye(len(gram)), inputs.T @ targets / len(inputs))
+    return odd @ coefficients
+
+
+def teacher_moment_estimates(projected, actual, anchors, candidates):
     """Use the teacher's odd projection as a control variate for paired moments."""
-    projected = observed @ projector @ whitener
-    actual = (observed[0, anchors] - observed[1, anchors]) @ whitener / 2
     paired = np.einsum("ni,nj->nij", actual, actual)
     left, right = projected[:, anchors]
     proxy = (np.einsum("ni,nj->nij", left, left) + np.einsum("ni,nj->nij", right, right)) / 2
@@ -104,9 +117,10 @@ def run(train, test, args, seed, device):
     anchor_rows = np.arange(len(anchors))
     candidate_rows = len(anchors) + np.arange(left.size)
     if args.teacher_moments:
-        odd_projector = np.diag(features["odd"].astype(float))
-        rotated, _ = np.linalg.qr(rng.normal(size=odd_projector.shape))
-        rotated_projector = rotated @ odd_projector @ rotated.T
+        width = probe.shape[-1]
+        odd_basis = np.eye(width)[:, features["odd"]]
+        rotated, _ = np.linalg.qr(rng.normal(size=(width, width)))
+        rotated_basis = rotated[:, features["odd"]]
     measurements = {}
     for overlap in args.overlaps:
         common = round(overlap * left.shape[1])
@@ -152,14 +166,18 @@ def run(train, test, args, seed, device):
         reference = matrices["oracle"]
         moment_diagnostics = {}
         if args.teacher_moments:
-            estimates, moment_diagnostics = teacher_moment_estimates(
-                observed, anchor_rows, candidate_rows, odd_projector, whitener)
-            randomized, _ = teacher_moment_estimates(
-                observed, anchor_rows, candidate_rows, rotated_projector, whitener)
+            paired = (observed[0, anchor_rows] - observed[1, anchor_rows]) @ whitener / 2
+            projected = project_teacher_action(observed, odd_basis, whitener, args.conditional_teacher_moments)
+            random_projection = project_teacher_action(observed, rotated_basis, whitener,
+                                                       args.conditional_teacher_moments)
+            estimates, moment_diagnostics = teacher_moment_estimates(projected, paired, anchor_rows, candidate_rows)
+            randomized, _ = teacher_moment_estimates(random_projection, paired, anchor_rows, candidate_rows)
             matrices.update(estimates)
             matrices["rotated_corrected"] = randomized["teacher_corrected"]
             population = np.r_[anchors, left.ravel()]
             reference = matrices["population_oracle"] = orbit(population, population)
+            moment_diagnostics["proxy_orbit_energy_ratio"] = float(
+                np.trace(matrices["teacher_model"]) / max(np.trace(reference), 1e-12))
         supports = {k: v - mean for k, v in features["supports"].items()}
         queries = {k: v - mean for k, v in features["queries"].items()}
         priors = {k: budget_prior(v, whitener, args.budget)[0] for k, v in matrices.items()}
@@ -195,16 +213,19 @@ def main():
     parser.add_argument("--probe-examples", type=int, default=128)
     parser.add_argument("--shared-basis-probe", action="store_true")
     parser.add_argument("--teacher-moments", action="store_true")
+    parser.add_argument("--conditional-teacher-moments", action="store_true")
     parser.add_argument("--target-pool", type=int, default=600)
     parser.add_argument("--test-per-class", type=int, default=600)
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
+    if args.conditional_teacher_moments and not args.teacher_moments:
+        parser.error("--conditional-teacher-moments requires --teacher-moments")
     if args.output is None:
         result_dir = "partial_pairs" if args.shared_basis_probe else "partial_pairs_independent"
         if args.teacher_moments:
-            result_dir = "teacher_moments"
+            result_dir = "teacher_moments_conditional" if args.conditional_teacher_moments else "teacher_moments"
         args.output = HERE / "results" / result_dir / "metrics.json"
     pool_size = (args.probe_examples - args.anchors // 4) // 2
     if args.anchors < 4 or args.anchors % 4 or pool_size < 2:

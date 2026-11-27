@@ -51,6 +51,8 @@ def main():
                 add(axis, lambda row: row["correspondence"][key][metric], label, color)
     accuracy.set_ylabel(f"Both views correct (%) · {shots} labels/class")
     error.set_ylabel("Relative covariance error")
+    if moments:
+        error.set_yscale("symlog", linthresh=.1)
     for axis, label in zip(correspondence_axes, ("Pair precision", "Pair recall")):
         axis.set_ylabel(label)
     for ax in axes.flat:
