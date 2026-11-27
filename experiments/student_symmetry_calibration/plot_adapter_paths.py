@@ -62,6 +62,11 @@ AXIS_MIXTURE_METHODS = {"axis_horizontal_matched": "Horizontal path", "axis_vert
                         "axis_arithmetic_matched": "Arithmetic mean", "axis_log_mean_matched": "Log-space mean",
                         "axis_arithmetic_rotated_matched": "Rotated arithmetic mean",
                         "axis_log_mean_rotated_matched": "Rotated log-space mean"}
+AXIS_ENSEMBLE_METHODS = {"axis_arithmetic_matched": "Single fit · mean precision",
+                         "axis_ensemble_logits": "Separate fits · mean logits",
+                         "axis_ensemble_weights": "Separate fits · mean weights",
+                         "axis_rotated_ensemble_logits": "Rotated fits · mean logits",
+                         "axis_rotated_ensemble_weights": "Rotated fits · mean weights"}
 
 
 def main():
@@ -98,8 +103,10 @@ def main():
         panels = (("composition", "Clean and horizontal-reflection composition"),
                   ("vertical_composition", "Clean and vertical-reflection composition"),
                   ("all_views", "All eight views"))
-    if data["config"].get("path_axis_mixture", False):
-        methods = AXIS_MIXTURE_METHODS
+    mixture = data["config"].get("path_axis_mixture", False)
+    ensemble = data["config"].get("path_axis_ensemble", False)
+    if mixture or ensemble:
+        methods = AXIS_ENSEMBLE_METHODS if ensemble else AXIS_MIXTURE_METHODS
         panels = (("composition", "Horizontal-reflection composition"),
                   ("vertical_composition", "Vertical-reflection composition"),
                   ("both_compositions", "Clean and both compositions"))

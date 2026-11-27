@@ -157,8 +157,21 @@ def composition_action_penalties(stem_action, teacher_views, seed):
     return penalties
 
 
+def target_accuracies(logits, truth, args):
+    correct = logits.argmax(-1) == truth
+    metrics = {"clean": correct[0].float().mean().item(), "all_views": correct.all(0).float().mean().item(),
+               **{key: (correct[0] & correct[index]).float().mean().item() for key, index in TEST_VIEWS.items()}}
+    if args.path_axes:
+        horizontal = TEST_VIEWS["composition"]
+        vertical = ORBIT_ORDERS["vertical"][horizontal]
+        metrics["vertical_composition"] = (correct[0] & correct[vertical]).float().mean().item()
+        metrics["both_compositions"] = (correct[0] & correct[horizontal] & correct[vertical]).float().mean().item()
+    return metrics
+
+
 def fit_target(center, bias, init_head, supports, labels, queries, truth, precision, args, *,
-               freeze=False, radii=None, record_radii=False, row_precision=None, action_penalty=None, coupling=None):
+               freeze=False, radii=None, record_radii=False, row_precision=None, action_penalty=None, coupling=None,
+               return_parameters=False):
     weight = nn.Parameter(center.clone(), requires_grad=not freeze)
     intercept = nn.Parameter(bias.clone(), requires_grad=not freeze)
     head = nn.Parameter(init_head.clone())
@@ -194,19 +207,36 @@ def fit_target(center, bias, init_head, supports, labels, queries, truth, precis
                     weight.copy_(center + displacement * (radii[step] / rms))
                 history.append((weight - center).square().mean().sqrt())
     with torch.no_grad():
-        correct = F.linear(F.linear(queries, weight, intercept), head, head_bias).argmax(-1) == truth
-        residual = (weight - center).square().mean().sqrt()
-        metrics = {"clean": correct[0].float().mean().item(), "all_views": correct.all(0).float().mean().item(),
-                   "adapter_rms_change": residual.item(),
-                   **{key: (correct[0] & correct[index]).float().mean().item() for key, index in TEST_VIEWS.items()}}
-        if args.path_axes:
-            index = ORBIT_ORDERS["vertical"][TEST_VIEWS["composition"]]
-            metrics["vertical_composition"] = (correct[0] & correct[index]).float().mean().item()
-            metrics["both_compositions"] = (
-                correct[0] & correct[TEST_VIEWS["composition"]] & correct[index]).float().mean().item()
+        metrics = target_accuracies(F.linear(F.linear(queries, weight, intercept), head, head_bias), truth, args)
+        metrics["adapter_rms_change"] = (weight - center).square().mean().sqrt().item()
         if radii is not None:
             metrics["max_rms_gap"] = (torch.stack(history) - torch.stack(radii)).abs().max().item()
+    if return_parameters:
+        return metrics, history, tuple(t.detach() for t in (weight, intercept, head, head_bias))
         return metrics, history
+
+
+@torch.inference_mode()
+def axis_ensemble_metrics(states, center, radius, queries, truth, args):
+    def logits(params):
+        weight, intercept, head, head_bias = params
+        return F.linear(F.linear(queries, weight, intercept), head, head_bias)
+
+    result = {}
+    for name, (key_a, key_b) in (
+        ("axis_ensemble", ("axis_horizontal", "axis_vertical")),
+        ("axis_rotated_ensemble", ("axis_rotated", "axis_rotated_partner")),
+    ):
+        first, second = states[key_a], states[key_b]
+        result[f"{name}_logits"] = target_accuracies((logits(first) + logits(second)) / 2, truth, args)
+        weight, intercept, head, head_bias = ((a + b) / 2 for a, b in zip(first, second, strict=True))
+        displacement = weight - center
+        rms = displacement.square().mean().sqrt()
+        weight = center + displacement * (radius / rms.clamp_min(1e-12))
+        metrics = target_accuracies(logits((weight, intercept, head, head_bias)), truth, args)
+        metrics["adapter_rms_change"] = (weight - center).square().mean().sqrt().item()
+        result[f"{name}_weights"] = metrics
+    return result
 
 
 def run(train, test, args, seed, device, traffic_paths=None):
@@ -240,6 +270,10 @@ def run(train, test, args, seed, device, traffic_paths=None):
         axes = shared_axis_precisions(priors["path"], vertical_priors["path"], seed)
         if args.path_axis_mixture:
             axes.update(axis_mixture_precisions(axes["axis_horizontal"], axes["axis_vertical"], seed))
+        if args.path_axis_ensemble:
+            axes["axis_arithmetic"] = (axes["axis_horizontal"] + axes["axis_vertical"]) / 2
+            axes["axis_rotated_partner"] = shared_axis_precisions(priors["path"], vertical_priors["path"], seed + 9000)[
+                "axis_rotated"]
         extra_precisions.update({name: torch.as_tensor(precision, device=device, dtype=weights.dtype)
                                  for name, precision in axes.items()})
         diagnostics["vertical_moment_error"] = vertical_error
@@ -358,11 +392,19 @@ def run(train, test, args, seed, device, traffic_paths=None):
                         weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
                         radii=reference_radii, action_penalty=action_penalty
                     )
+                states = {}
                 for name, precision in extra_precisions.items():
-                    results[f"{name}_matched"], _ = fit_target(
+                    record = args.path_axis_ensemble and name in (
+                        "axis_horizontal", "axis_vertical", "axis_rotated", "axis_rotated_partner")
+                    fitted = fit_target(
                         weights, bias, head, design, labels, target_views, truth, precision, args,
-                        radii=reference_radii
+                        radii=reference_radii, return_parameters=record
                     )
+                    results[f"{name}_matched"] = fitted[0]
+                    if record:
+                        states[name] = fitted[2]
+                if args.path_axis_ensemble:
+                    results.update(axis_ensemble_metrics(states, weights, reference_radii[-1], target_views, truth, args))
             rows[str(n)].append(results)
     print(seed, "completed", flush=True)
     return {"seed": seed, "source_classes": source, "target_classes": target,
@@ -386,6 +428,8 @@ def main():
                         help="compare horizontal- and vertical-reflection paths with a shared precision spectrum")
     parser.add_argument("--path-axis-mixture", action="store_true",
                         help="mix the two equal-spectrum path precisions and test both compositions together")
+    parser.add_argument("--path-axis-ensemble", action="store_true",
+                        help="combine adapters trained with separate path precisions")
     parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--output", type=Path, default=HERE / "results/adapter_paths/metrics.json")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
@@ -419,7 +463,7 @@ def main():
     output_prior.add_argument("--target-row-coupling", action="store_true",
                               help="compare additive and product penalties with equal marginal strengths")
     args = parser.parse_args()
-    if args.path_axis_mixture:
+    if args.path_axis_mixture or args.path_axis_ensemble:
         args.path_axes = True
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
