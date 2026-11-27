@@ -272,8 +272,7 @@ def evaluate(priors, supports, queries, target_classes, args, rng):
     }
 
 
-def measure_domain(source, probe, source_classes, target_classes, target, target_test, args, seed, device):
-    rng = np.random.default_rng(seed)
+def learn_domain(source, probe, source_classes, target, target_test, args, seed, device):
     labels = torch.arange(len(source_classes), device=device).repeat_interleave(args.source_examples)
     teacher = fit_teacher(source, labels, args, seed, len(source_classes))
     mean, basis, energies = discover_basis(teacher, probe, args)
@@ -286,9 +285,18 @@ def measure_domain(source, probe, source_classes, target_classes, target, target
         h = torch.cat([student(batch) for batch in probe.split(args.batch_size)]).cpu().numpy()
         reflected = torch.cat([student(batch.flip(-1)) for batch in probe.split(args.batch_size)])
         probe_z = np.stack((h, reflected.cpu().numpy()))
+    return {
+        "probe": probe_z, "supports": embed(student, target, args, device),
+        "queries": embed(student, target_test, args, device), "odd": odd,
+        "teacher_accuracy": accuracy_source,
+    }
+
+
+def measure_domain(features, source_classes, target_classes, args, seed):
+    rng = np.random.default_rng(seed)
+    probe_z, odd = features["probe"], features["odd"]
+    supports, queries = features["supports"], features["queries"]
     priors, spectrum = prior_options(probe_z, odd, args, rng)
-    supports = embed(student, target, args, device)
-    queries = embed(student, target_test, args, device)
     main = evaluate(priors, supports, queries, target_classes, args, rng)
     if args.gauge_check:
         comparison, coordinate_diagnostics = gauge_evaluation(
@@ -310,9 +318,10 @@ def measure_domain(source, probe, source_classes, target_classes, target, target
             calibrated, measured = gauge_evaluation(sample, supports, queries, target_classes, args, seed)
             calibration[str(size)] = {"coordinate_comparison": calibrated,
                                       "coordinate_diagnostics": measured}
-    print(seed, round(accuracy_source, 4), len(odd), main[str(max(args.shots))]["joint"], flush=True)
+    print(seed, source_classes, round(features["teacher_accuracy"], 4), len(odd),
+          main[str(max(args.shots))]["joint"], flush=True)
     return {"seed": seed, "source_classes": source_classes, "target_classes": target_classes,
-            "teacher_probe_accuracy": accuracy_source, "latent_width": len(odd),
+            "teacher_probe_accuracy": features["teacher_accuracy"], "latent_width": len(odd),
             "teacher_odd_count": int(odd.sum()), "student_orbit_spectrum": spectrum.tolist(),
             "source_even_flip_mse": float(((probe_z[0, :, ~odd] - probe_z[1, :, ~odd]) ** 2).mean()),
             "shots": main, "coordinate_comparison": comparison,
@@ -320,19 +329,45 @@ def measure_domain(source, probe, source_classes, target_classes, target, target
             "calibration_pair_results": calibration}
 
 
+def parity_projection(features, even_count, odd_count, seed):
+    odd = features["odd"]
+    rng = np.random.default_rng(seed)
+    projection = np.zeros((len(odd), even_count + odd_count))
+    even, _ = np.linalg.qr(rng.normal(size=((~odd).sum(), even_count)))
+    changing, _ = np.linalg.qr(rng.normal(size=(odd.sum(), odd_count)))
+    projection[~odd, :even_count] = even
+    projection[odd, even_count:] = changing
+    return {
+        "probe": features["probe"] @ projection,
+        "supports": {key: value @ projection for key, value in features["supports"].items()},
+        "queries": {key: value @ projection for key, value in features["queries"].items()},
+        "odd": np.arange(even_count + odd_count) >= even_count,
+        "teacher_accuracy": features["teacher_accuracy"],
+    }
+
+
 def run(train, test, args, seed, device, traffic_paths=None):
     source_classes, target_classes = class_split(seed, args.vary_classes)
     source, probe, target, target_test = data_partitions(
         train, test, args, seed, device, source_classes, target_classes
     )
-    result = measure_domain(source, probe, source_classes, target_classes, target, target_test,
-                            args, seed, device)
+    features = learn_domain(source, probe, source_classes, target, target_test, args, seed, device)
+    result = measure_domain(features, source_classes, target_classes, args, seed)
     if traffic_paths is not None:
         traffic_train, traffic_probe = traffic_source(traffic_paths, args, seed, device)
-        result["traffic_source_result"] = measure_domain(
-            traffic_train, traffic_probe, TRAFFIC_SOURCE, target_classes, target, target_test, args,
-            seed, device
+        other = learn_domain(
+            traffic_train, traffic_probe, TRAFFIC_SOURCE, target, target_test, args, seed, device
         )
+        result["traffic_source_result"] = measure_domain(other, TRAFFIC_SOURCE, target_classes, args, seed)
+        if args.match_source_ranks:
+            even_count = min(int((~f["odd"]).sum()) for f in (features, other))
+            odd_count = min(int(f["odd"].sum()) for f in (features, other))
+            shared = {"even_count": even_count, "odd_count": odd_count}
+            for name, domain, classes in (("cifar", features, source_classes),
+                                          ("traffic", other, TRAFFIC_SOURCE)):
+                compressed = parity_projection(domain, even_count, odd_count, seed + 617)
+                shared[name] = measure_domain(compressed, classes, target_classes, args, seed)
+            result["rank_matched"] = shared
     return result
 
 
@@ -359,6 +394,7 @@ def main():
     parser.add_argument("--variance-budgets", type=float, nargs="+")
     parser.add_argument("--calibration-pairs", type=int, nargs="+")
     parser.add_argument("--compare-source-domains", action="store_true")
+    parser.add_argument("--match-source-ranks", action="store_true")
     parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--odd-ratio", type=float, default=0.02)
     parser.add_argument("--reference-ridge", type=float, default=1e-4)
@@ -376,6 +412,8 @@ def main():
         parser.error("--calibration-pairs needs variance budgets and multiples of four below the full probe")
     if args.compare_source_domains and not args.variance_budgets:
         parser.error("--compare-source-domains needs variance budgets")
+    if args.match_source_ranks and not args.compare_source_domains:
+        parser.error("--match-source-ranks needs --compare-source-domains")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train = CIFAR10(args.data, train=True, download=True)

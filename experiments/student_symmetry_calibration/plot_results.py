@@ -148,9 +148,14 @@ def plot_source_domains(data):
     fig, axes = plt.subplots(2, 2, figsize=(10.6, 6.4), sharex=True, sharey="row",
                              layout="constrained")
     for col, domain in enumerate(("CIFAR-10", "GTSRB")):
-        runs = [r if col == 0 else r["traffic_source_result"] for r in data["runs"]]
+        if data["config"].get("match_source_ranks"):
+            key = ("cifar", "traffic")[col]
+            runs = [r["rank_matched"][key] for r in data["runs"]]
+            axes[0, col].set_title(f"Rank-matched teacher · {domain}")
+        else:
+            runs = [r if col == 0 else r["traffic_source_result"] for r in data["runs"]]
+            axes[0, col].set_title(f"Source teacher · {domain}")
         runs = [r["coordinate_comparison"]["native"] for r in runs]
-        axes[0, col].set_title(f"Source teacher · {domain}")
         for row, (metric, label) in enumerate([
                 ("matched_view_accuracy", "Both views correct (%)"),
                 ("clean_accuracy", "Clean accuracy (%)")]):
