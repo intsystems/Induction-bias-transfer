@@ -49,6 +49,9 @@ TRACK_METHODS = {"raw": "Uncorrected", "pose_point": "Absolute pose", "angle_sam
                  "paired_full": "Paired pose", "angle_shuffled": "Shuffled paired angle"}
 TRACK_TRAINING_METHODS = {"raw": "Uncorrected", "pose_point": "Synthetic pose loss",
                           "same_track": "Same track", "same_class": "Different tracks, same class"}
+TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
+                             "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
+                             "consistency_weight": "Track consistency weights"}
 
 
 def main():
@@ -72,7 +75,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if results["config"].get("train_track_canonicalizer", False):
+    if results["config"].get("track_consistency", False):
+        methods = TRACK_CONSISTENCY_METHODS
+    elif results["config"].get("train_track_canonicalizer", False):
         methods = TRACK_TRAINING_METHODS
     elif natural_track_pose:
         methods = TRACK_METHODS

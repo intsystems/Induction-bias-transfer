@@ -446,6 +446,37 @@ def natural_track_embeddings(student, models, images, tracks, args, device, *, a
     return output
 
 
+def select_track_corrections(query, odd, seed):
+    steps = np.asarray((0., .5, 1.), dtype=np.float32)
+    odd = odd.cpu().numpy()
+    tracks = []
+    for positions in query.values():
+        ordered = list(positions.values())
+        raw = np.stack([features["raw"] for features, _ in ordered])
+        delta = np.stack([features["same_track"] for features, _ in ordered]) - raw
+        candidates = raw[None] + steps[:, None, None, None, None] * delta[None]
+        dispersion = 0.
+        for block in (odd, ~odd):
+            values = candidates[..., block]
+            normalized = values / np.maximum(np.linalg.norm(values, axis=-1, keepdims=True), 1e-8)
+            dispersion += np.square(normalized - normalized.mean(axis=1, keepdims=True)).sum(axis=-1).mean(axis=1)
+        selected = steps[dispersion.argmin(axis=0)]
+        tracks.append((ordered, raw, delta, selected))
+    weights = np.concatenate([selected for _, _, _, selected in tracks], axis=1)
+    mean_weight = weights.mean(axis=1, keepdims=True)
+    order = np.random.default_rng(seed).permutation(weights.shape[1])
+    shuffled = np.empty_like(weights)
+    shuffled[:, order] = weights[:, np.roll(order, 1)]
+    offsets = np.cumsum([selected.shape[1] for _, _, _, selected in tracks])
+    for (ordered, raw, delta, selected), control in zip(tracks, np.split(shuffled, offsets[:-1], axis=1), strict=True):
+        for i, (features, _) in enumerate(ordered):
+            for name, fraction in (("matched_weight", mean_weight),
+                                   ("consistency_weight", selected),
+                                   ("shuffled_weight", control)):
+                features[name] = raw[i] + fraction[..., None] * delta[i]
+    return mean_weight[:, 0].tolist()
+
+
 @torch.inference_mode()
 def global_pose_scale(probe, model, args, seed):
     rng = torch.Generator(device=probe.device).manual_seed(seed)
@@ -800,6 +831,8 @@ def run(data, args, device, seed, *, source_partners=None):
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
         else:
+            if args.track_consistency:
+                source_partners = {"same_track": source_partners["same_track"]}
             models = {name: fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.,
                                              partners=partners)
                       for name, partners in {"pose_point": None, **source_partners}.items()}
@@ -807,6 +840,8 @@ def run(data, args, device, seed, *, source_partners=None):
                                          angle_control=source_partners is None)
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
+        if args.track_consistency:
+            diagnostics["mean_track_weight"] = select_track_corrections(query, odd, seed + 500)
     elif args.pose_refinement:
         calibration = fit_pose_refinement(probe[1::2], pose_model, args, seed + 250)
         query, errors = refinement_embeddings(student, pose_model, test, args, device, seed + 300,
@@ -899,9 +934,12 @@ def main():
     selection.add_argument("--angle-gate", action="store_true")
     selection.add_argument("--natural-track-pose", action="store_true")
     selection.add_argument("--train-track-canonicalizer", action="store_true")
+    selection.add_argument("--track-consistency", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_consistency:
+        args.train_track_canonicalizer = True
     if args.train_track_canonicalizer:
         args.natural_track_pose = True
     if args.shots is None:
@@ -909,7 +947,9 @@ def main():
     if args.strengths is None:
         args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.train_track_canonicalizer:
+        if args.track_consistency:
+            name = "track_consistency"
+        elif args.train_track_canonicalizer:
             name = "trained_track_pose"
         elif args.natural_track_pose:
             name = "natural_track_pose"
@@ -938,6 +978,8 @@ def main():
         parser.error("strengths must be finite and nonnegative")
     if args.natural_track_pose and any(s > 1 for s in args.strengths):
         parser.error("natural track frame fractions must be in [0, 1]")
+    if args.track_consistency and len(set(args.strengths)) < 2:
+        parser.error("track consistency requires at least two frame positions")
     if not math.isfinite(args.selector_ridge) or args.selector_ridge <= 0:
         parser.error("selector ridge must be finite and positive")
     if args.refiner_epochs < 1:
