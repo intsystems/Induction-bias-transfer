@@ -87,26 +87,32 @@ def plot_target_pairs(rows, shots):
     return fig
 
 
-def plot_active_target_pairs(rows, shots, *, sequential=False, exact=False, uncertain=False, calibrated=False):
+def plot_active_target_pairs(rows, shots, config):
     fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
     n = 20 if 20 in shots else shots[0]
     counts = {0, 1, min(3, n), min(5, n)}
     methods = {"constraint": "Random", "expected_update": "Expected update",
                "action_leverage": "Action leverage", "clean_leverage": "Clean leverage"}
-    if sequential:
+    if config.get("sequential_target_pairs", False):
         counts.add(min(2, n))
         methods = {"constraint": "Random", "expected_update": "One-step selection",
                    "actual_feedback": "Observed feedback", "predicted_feedback": "Predicted feedback"}
-    if exact:
+    if config.get("exact_pair_update", False):
         methods = {"constraint": "Random", "expected_update": "Difference-only update",
                    "full_predicted": "Full predicted update", "full_observed": "Full observed update"}
-    if uncertain:
+    if config.get("uncertain_pair_update", False):
         methods.update({"marginal_anisotropic": "Propagated covariance", "marginal_isotropic": "Isotropic uncertainty"})
-    if calibrated:
+    if config.get("calibrated_pair_update", False):
         methods = {"marginal_anisotropic": "Propagated · full", "marginal_isotropic": "Isotropic · full",
                    "marginal_anisotropic_half": "Propagated · half", "marginal_isotropic_half": "Isotropic · half",
                    "marginal_anisotropic_calibrated": "Propagated · calibrated",
                    "marginal_isotropic_calibrated": "Isotropic · calibrated"}
+    if config.get("target_movement_metric", False):
+        methods = {"constraint": "Random", "expected_update": "Difference-only update",
+                   "marginal_isotropic": "Source metric", "marginal_isotropic_target_metric": "Clean target metric",
+                   "marginal_isotropic_mixed_metric": "Mixed metric"}
+        source = "GTSRB" if config["source_domain"] == "gtsrb" else "CIFAR-10"
+        fig.suptitle(f"Source {source} · Target CIFAR-10")
     counts = sorted(counts)
     for ax, prior, title in zip(axes, ("split_balanced", "composition_mean_moment"),
                                 ("Separate source budgets", "Source path moments"), strict=True):
@@ -140,11 +146,7 @@ def main():
         return
     if data["config"].get("target_pairs", False):
         if data["config"].get("active_target_pairs", False):
-            fig = plot_active_target_pairs(rows, shots,
-                                           sequential=data["config"].get("sequential_target_pairs", False),
-                                           exact=data["config"].get("exact_pair_update", False),
-                                           uncertain=data["config"].get("uncertain_pair_update", False),
-                                           calibrated=data["config"].get("calibrated_pair_update", False))
+            fig = plot_active_target_pairs(rows, shots, data["config"])
         else:
             fig = plot_target_pairs(rows, shots)
         args.output.parent.mkdir(parents=True, exist_ok=True)

@@ -277,7 +277,7 @@ def active_pair_scores(inputs, labels, prior, residual_model, noise, *, design=N
     return {"expected_update": update, "action_leverage": leverage, "clean_leverage": clean_leverage}
 
 
-def full_pair_update_scores(inputs, labels, prior, metric, noise, counterpart_sets):
+def full_pair_update_scores(inputs, labels, prior, metric, noise, counterpart_sets, *, movement_metrics=None):
     precision = np.linalg.solve(prior, np.eye(len(prior))) + inputs.T @ inputs / noise ** 2
     weight = np.linalg.solve(precision, inputs.T @ labels / noise ** 2)
     targets = np.stack((labels, labels, np.zeros_like(labels)), axis=1)
@@ -286,7 +286,9 @@ def full_pair_update_scores(inputs, labels, prior, metric, noise, counterpart_se
     scores = {}
     covariance = np.linalg.solve(precision, np.eye(len(prior)))
     for name, draws in counterpart_sets.items():
-        per_draw = []
+        measures = {name: metric}
+        if name == "marginal_isotropic" and movement_metrics is not None:
+            measures.update({f"{name}_{key}": value for key, value in movement_metrics.items()})
         for counterparts in draws:
             means = (inputs + counterparts) / 2
             differences = (inputs - counterparts) / np.sqrt(2)
@@ -294,8 +296,9 @@ def full_pair_update_scores(inputs, labels, prior, metric, noise, counterpart_se
             root = covariance @ directions
             dual = directions.swapaxes(1, 2)
             change = root @ np.linalg.solve(signs + dual @ root, targets - dual @ weight)
-            per_draw.append(np.sum(change * (metric @ change), axis=(1, 2)))
-        scores[name] = np.mean(per_draw, axis=0)
+            for key, measure in measures.items():
+                update = np.sum(change * (measure @ change), axis=(1, 2)) / len(draws)
+                scores[key] = scores.get(key, 0) + update
     return scores
 
 
@@ -316,6 +319,14 @@ def uncertainty_draws(residual_model, seed, *, calibrated_variance=None):
     return {name: np.linalg.solve(whitener.T, draws.T).T for name, draws in samples.items()}
 
 
+def clean_target_metrics(inputs, source_metric, whitener):
+    covariance = inputs.T @ inputs / len(inputs)
+    whitened = inputs @ whitener
+    # Match the source trace before blending source and target directions.
+    target = covariance / max(float(np.mean(whitened ** 2)), 1e-12)
+    return {"target_metric": target, "mixed_metric": (source_metric + target) / 2}
+
+
 def compare_active_pairs(inputs, labels, counterparts, priors, residual_model, queries, truth, args, n,
                          *, uncertainty=None):
     metrics = {}
@@ -326,12 +337,13 @@ def compare_active_pairs(inputs, labels, counterparts, priors, residual_model, q
         if uncertainty is not None:
             counterpart_sets.update({name: predicted[None] + offsets[:, None]
                                      for name, offsets in uncertainty.items()})
+    movement = clean_target_metrics(inputs, residual_model[1], residual_model[2]) if args.target_movement_metric else None
     for key in TARGET_PAIR_PRIORS[1:]:
         prior = priors[key]
         orders = active_pair_scores(inputs, labels, prior, residual_model, args.noise)
         if args.exact_pair_update:
             orders.update(full_pair_update_scores(
-                inputs, labels, prior, residual_model[1], args.noise, counterpart_sets
+                inputs, labels, prior, residual_model[1], args.noise, counterpart_sets, movement_metrics=movement
             ))
         ranks = {policy: np.argsort(np.argsort(-scores.reshape(-1, n), axis=1, kind="stable"), axis=1).ravel()
                  for policy, scores in orders.items()}
@@ -538,6 +550,8 @@ def main():
                         help="average the full pair score over source-estimated feature uncertainty")
     parser.add_argument("--calibrated-pair-update", action="store_true",
                         help="separate covariance shape from scale using held-out source composition pairs")
+    parser.add_argument("--target-movement-metric", action="store_true",
+                        help="score isotropic acquisition in the clean target support metric")
     teacher_comparison = parser.add_mutually_exclusive_group()
     teacher_comparison.add_argument("--compare-teacher-training", action="store_true",
                                     help="compare trained and initialized teachers with matched parity ranks")
@@ -545,7 +559,7 @@ def main():
                                     help="compare horizontal and vertical parity with the same training views")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
-    if args.calibrated_pair_update:
+    if args.calibrated_pair_update or args.target_movement_metric:
         args.uncertain_pair_update = True
     if args.uncertain_pair_update:
         args.exact_pair_update = True

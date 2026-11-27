@@ -1796,3 +1796,23 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/generator_budget.py" \
 По координате белого базиса расчётная дисперсия в среднем составила 0,250, измеренная на резерве — 0,177. Разность равна 0,073 [−0,011, +0,157]. Отношение измеренной и расчётной дисперсий варьировалось от 0,21 до 6,75. Результат относится к трём проверенным масштабам, фиксированному числу проб и двум формам ковариации. Все интервалы 95%, парные по разбиениям.
 
 [График](results/composition_calibrated_pair_update/curves.png) · [Метрики отбора и калибровки](results/composition_calibrated_pair_update/metrics.json)
+
+### Метрика изменения прогноза при смене исходного датасета
+
+Операторы, априоры и ориентир для дисперсии возмущений строим на одном из двух источников, CIFAR-10 или GTSRB. На GTSRB обучение и оценка априоров используют разные треки. Целевой набор всегда CIFAR-10. На каждом разбиении классы, изображения поддержки и запросы совпадают между источниками.
+
+Используем те же изотропные возмущения для прогноза преобразованных признаков и то же полное обновление головы. Меняем только метрику, в которой измеряем квадрат изменения логитов. Сравниваем исходную метрику, второй момент чистых целевых признаков с тем же следом в белом базисе и их среднее с равными весами. Целевая метрика использует только чистые признаки поддержки. Операторы и дисперсию возмущений по ней не переоцениваем.
+
+Основное парное сравнение на seed 997–1020 при 20 метках и трёх парах на класс оценивает смешанную и исходную метрики при источнике GTSRB и раздельных бюджетах. Метрика результата — точность одновременно на исходном виде и композиции. Дополнительно проверяем чистую целевую метрику, прирост исходного метода к случайному выбору и изменение эффектов при источнике CIFAR-10.
+
+```bash
+dir=experiments/student_symmetry_calibration
+run="$dir/results/composition_target_movement"
+export OPENBLAS_NUM_THREADS=1
+~/venv/bin/python "$dir/generator_budget.py" --path-composition --target-movement-metric \
+  --source-domain gtsrb --shots 20 --seeds $(seq 997 1020) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_generator_budget.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+~/venv/bin/python "$dir/generator_budget.py" --path-composition --target-movement-metric \
+  --source-domain cifar --shots 20 --seeds $(seq 997 1020) --output "$run/cifar_metrics.json"
+~/venv/bin/python "$dir/plot_generator_budget.py" --metrics "$run/cifar_metrics.json" --output "$run/cifar_curves.png"
+```
