@@ -458,7 +458,8 @@ def calibrate_teacher_parity(teacher, basis, odd, source, partners, args):
 
 
 @torch.no_grad()
-def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed, *, source_paths=None):
+def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed, *,
+                              source_paths=None, student=None):
     rng = np.random.default_rng(seed)
     names = ["head_same_track", "head_same_class", "head_rotated"]
     width = basis.shape[1]
@@ -471,6 +472,12 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
     if source_paths is not None:
         centroids = natural_centroid_differences(latent, source_paths, eligible)
         names.extend(("head_track_means", "head_split_means"))
+    student_residuals = []
+    if student is not None:
+        student_latent = torch.cat([student(batch) for batch in source.split(args.batch_size)]).cpu().numpy()
+        student_residuals = [student_latent[eligible] - student_latent[partners[name].numpy()[eligible]]
+                             for name in ("same_track", "same_class")]
+        names.extend(("head_student_track", "head_student_class"))
     priors = {name: np.zeros((2, width, width)) for name in names}
     for block, proportions in ((~odd, (1-MIXTURE[0], 1-MIXTURE[-1])), (odd, (MIXTURE[0], MIXTURE[-1]))):
         moments = []
@@ -485,6 +492,9 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             whole, first, second = [member[:, block].astype(np.float64) for member in centroids]
             cross = first.T @ second
             bases.extend(np.linalg.eigh(moment)[1] for moment in (whole.T @ whole, (cross + cross.T) / 2))
+        for residual in student_residuals:
+            part = residual[:, block].astype(np.float64)
+            bases.append(np.linalg.eigh(part.T @ part)[1])
         spectrum = 1 / (.25 + np.maximum(energies, 0) / max(float(energies.mean()), 1e-12))
         spectrum /= spectrum.sum()
         index = np.ix_(block, block)
@@ -991,7 +1001,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
         if args.track_head_prior:
             models = {}
             head_kernels = natural_track_head_priors(
-                teacher, basis, odd, source, source_partners, args, seed + 250, source_paths=source_paths)
+                teacher, basis, odd, source, source_partners, args, seed + 250, source_paths=source_paths,
+                student=student if args.track_head_student else None)
         elif source_partners is None:
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
@@ -1127,10 +1138,11 @@ def main():
     selection.add_argument("--track-parity-policy", action="store_true")
     selection.add_argument("--track-head-prior", action="store_true")
     selection.add_argument("--track-head-between", action="store_true")
+    selection.add_argument("--track-head-student", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_head_between:
+    if args.track_head_between or args.track_head_student:
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1146,7 +1158,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_between:
+        if args.track_head_student:
+            name = "track_head_student"
+        elif args.track_head_between:
             name = "track_head_between"
         elif args.track_head_prior:
             name = "track_head_prior"
