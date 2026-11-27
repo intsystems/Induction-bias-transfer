@@ -269,30 +269,55 @@ def active_pair_scores(inputs, labels, prior, residual_model, noise, *, design=N
     return {"expected_update": update, "action_leverage": leverage, "clean_leverage": clean_leverage}
 
 
+def full_pair_update_scores(inputs, labels, prior, metric, noise, predicted, observed):
+    precision = np.linalg.solve(prior, np.eye(len(prior))) + inputs.T @ inputs / noise ** 2
+    weight = np.linalg.solve(precision, inputs.T @ labels / noise ** 2)
+    targets = np.stack((labels, labels, np.zeros_like(labels)), axis=1)
+    # Downdate the original row, then add the pair mean and difference.
+    signs = np.diag([-1., 1., 1.]) * noise ** 2
+    scores = {}
+    for name, counterparts in (("full_predicted", predicted), ("full_observed", observed)):
+        means = (inputs + counterparts) / 2
+        differences = (inputs - counterparts) / np.sqrt(2)
+        directions = np.stack((inputs, means, differences), axis=-1)
+        rhs = directions.transpose(1, 0, 2).reshape(len(prior), -1)
+        root = np.linalg.solve(precision, rhs).reshape(len(prior), len(inputs), 3).transpose(1, 0, 2)
+        dual = directions.swapaxes(1, 2)
+        change = root @ np.linalg.solve(signs + dual @ root, targets - dual @ weight)
+        scores[name] = np.sum(change * (metric @ change), axis=(1, 2))
+    return scores
+
+
 def compare_active_pairs(inputs, labels, counterparts, priors, residual_model, queries, truth, args, n):
     metrics = {}
+    if args.sequential_target_pairs or args.exact_pair_update:
+        predicted = inputs - np.sqrt(2) * (inputs @ residual_model[0])
     for key in TARGET_PAIR_PRIORS[1:]:
         prior = priors[key]
         orders = active_pair_scores(inputs, labels, prior, residual_model, args.noise)
+        if args.exact_pair_update:
+            orders.update(full_pair_update_scores(
+                inputs, labels, prior, residual_model[1], args.noise, predicted, counterparts
+            ))
+        ranks = {policy: np.argsort(np.argsort(-scores.reshape(-1, n), axis=1, kind="stable"), axis=1).ravel()
+                 for policy, scores in orders.items()}
+        static_rank = ranks["expected_update"]
         counts = {1, min(3, n), min(5, n)}
         if args.sequential_target_pairs:
             counts.add(min(2, n))
         counts = sorted(counts)
-        for policy, scores in orders.items():
-            rank = np.argsort(np.argsort(-scores.reshape(-1, n), axis=1, kind="stable"), axis=1)
+        for policy, rank in ranks.items():
             for count in counts:
-                mask = (rank < count).ravel()
+                mask = rank < count
                 x_pair, y_pair = target_pair_constraint(inputs, labels, counterparts[mask], mask)
-                metrics[f"{key}_{policy}_{count}"] = orbit_accuracy(
-                    prior, x_pair, y_pair, queries, truth, args.noise
-                )
+                result = orbit_accuracy(prior, x_pair, y_pair, queries, truth, args.noise)
+                if policy in ("full_predicted", "full_observed"):
+                    result["static_overlap"] = float(np.mean(static_rank[mask] < count))
+                metrics[f"{key}_{policy}_{count}"] = result
         if args.sequential_target_pairs:
-            predicted = inputs - np.sqrt(2) * (inputs @ residual_model[0])
-            score = orders["expected_update"]
-            static_rank = np.argsort(np.argsort(-score.reshape(-1, n), axis=1, kind="stable"), axis=1).ravel()
             for policy, feedback in (("actual_feedback", counterparts), ("predicted_feedback", predicted)):
                 masks = sequential_pair_masks(inputs, labels, feedback, prior, residual_model,
-                                              args.noise, n, counts, score)
+                                              args.noise, n, counts, orders["expected_update"])
                 for count, mask in masks.items():
                     x_pair, y_pair = target_pair_constraint(inputs, labels, counterparts[mask], mask)
                     result = orbit_accuracy(prior, x_pair, y_pair, queries, truth, args.noise)
@@ -453,6 +478,8 @@ def main():
                         help="select composition pairs using only clean support and source operators")
     parser.add_argument("--sequential-target-pairs", action="store_true",
                         help="compare real and predicted feedback after revealing each batch of pairs")
+    parser.add_argument("--exact-pair-update", action="store_true",
+                        help="score pair acquisition by the full change in the posterior mean")
     teacher_comparison = parser.add_mutually_exclusive_group()
     teacher_comparison.add_argument("--compare-teacher-training", action="store_true",
                                     help="compare trained and initialized teachers with matched parity ranks")
@@ -460,7 +487,7 @@ def main():
                                     help="compare horizontal and vertical parity with the same training views")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
-    if args.sequential_target_pairs:
+    if args.sequential_target_pairs or args.exact_pair_update:
         args.active_target_pairs = True
     if args.active_target_pairs:
         args.target_pairs = True
