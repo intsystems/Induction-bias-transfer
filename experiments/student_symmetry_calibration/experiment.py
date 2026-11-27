@@ -272,7 +272,8 @@ def evaluate(priors, supports, queries, target_classes, args, rng):
     }
 
 
-def learn_domain(source, probe, source_classes, target, target_test, args, seed, device, *, basis_probe=None):
+def learn_domain(source, probe, source_classes, target, target_test, args, seed, device, *,
+                 basis_probe=None, additional_target_tests=None):
     labels = torch.arange(len(source_classes), device=device).repeat_interleave(args.source_examples)
     teacher = fit_teacher(source, labels, args, seed, len(source_classes))
     mean, basis, energies = discover_basis(teacher, probe if basis_probe is None else basis_probe, args)
@@ -285,11 +286,16 @@ def learn_domain(source, probe, source_classes, target, target_test, args, seed,
         h = torch.cat([student(batch) for batch in probe.split(args.batch_size)]).cpu().numpy()
         reflected = torch.cat([student(batch.flip(-1)) for batch in probe.split(args.batch_size)])
         probe_z = np.stack((h, reflected.cpu().numpy()))
-    return {
+    features = {
         "probe": probe_z, "supports": embed(student, target, args, device),
         "queries": embed(student, target_test, args, device), "odd": odd,
         "teacher_accuracy": accuracy_source,
     }
+    if additional_target_tests:
+        features["additional_queries"] = {
+            key: embed(student, dataset, args, device) for key, dataset in additional_target_tests.items()
+        }
+    return features
 
 
 def measure_domain(features, source_classes, target_classes, args, seed):
