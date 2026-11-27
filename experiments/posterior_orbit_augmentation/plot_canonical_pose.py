@@ -49,6 +49,8 @@ TRACK_METHODS = {"raw": "Uncorrected", "pose_point": "Absolute pose", "angle_sam
                  "paired_full": "Paired pose", "angle_shuffled": "Shuffled paired angle"}
 TRACK_TRAINING_METHODS = {"raw": "Uncorrected", "pose_point": "Synthetic pose loss",
                           "same_track": "Same track", "same_class": "Different tracks, same class"}
+TRACK_TEACHER_METHODS = {"raw": "Uncorrected", "pose_point": "Synthetic pose loss",
+                         "same_track": "Aligned teacher basis", "rotated_teacher": "Rotated teacher basis"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -81,6 +83,8 @@ def main():
     methods = METHODS
     if track_pooling:
         methods = TRACK_POOLING_METHODS
+    elif results["config"].get("track_teacher_basis", False):
+        methods = TRACK_TEACHER_METHODS
     elif results["config"].get("track_consistency", False):
         methods = TRACK_CONSISTENCY_METHODS
     elif results["config"].get("train_track_canonicalizer", False):
