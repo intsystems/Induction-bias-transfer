@@ -22,6 +22,7 @@ STEPS = (0., .25, .5, .75, 1.)
 POSTERIOR_STEPS = (0., .5, 1.)
 MIXED_LEVELS = (0., .5, 1.)
 ANGLE_GATE_MODELS = ("gate_fixed", "gate_adaptive", "gate_shuffled")
+TRACK_PAIR_BUDGETS = (2, 8, 32)
 
 
 def pose_warp(images, pose):
@@ -459,7 +460,7 @@ def calibrate_teacher_parity(teacher, basis, odd, source, partners, args):
 
 @torch.no_grad()
 def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed, *,
-                              source_paths=None, student=None):
+                              source_paths=None, student=None, source_labels=None):
     rng = np.random.default_rng(seed)
     names = ["head_same_track", "head_same_class", "head_rotated"]
     width = basis.shape[1]
@@ -478,6 +479,15 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
         student_residuals = [student_latent[eligible] - student_latent[partners[name].numpy()[eligible]]
                              for name in ("same_track", "same_class")]
         names.extend(("head_student_track", "head_student_class"))
+    budget_residuals = {}
+    if source_labels is not None:
+        labels = source_labels.numpy()[eligible]
+        sampling = np.random.default_rng(seed + 1000)
+        order = [sampling.permutation(np.flatnonzero(labels == label)) for label in np.unique(labels)]
+        for budget in TRACK_PAIR_BUDGETS:
+            subset = np.concatenate([index[:budget] for index in order])
+            budget_residuals[f"head_pairs_{budget}"] = residuals[1][subset]
+        names.extend(budget_residuals)
     priors = {name: np.zeros((2, width, width)) for name in names}
     for block, proportions in ((~odd, (1-MIXTURE[0], 1-MIXTURE[-1])), (odd, (MIXTURE[0], MIXTURE[-1]))):
         moments = []
@@ -492,7 +502,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             whole, first, second = [member[:, block].astype(np.float64) for member in centroids]
             cross = first.T @ second
             bases.extend(np.linalg.eigh(moment)[1] for moment in (whole.T @ whole, (cross + cross.T) / 2))
-        for residual in student_residuals:
+        for residual in (*student_residuals, *budget_residuals.values()):
             part = residual[:, block].astype(np.float64)
             bases.append(np.linalg.eigh(part.T @ part)[1])
         spectrum = 1 / (.25 + np.maximum(energies, 0) / max(float(energies.mean()), 1e-12))
@@ -1012,7 +1022,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
             models = {}
             head_kernels = natural_track_head_priors(
                 teacher, basis, odd, source, source_partners, args, seed + 250, source_paths=source_paths,
-                student=student if args.track_head_student else None)
+                student=student if args.track_head_student else None,
+                source_labels=labels if args.track_head_budget else None)
         elif source_partners is None:
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
@@ -1150,10 +1161,11 @@ def main():
     selection.add_argument("--track-head-between", action="store_true")
     selection.add_argument("--track-head-student", action="store_true")
     selection.add_argument("--track-head-evidence", action="store_true")
+    selection.add_argument("--track-head-budget", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_head_between or args.track_head_student or args.track_head_evidence:
+    if args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget:
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1169,7 +1181,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_evidence:
+        if args.track_head_budget:
+            name = "track_head_budget"
+        elif args.track_head_evidence:
             name = "track_head_evidence"
         elif args.track_head_student:
             name = "track_head_student"
@@ -1249,6 +1263,12 @@ def main():
         if not count:
             parser.error("training on tracks requires at least two source tracks with multiple selected frames")
         output["source_pair_count"] = count
+        if args.track_head_budget:
+            eligible = source_partners["same_track"].numpy() >= 0
+            counts = np.unique(data[0][1].numpy()[eligible], return_counts=True)[1]
+            output["source_budget_counts"] = {
+                str(budget): int(np.minimum(counts, budget).sum()) for budget in TRACK_PAIR_BUDGETS
+            }
     retained_paths = source_paths if args.track_head_between else None
     start = time.monotonic()
     for seed in args.seeds:
