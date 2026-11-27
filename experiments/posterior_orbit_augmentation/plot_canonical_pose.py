@@ -15,6 +15,9 @@ METHODS = {"raw": "Uncorrected", "oracle": "Known inverse", "pose_posterior": "P
            "hidden_shuffled": "Shuffled posterior"}
 POLICIES = {"raw": "Uncorrected", "pose_point": "Full correction", "source_fixed": "Source fixed",
             "pose_selector": "Pose selector", "teacher_selector": "Teacher selector", "oracle": "Known inverse"}
+POSTERIOR_POLICIES = {"raw": "Uncorrected", "pose_point": "Full correction", "point_margin": "Point margin",
+                      "conditional_consensus": "Conditional samples", "global_consensus": "Global-noise samples",
+                      "oracle": "Known inverse"}
 
 
 def main():
@@ -27,9 +30,11 @@ def main():
     levels = results["config"]["strengths"]
     shots = str(4 if 4 in results["config"]["shots"] else results["config"]["shots"][0])
     selective = results["config"].get("selective", False)
+    posterior = results["config"].get("posterior_selection", False)
+    methods = POSTERIOR_POLICIES if posterior else (POLICIES if selective else METHODS)
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
-        for key, label in (POLICIES if selective else METHODS).items():
+        for key, label in methods.items():
             accuracy = np.array([[100 * np.mean([
                 task[shots]["strengths"][str(level)][key]["reflected"]
                 for task in r["tasks"][family].values()]) for level in levels] for r in runs])
@@ -37,7 +42,16 @@ def main():
         ax.set_title("Reflection preserves the label" if family == "invariant" else "Reflection changes the label")
         ax.set_ylabel(f"Reflected balanced accuracy (%), {shots} labels/class")
     axes[0].legend(fontsize=8)
-    if selective:
+    if posterior:
+        for key in ("point_margin", "conditional_consensus", "global_consensus"):
+            steps = [[np.mean([task[shots]["strengths"][str(level)][key]["mean_step"]
+                               for task in r["tasks"]["antisymmetric"].values()])
+                      for level in levels] for r in runs]
+            axes[2].plot(levels, np.mean(steps, axis=0), marker="o", label=methods[key])
+        axes[2].set_title("Selected correction when reflection changes labels")
+        axes[2].set_ylabel("Mean correction fraction")
+        axes[2].set_ylim(0, 1)
+    elif selective:
         for key in ("pose_selector", "teacher_selector"):
             steps = [[r["policy_statistics"][str(level)][key]["mean_step"] for level in levels] for r in runs]
             axes[2].plot(levels, np.mean(steps, axis=0), marker="o", label=POLICIES[key])
