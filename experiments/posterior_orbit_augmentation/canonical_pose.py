@@ -18,6 +18,7 @@ SHIFT = .24
 STEPS = (0., .25, .5, .75, 1.)
 POSTERIOR_STEPS = (0., .5, 1.)
 MIXED_LEVELS = (0., .5, 1.)
+ANGLE_GATE_MODELS = ("gate_fixed", "gate_adaptive", "gate_shuffled")
 
 
 def pose_warp(images, pose):
@@ -52,6 +53,49 @@ def parameters(model, images):
 
 def normal_nll(center, log_std, target):
     return .5 * ((target - center) * (-log_std).exp()).square() + log_std
+
+
+def angle_gate_features(first, second):
+    first_center, first_log_std = first
+    second_center, second_log_std = second
+    angle = first_center[:, 0]
+    difference = second_center[:, 0] - angle
+    return torch.stack((angle.abs(), difference.abs(), first_log_std[:, 0], second_log_std[:, 0]), dim=1)
+
+
+@torch.inference_mode()
+def calibrate_angle_gate(probe, models, args, seed):
+    rng = torch.Generator(device=probe.device).manual_seed(seed)
+    levels = probe.new_tensor(MIXED_LEVELS)
+    samples = []
+    for batch in probe.split(args.batch_size):
+        clean = torch.cat((batch, batch.flip(-1)))
+        strength = levels[torch.randint(len(levels), (len(clean),), device=probe.device, generator=rng)]
+        pose = (2 * torch.rand(len(clean), 3, device=probe.device, generator=rng) - 1) * strength[:, None]
+        observed = pose_warp(clean, pose)
+        first, second = (parameters(models[name], observed) for name in ("pose", "angle_same"))
+        samples.append((angle_gate_features(first, second), second[0][:, 0] - first[0][:, 0],
+                        -pose[:, 0] - first[0][:, 0]))
+    features, delta, target = (torch.cat(chunks) for chunks in zip(*samples, strict=True))
+    mean = features.mean(0)
+    scale = features.std(0, unbiased=False).clamp_min(1e-6)
+    design = torch.cat((torch.ones_like(delta[:, None]), (features - mean) / scale), dim=1) * delta[:, None]
+    ridge = torch.diag(design.new_tensor((1e-6, .01, .01, .01, .01)))
+    coefficients = torch.linalg.solve(design.T @ design / len(design) + ridge,
+                                     design.T @ target / len(design))
+    fixed = ((delta @ target) / (delta @ delta).clamp_min(1e-8)).clamp(0, 1)
+    return mean, scale, coefficients, fixed
+
+
+def mix_angle_predictions(first, second, weight):
+    first_center, first_log_std = first
+    second_center, second_log_std = second
+    difference = second_center[:, 0] - first_center[:, 0]
+    angle = first_center[:, 0] + weight * difference
+    variance = ((1 - weight) * (2 * first_log_std[:, 0]).exp() + weight * (2 * second_log_std[:, 0]).exp()
+                + weight * (1 - weight) * difference.square())
+    return (torch.cat((angle[:, None], first_center[:, 1:]), dim=1),
+            torch.cat((variance.log()[:, None] / 2, first_log_std[:, 1:]), dim=1))
 
 
 def fit_canonicalizer(source, teacher, basis, odd, args, seed, hidden_weight):
@@ -267,7 +311,7 @@ def selective_embeddings(student, model, teacher, basis, odd, calibration, image
 
 
 @torch.inference_mode()
-def canonical_embeddings(student, models, images, args, device, seed):
+def canonical_embeddings(student, models, images, args, device, seed, *, angle_gate=None):
     rng = torch.Generator(device=device).manual_seed(seed)
     output = {}
     for label, samples in images.items():
@@ -290,8 +334,16 @@ def canonical_embeddings(student, models, images, args, device, seed):
                 repeated = observed.repeat(args.views, 1, 1, 1)
                 features = {"raw": student(observed), "oracle": student(pose_warp(observed, inverse))}
                 calibration = {}
-                for key, model in models.items():
-                    location, log_std = parameters(model, observed)
+                predictions = {key: parameters(model, observed) for key, model in models.items()}
+                if angle_gate is not None:
+                    first, second = predictions["pose"], predictions["angle_same"]
+                    mean, scale, coefficients, fixed = angle_gate
+                    weight = (coefficients[0] + ((angle_gate_features(first, second) - mean) / scale)
+                              @ coefficients[1:]).clamp(0, 1)
+                    predictions["angle_same"] = mix_angle_predictions(first, second, torch.ones_like(weight))
+                    for name, amount in zip(ANGLE_GATE_MODELS, (fixed, weight, weight[perm]), strict=True):
+                        predictions[name] = mix_angle_predictions(first, second, amount)
+                for key, (location, log_std) in predictions.items():
                     sampled = (location + log_std.exp() * noise).clamp(-2, 2)
                     features[key + "_point"] = student(pose_warp(observed, location.clamp(-2, 2)))
                     generated = student(pose_warp(repeated, sampled.flatten(0, 1)))
@@ -310,7 +362,7 @@ def canonical_embeddings(student, models, images, args, device, seed):
             strength: ({k: np.concatenate([f[k] for f, _ in chunks], axis=1) for k in chunks[0][0]},
                        {k: {m: np.average([c[k][m] for _, c in chunks], axis=0,
                                           weights=[f["raw"].shape[1] for f, _ in chunks]).tolist()
-                            for m in ("mse", "nll")} for k in models})
+                            for m in ("mse", "nll")} for k in chunks[0][1]})
             for strength, chunks in per_strength.items()
         }
     return output
@@ -655,11 +707,12 @@ def run(data, args, device, seed):
     source = source.to(device, dtype=torch.float32) / 255
     probe = probe.to(device, dtype=torch.float32) / 255
     teacher = fit_teacher(source, labels.to(device), args, seed)
-    basis_probe = probe[::2] if args.selective or args.posterior_selection or args.pose_refinement else probe
+    basis_probe = (probe[::2] if args.selective or args.posterior_selection or args.pose_refinement or args.angle_gate
+                   else probe)
     mean, basis, energies = discover_basis(teacher, basis_probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     odd = energies > .5
-    if not (args.identity_mixture or args.relative_pose or args.paired_angle_bias):
+    if not (args.identity_mixture or args.relative_pose or args.paired_angle_bias or args.angle_gate):
         pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
     if args.pose_refinement:
@@ -691,7 +744,12 @@ def run(data, args, device, seed):
             student, pose_model, teacher, basis, odd, selection, test, args, device, seed + 300)
         diagnostics = {"source_fixed_step": STEPS[selection[0]], "policy_statistics": policy_stats}
     else:
-        if args.paired_angle_bias:
+        angle_gate = None
+        if args.angle_gate:
+            models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
+                      for name, pairing in (("pose", "absolute"), ("angle_same", "same"))}
+            angle_gate = calibrate_angle_gate(probe[1::2], models, args, seed + 250)
+        elif args.paired_angle_bias:
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose", "absolute"), ("angle_same", "same"),
                                             ("angle_shuffled", "shuffled"), ("angle_point", "point"))}
@@ -701,11 +759,14 @@ def run(data, args, device, seed):
         else:
             models = {"pose": pose_model, "hidden": fit_canonicalizer(
                 source, teacher, basis, odd, args, seed + 200, args.hidden_weight)}
-        query = canonical_embeddings(student, models, test, args, device, seed + 300)
+        query = canonical_embeddings(student, models, test, args, device, seed + 300, angle_gate=angle_gate)
+        pose_methods = (*models, *ANGLE_GATE_MODELS) if angle_gate is not None else models
         diagnostics = {"pose_calibration": {strength: {
             method: {measure: np.mean([v[strength][1][method][measure] for v in query.values()], axis=0).tolist()
                      for measure in ("mse", "nll")}
-            for method in models} for strength in map(str, args.strengths)}}
+            for method in pose_methods} for strength in map(str, args.strengths)}}
+        if angle_gate is not None:
+            diagnostics["fixed_angle_weight"] = angle_gate[-1].item()
     rng = np.random.default_rng(seed)
     kernels = prior_kernels(energies.cpu().numpy(), rng)
     tasks = {family: {"-".join(map(str, pair)): evaluate_task(
@@ -743,11 +804,14 @@ def main():
     selection.add_argument("--train-residual", action="store_true")
     selection.add_argument("--relative-pose", action="store_true")
     selection.add_argument("--paired-angle-bias", action="store_true")
+    selection.add_argument("--angle-gate", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if args.output is None:
-        if args.paired_angle_bias:
+        if args.angle_gate:
+            name = "angle_gate"
+        elif args.paired_angle_bias:
             name = "paired_angle_bias"
         elif args.relative_pose:
             name = "relative_pose"

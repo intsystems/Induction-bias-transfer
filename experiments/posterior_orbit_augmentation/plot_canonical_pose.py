@@ -39,6 +39,12 @@ ANGLE_MODELS = {"pose": "Absolute loss", "angle_same": "Same-image mean error",
                 "angle_shuffled": "Cross-image mean error", "angle_point": "Individual squared errors"}
 ANGLE_METHODS = {"raw": "Uncorrected", **{name + "_point": label for name, label in ANGLE_MODELS.items()},
                  "oracle": "Known inverse"}
+ANGLE_GATE_MODELS = {"pose": "Absolute angle", "angle_same": "Paired angle",
+                     "gate_fixed": "Fixed mixture", "gate_adaptive": "Adaptive mixture",
+                     "gate_shuffled": "Shuffled mixture weights"}
+ANGLE_GATE_METHODS = {"raw": "Uncorrected",
+                      **{name + "_point": label for name, label in ANGLE_GATE_MODELS.items()},
+                      "oracle": "Known inverse"}
 
 
 def main():
@@ -58,8 +64,11 @@ def main():
     trained_residual = results["config"].get("train_residual", False)
     relative_pose = results["config"].get("relative_pose", False)
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
+    angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if paired_angle_bias:
+    if angle_gate:
+        methods = ANGLE_GATE_METHODS
+    elif paired_angle_bias:
         methods = ANGLE_METHODS
     elif relative_pose:
         methods = RELATIVE_METHODS
@@ -125,7 +134,9 @@ def main():
         axes[2].set_ylim(0, 1)
     else:
         pose_models = {"pose": "Pose-only training", "hidden": "Teacher loss"}
-        if paired_angle_bias:
+        if angle_gate:
+            pose_models = ANGLE_GATE_MODELS
+        elif paired_angle_bias:
             pose_models = ANGLE_MODELS
         elif relative_pose:
             pose_models = RELATIVE_MODELS
