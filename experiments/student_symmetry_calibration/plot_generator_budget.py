@@ -65,6 +65,28 @@ def plot_teacher_views(rows, shots):
     return fig
 
 
+def plot_target_pairs(rows, shots):
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
+    n = 20 if 20 in shots else shots[0]
+    counts = sorted({0, 1, min(5, n), n})
+    priors = {"isotropic": "Isotropic", "split_balanced": "Separate source budgets",
+              "composition_mean_moment": "Source path moments"}
+    for ax, metric in zip(axes, ("composition", "all_views"), strict=True):
+        for (prior, label), color in zip(priors.items(), ("tab:gray", "tab:blue", "tab:orange"), strict=True):
+            for rule, style in (("augment", "-"), ("constraint", "--")):
+                keys = [prior if count == 0 else f"{prior}_{rule}_{count}" for count in counts]
+                values = [100 * np.mean([ep[key][metric] for r in rows for ep in r["shots"][str(n)]])
+                          for key in keys]
+                ax.plot(counts, values, marker="o", linestyle=style, color=color, label=f"{label} · {rule}")
+        ax.set_title("Clean and composed transform" if metric == "composition" else "All eight views")
+        ax.set_xlabel("Target composition pairs per class")
+        ax.set_ylabel(f"Correct on every indicated view (%), {n} labels/class")
+        ax.set_xticks(counts)
+        ax.grid(alpha=.2)
+    axes[0].legend(fontsize=7)
+    return fig
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=RESULTS / "metrics.json")
@@ -76,6 +98,11 @@ def main():
     shots = data["config"]["shots"]
     if data["config"].get("compare_teacher_views", False):
         fig = plot_teacher_views(rows, shots)
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(args.output, dpi=170)
+        return
+    if data["config"].get("target_pairs", False):
+        fig = plot_target_pairs(rows, shots)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(args.output, dpi=170)
         return

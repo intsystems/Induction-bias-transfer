@@ -18,6 +18,7 @@ REFLECTION = (1, 0, 3, 2, 5, 4, 7, 6)
 COMPOSITION = tuple(REFLECTION[i] for i in ROTATION)
 TEST_VIEWS = {"reflection": 1, "rotation": 2, "composition": 3, "half_turn": 4}
 ORBIT_ORDERS = {"horizontal": tuple(range(8)), "vertical": (0, 5, 2, 7, 4, 1, 6, 3)}
+TARGET_PAIR_PRIORS = ("isotropic", "split_balanced", "composition_mean_moment")
 
 
 def vertical_reflect(x):
@@ -204,19 +205,44 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
 def measure_orbit_prior(student, probe, support, test_views, target, args, seed, device, *, both_axes=False):
     source_views = embed_orbit(student, probe, device, args.batch_size)
     center = source_views.mean(axis=(0, 1))
-    supports = {k: embed_orbit(student, v, device, args.batch_size)[0] - center for k, v in support.items()}
+    support_views = {k: embed_orbit(student, v, device, args.batch_size) for k, v in support.items()}
+    supports = {k: v[0] - center for k, v in support_views.items()}
     queries = np.concatenate([embed_orbit(student, test_views[k], device, args.batch_size)
                               for k in target], axis=1) - center
     truth = np.repeat(np.arange(len(target)), args.test_per_class)
     source_views -= center
-    if both_axes:
-        return {axis: evaluate_orbit(source_views[list(order)], supports, queries[list(order)], truth,
-                                     target, args, seed)
-                for axis, order in ORBIT_ORDERS.items()}
-    return evaluate_orbit(source_views, supports, queries, truth, target, args, seed)
+    evaluations = {}
+    for axis, order in ORBIT_ORDERS.items():
+        if axis == "vertical" and not both_axes:
+            continue
+        paired = None
+        if args.target_pairs:
+            paired = {k: v[order[TEST_VIEWS["composition"]]] - center for k, v in support_views.items()}
+        order = list(order)
+        evaluations[axis] = evaluate_orbit(source_views[order], supports, queries[order], truth,
+                                           target, args, seed, paired=paired)
+    return evaluations if both_axes else evaluations["horizontal"]
 
 
-def evaluate_orbit(source_views, supports, queries, truth, target, args, seed):
+def target_pair_designs(inputs, labels, counterparts, paired_mask):
+    original, transformed = inputs[paired_mask], counterparts[paired_mask]
+    augmented = np.concatenate([inputs, transformed]), np.concatenate([labels, labels[paired_mask]])
+    # The averaged feature retains one labeled observation per original example.
+    means = inputs.copy()
+    means[paired_mask] = (original + transformed) / 2
+    # Keep the same difference precision as independent augmentation.
+    differences = (original - transformed) / np.sqrt(2)
+    constrained = np.concatenate([means, differences]), np.concatenate([labels, np.zeros_like(labels[paired_mask])])
+    return {"augment": augmented, "constraint": constrained}
+
+
+def orbit_accuracy(prior, inputs, labels, queries, truth, noise):
+    correct = predict(prior, inputs, labels, queries, noise).argmax(axis=-1) == truth
+    return {"clean": float(correct[0].mean()), "all_views": float(correct.all(axis=0).mean()),
+            **{view: float((correct[0] & correct[index]).mean()) for view, index in TEST_VIEWS.items()}}
+
+
+def evaluate_orbit(source_views, supports, queries, truth, target, args, seed, *, paired=None):
     priors, diagnostics = source_priors(source_views, args.budget, seed,
                                        args.generator_controls, args.operator_composition, args.path_composition)
     if args.compare_teacher_views:
@@ -230,12 +256,17 @@ def evaluate_orbit(source_views, supports, queries, truth, target, args, seed):
         for n in args.shots:
             inputs = np.concatenate([supports[k][chosen[k][:n]] for k in target])
             labels = np.repeat(np.eye(len(target)), n, axis=0) - 1 / len(target)
-            methods = {}
-            for key, prior in priors.items():
-                correct = predict(prior, inputs, labels, queries, args.noise).argmax(axis=-1) == truth
-                methods[key] = {"clean": float(correct[0].mean()), "all_views": float(correct.all(axis=0).mean()),
-                                **{view: float((correct[0] & correct[index]).mean())
-                                   for view, index in TEST_VIEWS.items()}}
+            methods = {key: orbit_accuracy(prior, inputs, labels, queries, truth, args.noise)
+                       for key, prior in priors.items()}
+            if paired is not None:
+                counterparts = np.concatenate([paired[k][chosen[k][:n]] for k in target])
+                for count in sorted({1, min(5, n), n}):
+                    mask = np.tile(np.arange(n) < count, len(target))
+                    for rule, (x_pair, y_pair) in target_pair_designs(inputs, labels, counterparts, mask).items():
+                        for key in TARGET_PAIR_PRIORS:
+                            methods[f"{key}_{rule}_{count}"] = orbit_accuracy(
+                                priors[key], x_pair, y_pair, queries, truth, args.noise
+                            )
             rows[str(n)].append(methods)
     return {"latent_width": source_views.shape[-1], "diagnostics": diagnostics, "shots": rows}
 
@@ -332,6 +363,8 @@ def main():
                         help="infer composition moments from disjoint generator pairs")
     parser.add_argument("--path-composition", action="store_true",
                         help="compare two equivalent paths estimated from disjoint generator pairs")
+    parser.add_argument("--target-pairs", action="store_true",
+                        help="measure the value of direct composition pairs in labeled target support")
     teacher_comparison = parser.add_mutually_exclusive_group()
     teacher_comparison.add_argument("--compare-teacher-training", action="store_true",
                                     help="compare trained and initialized teachers with matched parity ranks")
@@ -345,6 +378,8 @@ def main():
         parser.error("operator composition needs at least two probe examples per source class")
     if args.compare_teacher_views and not args.path_composition:
         parser.error("teacher view comparison needs --path-composition")
+    if args.target_pairs and not args.path_composition:
+        parser.error("target pair comparison needs --path-composition")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train, test = (CIFAR10(args.data, train=flag, download=True) for flag in (True, False))
