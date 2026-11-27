@@ -18,6 +18,9 @@ POLICIES = {"raw": "Uncorrected", "pose_point": "Full correction", "source_fixed
 POSTERIOR_POLICIES = {"raw": "Uncorrected", "pose_point": "Full correction", "point_margin": "Point margin",
                       "conditional_consensus": "Conditional samples", "global_consensus": "Global-noise samples",
                       "oracle": "Known inverse"}
+SYMMETRIC_METHODS = {"raw": "Uncorrected", "pose_point": "Single prediction", "reflected_point": "Reflected prediction",
+                     "symmetric_point": "Reflection-symmetric mean", "independent_point": "Independent-model mean",
+                     "symmetric_posterior": "Reflection-symmetric posterior", "oracle": "Known inverse"}
 
 
 def main():
@@ -31,7 +34,14 @@ def main():
     shots = str(4 if 4 in results["config"]["shots"] else results["config"]["shots"][0])
     selective = results["config"].get("selective", False)
     posterior = results["config"].get("posterior_selection", False)
-    methods = POSTERIOR_POLICIES if posterior else (POLICIES if selective else METHODS)
+    symmetric = results["config"].get("symmetrize_pose", False)
+    methods = METHODS
+    if symmetric:
+        methods = SYMMETRIC_METHODS
+    elif posterior:
+        methods = POSTERIOR_POLICIES
+    elif selective:
+        methods = POLICIES
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
         for key, label in methods.items():
@@ -42,7 +52,14 @@ def main():
         ax.set_title("Reflection preserves the label" if family == "invariant" else "Reflection changes the label")
         ax.set_ylabel(f"Reflected balanced accuracy (%), {shots} labels/class")
     axes[0].legend(fontsize=8)
-    if posterior:
+    if symmetric:
+        for key in ("pose_point", "reflected_point", "symmetric_point", "symmetric_precision", "independent_point"):
+            mse = [[r["symmetric_pose_mse"][str(level)][key][0] for level in levels] for r in runs]
+            axes[2].plot(levels, np.sqrt(np.mean(mse, axis=0)) * 32, marker="o",
+                         label=methods.get(key, "Precision-weighted symmetry"))
+        axes[2].set_title("Inverse rotation")
+        axes[2].set_ylabel("Angle RMSE (degrees)")
+    elif posterior:
         for key in ("point_margin", "conditional_consensus", "global_consensus"):
             steps = [[np.mean([task[shots]["strengths"][str(level)][key]["mean_step"]
                                for task in r["tasks"]["antisymmetric"].values()])

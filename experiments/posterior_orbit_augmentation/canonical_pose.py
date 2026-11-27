@@ -32,6 +32,10 @@ def inverse_pose(pose):
     return torch.stack((-angle, -cosine * dx - sine * dy, sine * dx - cosine * dy), dim=-1)
 
 
+def reflect_pose(pose):
+    return pose * pose.new_tensor((-1, -1, 1))
+
+
 def parameters(model, images):
     center, log_std = model.network(images).chunk(2, dim=-1)
     return center, log_std.clamp(-3.5, .6)
@@ -234,6 +238,64 @@ def global_pose_scale(probe, model, args, seed):
 
 
 @torch.inference_mode()
+def symmetric_pose_embeddings(student, model, second_model, images, args, device, seed):
+    rng = torch.Generator(device=device).manual_seed(seed)
+    sampling = torch.Generator(device=device).manual_seed(seed + 1000)
+    output, errors = {}, {str(s): [] for s in args.strengths}
+    for label, samples in images.items():
+        order = torch.randperm(len(samples), generator=rng, device=device)[:args.test_per_class]
+        chunks = {str(s): [] for s in args.strengths}
+        class_errors = {str(s): [] for s in args.strengths}
+        for batch in samples[order.cpu()].split(args.batch_size):
+            batch = batch.to(device, dtype=torch.float32) / 255
+            clean = torch.cat((batch, batch.flip(-1)))
+            unit_pose = 2 * torch.rand(len(clean), 3, device=device, generator=rng) - 1
+            noise = torch.randn(args.views // 2, len(clean), 3, device=device, generator=sampling)
+            noise = torch.cat((noise, -noise))
+            for strength in args.strengths:
+                key = str(strength)
+                pose = strength * unit_pose
+                inverse = inverse_pose(pose)
+                observed = pose_warp(clean, pose)
+                center, log_std = parameters(model, observed)
+                reflected, reflected_log_std = parameters(model, observed.flip(-1))
+                partner = reflect_pose(reflected)
+                independent, _ = parameters(second_model, observed)
+                delta = center - partner
+                symmetric = (center + partner) / 2
+                weight = (2 * (reflected_log_std - log_std)).sigmoid()
+                precision = weight * center + (1 - weight) * partner
+                mixture_variance = ((2 * log_std).exp() + (2 * reflected_log_std).exp()) / 2 + delta.square() / 4
+                mixture_scale = mixture_variance.sqrt()
+                centers = {"pose_point": center, "reflected_point": partner, "symmetric_point": symmetric,
+                           "symmetric_precision": precision, "independent_point": (center + independent) / 2}
+                features = {"raw": student(observed), "oracle": student(pose_warp(observed, inverse))}
+                for name, location in centers.items():
+                    features[name] = student(pose_warp(observed, location.clamp(-2, 2)))
+                repeated = observed.repeat(args.views, 1, 1, 1)
+                for name, location, scale in (("pose_posterior", center, log_std.exp()),
+                                              ("symmetric_posterior", symmetric, mixture_scale)):
+                    samples_pose = (location + noise * scale).clamp(-2, 2)
+                    sampled = student(pose_warp(repeated, samples_pose.flatten(0, 1)))
+                    features[name] = sampled.reshape(args.views, len(clean), -1).mean(0)
+                chunks[key].append({name: value.reshape(2, len(batch), -1).cpu().numpy()
+                                    for name, value in features.items()})
+                class_errors[key].append((len(batch), {
+                    name: (location.clamp(-2, 2) - inverse).square().mean(0).cpu().numpy()
+                    for name, location in centers.items()
+                }))
+        output[label] = {s: ({name: np.concatenate([c[name] for c in values], axis=1)
+                              for name in values[0]}, None) for s, values in chunks.items()}
+        for strength, values in class_errors.items():
+            errors[strength].append({
+                name: np.average([scores[name] for _, scores in values], axis=0, weights=[n for n, _ in values])
+                for name in values[0][1]
+            })
+    return output, {strength: {name: np.mean([value[name] for value in values], axis=0).tolist()
+                               for name in values[0]} for strength, values in errors.items()}
+
+
+@torch.inference_mode()
 def posterior_selection_embeddings(student, model, global_scale, images, args, device, seed):
     rng = torch.Generator(device=device).manual_seed(seed)
     sampling = torch.Generator(device=device).manual_seed(seed + 1000)
@@ -350,7 +412,11 @@ def run(data, args, device, seed):
     odd = energies > .5
     pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
-    if args.posterior_selection:
+    if args.symmetrize_pose:
+        second_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 1200, 0.)
+        query, errors = symmetric_pose_embeddings(student, pose_model, second_model, test, args, device, seed + 300)
+        diagnostics = {"symmetric_pose_mse": errors}
+    elif args.posterior_selection:
         global_scale = global_pose_scale(probe[1::2], pose_model, args, seed + 250)
         query = posterior_selection_embeddings(student, pose_model, global_scale, test, args, device, seed + 300)
         diagnostics = {"global_pose_scale": global_scale.cpu().tolist()}
@@ -398,10 +464,13 @@ def main():
     selection = parser.add_mutually_exclusive_group()
     selection.add_argument("--selective", action="store_true")
     selection.add_argument("--posterior-selection", action="store_true")
+    selection.add_argument("--symmetrize-pose", action="store_true")
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if args.output is None:
-        if args.posterior_selection:
+        if args.symmetrize_pose:
+            name = "symmetric_pose"
+        elif args.posterior_selection:
             name = "posterior_selection"
         else:
             name = "selective_pose" if args.selective else "canonical_pose"
