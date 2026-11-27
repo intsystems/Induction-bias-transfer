@@ -151,7 +151,7 @@ def plot_source_domains(data):
         if data["config"].get("match_source_ranks"):
             key = ("cifar", "traffic")[col]
             runs = [r["rank_matched"][key] for r in data["runs"]]
-            axes[0, col].set_title(f"Rank-matched teacher · {domain}")
+            axes[0, col].set_title(f"Source {domain} · matched student width")
         else:
             runs = [r if col == 0 else r["traffic_source_result"] for r in data["runs"]]
             axes[0, col].set_title(f"Source teacher · {domain}")
