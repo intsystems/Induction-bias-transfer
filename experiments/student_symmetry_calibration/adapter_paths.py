@@ -52,6 +52,22 @@ def hybrid_precisions(path, split, seed):
             "hybrid_rotated": rotation @ halfway @ rotation.T}
 
 
+def spectral_block_precisions(path, split, seed):
+    _, axes = np.linalg.eigh(path)
+    rng = np.random.default_rng(seed + 5100)
+    result = {"global_quarter_split": .75 * path + .25 * split}
+    low, high = np.array_split(axes, 2, axis=1)
+    for name, block in (("low", low), ("high", high)):
+        original = block.T @ path @ block
+        separate = block.T @ split @ block
+        separate *= np.trace(original) / np.trace(separate)
+        rotation, _ = np.linalg.qr(rng.normal(size=separate.shape))
+        for key, candidate in ((name, separate), (name + "_rotated", rotation @ separate @ rotation.T)):
+            updated = path + .5 * block @ (candidate - original) @ block.T
+            result["block_" + key] = (updated + updated.T) / 2
+    return result
+
+
 def teacher_row_precisions(views, seed):
     centered = views - views.mean(axis=(0, 1))
     moments, _, _ = composition_moments(centered, path_composition=True)
@@ -160,6 +176,17 @@ def run(train, test, args, seed, device, traffic_paths=None):
             key: torch.as_tensor(value, device=device, dtype=weights.dtype)
             for key, value in hybrid_precisions(priors["path"], priors["split"], seed).items()
         })
+    if args.spectral_blocks:
+        block_precisions = spectral_block_precisions(priors["path"], priors["split"], seed)
+        extra_precisions.update({
+            key: torch.as_tensor(value, device=device, dtype=weights.dtype)
+            for key, value in block_precisions.items()
+        })
+        path_norm = np.linalg.norm(priors["path"])
+        diagnostics["spectral_block_relative_changes"] = {
+            key: float(np.linalg.norm(value - priors["path"]) / path_norm)
+            for key, value in block_precisions.items()
+        }
     if args.teacher_row_prior or args.intertwining_prior:
         teacher_views = embed_orbit(lambda batch: (teacher.encode(batch) - mean) @ basis,
                                     probe[1::2], device, args.batch_size)
@@ -236,6 +263,8 @@ def main():
                         help="compare GTSRB and auxiliary CIFAR priors on the same GTSRB student")
     parser.add_argument("--hybrid-prior", action="store_true",
                         help="test mixtures of path and separate-generator precision")
+    parser.add_argument("--spectral-blocks", action="store_true",
+                        help="mix separate-generator precision into one path eigenspace at a time")
     parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--output", type=Path, default=HERE / "results/adapter_paths/metrics.json")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
@@ -263,7 +292,8 @@ def main():
     args = parser.parse_args()
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
-    if args.teacher_row_prior or args.intertwining_prior or args.compare_probe_domain or args.hybrid_prior:
+    if (args.teacher_row_prior or args.intertwining_prior or args.compare_probe_domain
+            or args.hybrid_prior or args.spectral_blocks):
         args.match_update_rms = True
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:
         parser.error("need at least two probe examples per class, a variance budget in (0, 1), and a nonnegative penalty")

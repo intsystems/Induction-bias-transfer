@@ -29,6 +29,10 @@ HYBRID_METHODS = {"split_matched": "Separate generators", "hybrid_quarter_matche
                   "hybrid_half_matched": "50% path precision", "hybrid_three_quarters_matched": "75% path precision",
                   "path_matched": "Path prior", "hybrid_covariance_matched": "Covariance mixture",
                   "hybrid_rotated_matched": "Rotated 50% mixture"}
+SPECTRAL_METHODS = {"path_matched": "Path prior", "global_quarter_split_matched": "25% separate precision",
+                    "block_high_matched": "High-precision block", "block_high_rotated_matched": "High block · rotated",
+                    "block_low_matched": "Low-precision block", "block_low_rotated_matched": "Low block · rotated",
+                    "split_matched": "Separate generators"}
 
 
 def main():
@@ -47,6 +51,8 @@ def main():
         methods = PROBE_METHODS
     if data["config"].get("hybrid_prior", False):
         methods = HYBRID_METHODS
+    if data["config"].get("spectral_blocks", False):
+        methods = SPECTRAL_METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     if source := data["config"].get("source_domain"):
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]
