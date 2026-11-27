@@ -4,6 +4,7 @@ import argparse
 import json
 import math
 import time
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -290,8 +291,37 @@ def global_pose_scale(probe, model, args, seed):
 
 def pose_passes(model, observed):
     first = parameters(model, observed)[0].clamp(-2, 2)
-    residual = parameters(model, pose_warp(observed, first))[0].clamp(-2, 2)
-    return first, residual
+    intermediate = pose_warp(observed, first)
+    residual = parameters(model, intermediate)[0].clamp(-2, 2)
+    return first, intermediate, residual
+
+
+def fit_residual_stage(source, first_model, args, seed, *, residual_training):
+    model = deepcopy(first_model).train()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=.003)
+    ordering = torch.Generator().manual_seed(seed)
+    rng = torch.Generator(device=source.device).manual_seed(seed + 100)
+    levels = source.new_tensor(MIXED_LEVELS)
+    for _ in range(args.refiner_epochs):
+        for indices in batches(len(source), args.batch_size, ordering):
+            with torch.no_grad():
+                clean = source[indices]
+                reflected = torch.rand(len(clean), device=clean.device, generator=rng) < .5
+                clean = torch.where(reflected[:, None, None, None], clean.flip(-1), clean)
+                amplitude = levels[torch.randint(len(levels), (len(clean),), device=source.device, generator=rng)]
+                pose = (2 * torch.rand(len(clean), 3, device=source.device, generator=rng) - 1) * amplitude[:, None]
+                observed = pose_warp(clean, pose)
+                target = inverse_pose(pose)
+                if residual_training:
+                    first = parameters(first_model, observed)[0].clamp(-2, 2)
+                    observed = pose_warp(observed, first)
+                    target = compose_pose(inverse_pose(first), target)
+            location, log_std = parameters(model, observed)
+            loss = normal_nll(location, log_std, target).mean()
+            optimizer.zero_grad(set_to_none=True)
+            loss.backward()
+            optimizer.step()
+    return model.eval()
 
 
 @torch.inference_mode()
@@ -303,7 +333,7 @@ def fit_pose_refinement(probe, model, args, seed):
         samples = torch.cat((batch, batch.flip(-1)))
         scale = levels[torch.randint(len(levels), (len(samples),), device=probe.device, generator=rng)]
         pose = (2 * torch.rand(len(samples), 3, device=probe.device, generator=rng) - 1) * scale[:, None]
-        first, residual = pose_passes(model, pose_warp(samples, pose))
+        first, _, residual = pose_passes(model, pose_warp(samples, pose))
         points.append(first)
         passes.append(torch.cat((first, residual), dim=1))
         targets.append(compose_pose(inverse_pose(first), inverse_pose(pose)))
@@ -312,7 +342,7 @@ def fit_pose_refinement(probe, model, args, seed):
 
 
 @torch.inference_mode()
-def refinement_embeddings(student, model, calibration, images, args, device, seed):
+def refinement_embeddings(student, model, images, args, device, seed, *, calibration=None, stages=None):
     rng = torch.Generator(device=device).manual_seed(seed)
     output, errors = {}, {str(s): [] for s in args.strengths}
     for label, samples in images.items():
@@ -328,14 +358,20 @@ def refinement_embeddings(student, model, calibration, images, args, device, see
                 pose = strength * unit_pose
                 inverse = inverse_pose(pose)
                 observed = pose_warp(clean, pose)
-                first, residual = pose_passes(model, observed)
-                first_adjustment = calibrated_prediction(calibration[0], first.double()).to(first.dtype)
-                both = torch.cat((first, residual), dim=1).double()
-                both_adjustment = calibrated_prediction(calibration[1], both).to(first.dtype)
+                first, intermediate, residual = pose_passes(model, observed)
                 centers = {"pose_point": first, "iterative": compose_pose(first, residual),
-                           "damped": compose_pose(first, residual / 2),
-                           "calibrated_first": compose_pose(first, first_adjustment),
-                           "calibrated_refinement": compose_pose(first, both_adjustment)}
+                           "damped": compose_pose(first, residual / 2)}
+                if calibration is not None:
+                    first_adjustment = calibrated_prediction(calibration[0], first.double()).to(first.dtype)
+                    both = torch.cat((first, residual), dim=1).double()
+                    both_adjustment = calibrated_prediction(calibration[1], both).to(first.dtype)
+                    centers["calibrated_first"] = compose_pose(first, first_adjustment)
+                    centers["calibrated_refinement"] = compose_pose(first, both_adjustment)
+                if stages is not None:
+                    for name, stage in stages.items():
+                        estimate = parameters(stage, intermediate)[0].clamp(-2, 2)
+                        centers[name] = compose_pose(first, estimate)
+                    centers["continued_point"] = parameters(stages["continued_two"], observed)[0]
                 features = {"raw": student(observed), "oracle": student(pose_warp(observed, inverse))}
                 for name, location in centers.items():
                     features[name] = student(pose_warp(observed, location.clamp(-2, 2)))
@@ -587,7 +623,13 @@ def run(data, args, device, seed):
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
     if args.pose_refinement:
         calibration = fit_pose_refinement(probe[1::2], pose_model, args, seed + 250)
-        query, errors = refinement_embeddings(student, pose_model, calibration, test, args, device, seed + 300)
+        query, errors = refinement_embeddings(student, pose_model, test, args, device, seed + 300,
+                                              calibration=calibration)
+        diagnostics = {"refinement_pose_mse": errors}
+    elif args.train_residual:
+        stages = {name: fit_residual_stage(source, pose_model, args, seed + 250, residual_training=target)
+                  for name, target in (("continued_two", False), ("residual_trained", True))}
+        query, errors = refinement_embeddings(student, pose_model, test, args, device, seed + 300, stages=stages)
         diagnostics = {"refinement_pose_mse": errors}
     elif args.identity_mixture:
         gaussian = fit_mixture_canonicalizer(source, args, seed + 200, hurdle=False)
@@ -649,10 +691,14 @@ def main():
     selection.add_argument("--symmetrize-pose", action="store_true")
     selection.add_argument("--identity-mixture", action="store_true")
     selection.add_argument("--pose-refinement", action="store_true")
+    selection.add_argument("--train-residual", action="store_true")
+    parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if args.output is None:
-        if args.pose_refinement:
+        if args.train_residual:
+            name = "trained_residual_pose"
+        elif args.pose_refinement:
             name = "pose_refinement"
         elif args.identity_mixture:
             name = "identity_mixture"
@@ -669,6 +715,8 @@ def main():
         parser.error("strengths must be finite and nonnegative")
     if not math.isfinite(args.selector_ridge) or args.selector_ridge <= 0:
         parser.error("selector ridge must be finite and positive")
+    if args.refiner_epochs < 1:
+        parser.error("refiner epochs must be positive")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     data = preprocess(GTSRB(args.data, split="train", download=True),

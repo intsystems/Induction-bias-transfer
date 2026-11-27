@@ -27,6 +27,9 @@ IDENTITY_METHODS = {"raw": "Uncorrected", "gaussian_point": "Gaussian point", "s
 REFINEMENT_METHODS = {"raw": "Uncorrected", "pose_point": "One pass", "iterative": "Two passes",
                       "damped": "Damped second pass", "calibrated_first": "Calibrated first pass",
                       "calibrated_refinement": "Calibrated refinement", "oracle": "Known inverse"}
+RESIDUAL_METHODS = {"raw": "Uncorrected", "pose_point": "One pass", "damped": "Damped second pass",
+                    "continued_point": "Extra training · one pass", "continued_two": "Extra training · two passes",
+                    "residual_trained": "Trained residual", "oracle": "Known inverse"}
 
 
 def main():
@@ -43,8 +46,11 @@ def main():
     symmetric = results["config"].get("symmetrize_pose", False)
     identity = results["config"].get("identity_mixture", False)
     refinement = results["config"].get("pose_refinement", False)
+    trained_residual = results["config"].get("train_residual", False)
     methods = METHODS
-    if refinement:
+    if trained_residual:
+        methods = RESIDUAL_METHODS
+    elif refinement:
         methods = REFINEMENT_METHODS
     elif identity:
         methods = IDENTITY_METHODS
@@ -64,8 +70,10 @@ def main():
         ax.set_title("Reflection preserves the label" if family == "invariant" else "Reflection changes the label")
         ax.set_ylabel(f"Reflected balanced accuracy (%), {shots} labels/class")
     axes[0].legend(fontsize=8)
-    if refinement:
-        for key in ("pose_point", "iterative", "damped", "calibrated_first", "calibrated_refinement"):
+    if refinement or trained_residual:
+        for key in methods:
+            if key in {"raw", "oracle"}:
+                continue
             mse = [[r["refinement_pose_mse"][str(level)][key][0] for level in levels] for r in runs]
             axes[2].plot(levels, np.sqrt(np.mean(mse, axis=0)) * 32, marker="o", label=methods[key])
         axes[2].set_title("Inverse rotation")
