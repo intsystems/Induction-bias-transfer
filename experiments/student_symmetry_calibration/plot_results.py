@@ -113,7 +113,7 @@ def plot_pair_counts(data):
     chosen = f"natural_budget_{budget:g}"
     rotated = f"natural_budget_rotated_{budget:g}"
     fig, axes = plt.subplots(1, 2, figsize=(10.9, 4.2), layout="constrained")
-    for ax, name, label in zip(axes, [
+    for ax, (name, label) in zip(axes, [
         ("matched_view_accuracy", "Both views correct"),
         ("clean_accuracy", "Clean accuracy"),
     ], strict=True):
