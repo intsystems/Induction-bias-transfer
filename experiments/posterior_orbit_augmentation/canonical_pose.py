@@ -6,6 +6,7 @@ import math
 import time
 from collections import defaultdict
 from copy import deepcopy
+from itertools import combinations
 from pathlib import Path
 
 import numpy as np
@@ -478,6 +479,53 @@ def select_track_corrections(query, odd, seed):
 
 
 @torch.inference_mode()
+def pooled_track_embeddings(student, model, images, tracks, args, device, seed):
+    frame_indices = {
+        label: torch.tensor([[group[round((len(group) - 1) * fraction)] for group in groups]
+                            for fraction in (0., .5, 1.)])
+        for label, groups in tracks.items()
+    }
+    frames = torch.cat([images[label][index] for label, index in frame_indices.items()], dim=1)
+    frames = frames.to(device, dtype=torch.float32) / 255
+    clean = torch.stack((frames, frames.flip(-1)), dim=1)
+    flat = clean.flatten(0, 2)
+    centers = torch.cat([parameters(model, batch)[0] for batch in flat.split(args.batch_size)])
+    centers = centers.clamp(-2, 2).reshape(*clean.shape[:3], 3)
+    order = torch.randperm(frames.shape[1], generator=torch.Generator(device=device).manual_seed(seed), device=device)
+    permutation = torch.empty_like(order)
+    permutation[order] = order.roll(1)
+    corrected = pose_warp(flat, centers.flatten(0, 2)).reshape_as(clean)
+    shuffled = pose_warp(flat, centers[:, :, permutation].flatten(0, 2)).reshape_as(clean)
+
+    def encoded(batch):
+        features = [student(chunk) for chunk in batch.reshape(-1, *batch.shape[-3:]).split(args.batch_size)]
+        return torch.cat(features).reshape(*batch.shape[:-3], -1)
+
+    raw_features, corrected_features = encoded(clean), encoded(corrected)
+    clips = {label: {} for label in tracks}
+    for count in args.strengths:
+        variants = []
+        for take in combinations(range(3), int(count)):
+            index = list(take)
+            variants.append({
+                "raw": raw_features[index].mean(dim=0),
+                "feature_corrected": corrected_features[index].mean(dim=0),
+                "pixel_raw": encoded(clean[index].mean(dim=0)),
+                "pixel_corrected": encoded(corrected[index].mean(dim=0)),
+                "pixel_shuffled": encoded(shuffled[index].mean(dim=0)),
+            })
+        start = 0
+        for label, groups in tracks.items():
+            end = start + len(groups)
+            clips[label][str(count)] = ({
+                key: torch.cat([variant[key][:, start:end] for variant in variants], dim=1).cpu().numpy()
+                for key in variants[0]
+            }, None)
+            start = end
+    return clips
+
+
+@torch.inference_mode()
 def global_pose_scale(probe, model, args, seed):
     rng = torch.Generator(device=probe.device).manual_seed(seed)
     levels = probe.new_tensor(args.strengths)
@@ -831,13 +879,17 @@ def run(data, args, device, seed, *, source_partners=None):
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
         else:
-            if args.track_consistency:
+            if args.track_consistency or args.track_pooling:
                 source_partners = {"same_track": source_partners["same_track"]}
+            model_partners = source_partners if args.track_pooling else {"pose_point": None, **source_partners}
             models = {name: fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.,
                                              partners=partners)
-                      for name, partners in {"pose_point": None, **source_partners}.items()}
-        query = natural_track_embeddings(student, models, train, natural_queries, args, device,
-                                         angle_control=source_partners is None)
+                      for name, partners in model_partners.items()}
+        if args.track_pooling:
+            query = pooled_track_embeddings(student, models["same_track"], train, natural_queries, args, device, seed + 500)
+        else:
+            query = natural_track_embeddings(student, models, train, natural_queries, args, device,
+                                             angle_control=source_partners is None)
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
         if args.track_consistency:
@@ -935,19 +987,25 @@ def main():
     selection.add_argument("--natural-track-pose", action="store_true")
     selection.add_argument("--train-track-canonicalizer", action="store_true")
     selection.add_argument("--track-consistency", action="store_true")
+    selection.add_argument("--track-pooling", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_consistency:
+    if args.track_consistency or args.track_pooling:
         args.train_track_canonicalizer = True
     if args.train_track_canonicalizer:
         args.natural_track_pose = True
     if args.shots is None:
         args.shots = [1, 2, 3] if args.natural_track_pose else [1, 2, 4, 5]
     if args.strengths is None:
-        args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
+        if args.track_pooling:
+            args.strengths = [1., 2., 3.]
+        else:
+            args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_consistency:
+        if args.track_pooling:
+            name = "track_pooling"
+        elif args.track_consistency:
             name = "track_consistency"
         elif args.train_track_canonicalizer:
             name = "trained_track_pose"
@@ -976,7 +1034,9 @@ def main():
         parser.error("need a positive test size and an even number of at least two posterior views")
     if not all(math.isfinite(s) and s >= 0 for s in args.strengths):
         parser.error("strengths must be finite and nonnegative")
-    if args.natural_track_pose and any(s > 1 for s in args.strengths):
+    if args.track_pooling and any(s not in {1., 2., 3.} for s in args.strengths):
+        parser.error("track pooling requires between one and three frames")
+    if args.natural_track_pose and not args.track_pooling and any(s > 1 for s in args.strengths):
         parser.error("natural track frame fractions must be in [0, 1]")
     if args.track_consistency and len(set(args.strengths)) < 2:
         parser.error("track consistency requires at least two frame positions")

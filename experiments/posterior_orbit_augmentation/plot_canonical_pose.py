@@ -52,6 +52,9 @@ TRACK_TRAINING_METHODS = {"raw": "Uncorrected", "pose_point": "Synthetic pose lo
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
+TRACK_POOLING_METHODS = {"raw": "Raw feature mean", "feature_corrected": "Corrected feature mean",
+                         "pixel_raw": "Raw pixel mean", "pixel_corrected": "Corrected pixel mean",
+                         "pixel_shuffled": "Pixel mean · shuffled poses"}
 
 
 def main():
@@ -64,6 +67,7 @@ def main():
     levels = results["config"]["strengths"]
     available_shots = results["config"]["shots"]
     natural_track_pose = results["config"].get("natural_track_pose", False)
+    track_pooling = results["config"].get("track_pooling", False)
     shots = str(max(available_shots) if natural_track_pose else (4 if 4 in available_shots else available_shots[0]))
     selective = results["config"].get("selective", False)
     posterior = results["config"].get("posterior_selection", False)
@@ -75,7 +79,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if results["config"].get("track_consistency", False):
+    if track_pooling:
+        methods = TRACK_POOLING_METHODS
+    elif results["config"].get("track_consistency", False):
         methods = TRACK_CONSISTENCY_METHODS
     elif results["config"].get("train_track_canonicalizer", False):
         methods = TRACK_TRAINING_METHODS
@@ -163,8 +169,11 @@ def main():
         axes[2].set_ylabel("Angle RMSE (degrees)")
     if not natural_track_pose:
         axes[2].legend(fontsize=8)
+    label = "Relative frame position" if natural_track_pose else "Pose distortion scale"
+    if track_pooling:
+        label = "Frames per track"
     for ax in axes:
-        ax.set_xlabel("Relative frame position" if natural_track_pose else "Pose distortion scale")
+        ax.set_xlabel(label)
         ax.grid(alpha=.2)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.output, dpi=170)
