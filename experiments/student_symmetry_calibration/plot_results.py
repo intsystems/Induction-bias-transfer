@@ -140,6 +140,37 @@ def plot_pair_counts(data):
     return fig
 
 
+def plot_source_domains(data):
+    shots = data["config"]["shots"]
+    budget = min(data["config"]["variance_budgets"])
+    methods = ("ordinary_iso", "ordinary_orbit", "natural_orbit",
+               f"natural_budget_{budget:g}", f"natural_budget_rotated_{budget:g}")
+    fig, axes = plt.subplots(2, 2, figsize=(10.6, 6.4), sharex=True, sharey="row",
+                             layout="constrained")
+    for col, domain in enumerate(("CIFAR-10", "GTSRB")):
+        runs = [r if col == 0 else r["traffic_source_result"] for r in data["runs"]]
+        runs = [r["coordinate_comparison"]["native"] for r in runs]
+        axes[0, col].set_title(f"Source teacher · {domain}")
+        for row, (metric, label) in enumerate([
+                ("matched_view_accuracy", "Both views correct (%)"),
+                ("clean_accuracy", "Clean accuracy (%)")]):
+            ax = axes[row, col]
+            for method in methods:
+                values = 100 * np.array([[r[str(n)][method][metric] for n in shots] for r in runs])
+                center, spread = values.mean(axis=0), values.std(axis=0)
+                line, = ax.plot(shots, center, marker="o", label=method.replace("_", " "))
+                ax.fill_between(shots, center - spread, center + spread,
+                                color=line.get_color(), alpha=0.10)
+            ax.set_xticks(shots)
+            ax.grid(alpha=0.2)
+            if col == 0:
+                ax.set_ylabel(label)
+            if row == 1:
+                ax.set_xlabel("Labeled target images per class")
+    axes[0, -1].legend(fontsize=8)
+    return fig
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=HERE / "results/metrics.json")
@@ -147,7 +178,9 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     if data["config"].get("gauge_check"):
-        if data["config"].get("calibration_pairs"):
+        if data["config"].get("compare_source_domains"):
+            fig = plot_source_domains(data)
+        elif data["config"].get("calibration_pairs"):
             fig = plot_pair_counts(data)
         elif data["config"].get("variance_budgets"):
             fig = plot_variance_budgets(data)

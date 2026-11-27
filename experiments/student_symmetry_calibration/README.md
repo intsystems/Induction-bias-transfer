@@ -381,3 +381,43 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/experiment.py" --device cuda --ga
 ~/venv/bin/python "$dir/plot_results.py" --metrics "$dir/results/probe_budget/metrics.json" \
   --output "$dir/results/probe_budget/curves.png"
 ```
+
+## Проверка переноса между наборами изображений
+
+До этого источник и целевая задача использовали различные
+классы одного набора. Проверяем перенос с дорожных знаков
+на целевые классы CIFAR-10, сохраняя отражение как
+преобразование исходных изображений. На каждой целевой
+задаче учим два экземпляра учителя и студента. У одного
+учителя четыре класса CIFAR-10, исключённые из цели.
+У другого четыре исходных класса
+[GTSRB](https://benchmark.ini.rub.de/gtsrb_dataset.html),
+с идентификаторами 1, 12, 13, 38. Для GTSRB исходная
+обучающая и отложенная выборки используют разные
+физические треки.
+
+У обоих учителей одинаковое число классов, по 900
+обучающих и 128 отложенных изображений на класс,
+одинаковые архитектура, число обновлений и размер 32×32.
+Оба априора оцениваются исключительно по своим
+исходным скрытым состояниям. Целевые данные CIFAR-10,
+выборки поддержки и тест по seed совпадают. Домены
+различаются содержанием изображений и качеством
+выученных исходных представлений.
+
+Используем seed 157–172 и ограничиваем орбитальную
+дисперсию до 25%. Основной контраст сравнивает
+разницу между априором и его поворотом при двух
+источниках и 20 метках на класс. Дополнительно
+сопоставляем парную и обычную точность каждого
+из источников. Это проверка одного направления
+междоменного переноса.
+
+```bash
+dir=experiments/student_symmetry_calibration
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/experiment.py" --device cuda --gauge-check --vary-classes \
+  --variance-budgets 0.25 --compare-source-domains --source-examples 900 --probe-examples 128 \
+  --seeds $(seq 157 172) --output "$dir/results/cross_domain/metrics.json"
+~/venv/bin/python "$dir/plot_results.py" --metrics "$dir/results/cross_domain/metrics.json" \
+  --output "$dir/results/cross_domain/curves.png"
+```

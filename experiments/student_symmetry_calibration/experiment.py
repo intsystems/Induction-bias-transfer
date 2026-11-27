@@ -9,15 +9,17 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torchvision.datasets import CIFAR10
+from torchvision.datasets import CIFAR10, GTSRB
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 from orbit_spectral_prior.experiment import balanced_indices
-from reflection_evidence.experiment import discover_basis, embed, fit_student, fit_teacher
+from reflection_evidence.experiment import (discover_basis, embed, fit_student, fit_teacher, images,
+                                             paths_by_class, tracks)
 
 SOURCE = (0, 2, 6, 8)
 TARGET = (1, 3, 4, 5, 7, 9)
+TRAFFIC_SOURCE = (1, 12, 13, 38)
 
 
 def as_float(x, device):
@@ -50,6 +52,24 @@ def data_partitions(train, test, args, seed, device, source_classes, target_clas
     target_pool = {label: train_images[row] for label, row in zip(target_classes, target_idx, strict=True)}
     target_test = {label: test_images[row] for label, row in zip(target_classes, test_idx, strict=True)}
     return source, probe, target_pool, target_test
+
+
+def traffic_source(paths, args, seed, device):
+    rng = np.random.default_rng(seed)
+    training, probe = [], []
+    for label in TRAFFIC_SOURCE:
+        groups = tracks(sorted(paths[label]))
+        chosen = rng.permutation(len(groups))
+        held_out = max(1, len(groups) // 5)
+        for indices, count, selected in (
+            (chosen[held_out:], args.source_examples, training),
+            (chosen[:held_out], args.probe_examples, probe),
+        ):
+            available = [path for index in indices for path in groups[index]]
+            if count > len(available):
+                raise ValueError(f"GTSRB class {label} has {len(available)} examples in the requested split")
+            selected.extend(available[index] for index in rng.choice(len(available), count, replace=False))
+    return as_float(images(training), device), as_float(images(probe), device)
 
 
 def trace_normalized(matrix):
@@ -252,12 +272,8 @@ def evaluate(priors, supports, queries, target_classes, args, rng):
     }
 
 
-def run(train, test, args, seed, device):
+def measure_domain(source, probe, source_classes, target_classes, target, target_test, args, seed, device):
     rng = np.random.default_rng(seed)
-    source_classes, target_classes = class_split(seed, args.vary_classes)
-    source, probe, target, target_test = data_partitions(
-        train, test, args, seed, device, source_classes, target_classes
-    )
     labels = torch.arange(len(source_classes), device=device).repeat_interleave(args.source_examples)
     teacher = fit_teacher(source, labels, args, seed, len(source_classes))
     mean, basis, energies = discover_basis(teacher, probe, args)
@@ -304,6 +320,22 @@ def run(train, test, args, seed, device):
             "calibration_pair_results": calibration}
 
 
+def run(train, test, args, seed, device, traffic_paths=None):
+    source_classes, target_classes = class_split(seed, args.vary_classes)
+    source, probe, target, target_test = data_partitions(
+        train, test, args, seed, device, source_classes, target_classes
+    )
+    result = measure_domain(source, probe, source_classes, target_classes, target, target_test,
+                            args, seed, device)
+    if traffic_paths is not None:
+        traffic_train, traffic_probe = traffic_source(traffic_paths, args, seed, device)
+        result["traffic_source_result"] = measure_domain(
+            traffic_train, traffic_probe, TRAFFIC_SOURCE, target_classes, target, target_test, args,
+            seed, device
+        )
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("/tmp/ibt-cifar-data"))
@@ -326,6 +358,8 @@ def main():
     parser.add_argument("--vary-classes", action="store_true")
     parser.add_argument("--variance-budgets", type=float, nargs="+")
     parser.add_argument("--calibration-pairs", type=int, nargs="+")
+    parser.add_argument("--compare-source-domains", action="store_true")
+    parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--odd-ratio", type=float, default=0.02)
     parser.add_argument("--reference-ridge", type=float, default=1e-4)
     args = parser.parse_args()
@@ -340,10 +374,14 @@ def main():
         )
     ):
         parser.error("--calibration-pairs needs variance budgets and multiples of four below the full probe")
+    if args.compare_source_domains and not args.variance_budgets:
+        parser.error("--compare-source-domains needs variance budgets")
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train = CIFAR10(args.data, train=True, download=True)
     test = CIFAR10(args.data, train=False, download=True)
+    traffic_paths = (paths_by_class(GTSRB(args.gtsrb_data, split="train", download=True))
+                     if args.compare_source_domains else None)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     data = {"config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
             "device_name": torch.cuda.get_device_name(device) if device.type == "cuda" else "CPU",
@@ -353,7 +391,7 @@ def main():
             "runs": []}
     start = time.monotonic()
     for seed in args.seeds:
-        data["runs"].append(run(train, test, args, seed, device))
+        data["runs"].append(run(train, test, args, seed, device, traffic_paths))
         data["elapsed_seconds"] = time.monotonic() - start
         temporary = args.output.with_suffix(".tmp")
         temporary.write_text(json.dumps(data, indent=2) + "\n")
