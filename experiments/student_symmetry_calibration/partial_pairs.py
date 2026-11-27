@@ -61,6 +61,30 @@ def candidate_pools(probe_size, anchor_count, class_size, rng):
     return np.concatenate(anchors), np.stack(left), np.stack(reserve)
 
 
+def teacher_moment_estimates(observed, anchors, candidates, projector, whitener):
+    """Use the teacher's odd projection as a control variate for paired moments."""
+    projected = observed @ projector @ whitener
+    actual = (observed[0, anchors] - observed[1, anchors]) @ whitener / 2
+    paired = np.einsum("ni,nj->nij", actual, actual)
+    left, right = projected[:, anchors]
+    proxy = (np.einsum("ni,nj->nij", left, left) + np.einsum("ni,nj->nij", right, right)) / 2
+    marginal = projected[:, candidates].reshape(-1, projected.shape[-1])
+    unpaired = marginal.T @ marginal / len(marginal)
+    anchor_mean, proxy_mean = paired.mean(axis=0), proxy.mean(axis=0)
+    centered_proxy = proxy - proxy_mean
+    denominator = np.sum(centered_proxy ** 2)
+    slope = np.sum((paired - anchor_mean) * centered_proxy) / max(float(denominator), 1e-12)
+    correction = unpaired - proxy_mean
+    estimates = {"teacher_model": unpaired, "teacher_corrected": anchor_mean + correction,
+                 "teacher_adaptive": anchor_mean + np.clip(slope, 0, 1) * correction}
+    clipped_mass = {}
+    for key in ("teacher_corrected", "teacher_adaptive"):
+        values, vectors = np.linalg.eigh(estimates[key])
+        clipped_mass[key] = float(-np.minimum(values, 0).sum() / max(np.abs(values).sum(), 1e-12))
+        estimates[key] = (vectors * np.maximum(values, 0)) @ vectors.T
+    return estimates, {"slope": float(slope), "clipped_mass": clipped_mass}
+
+
 def run(train, test, args, seed, device):
     source, target = class_split(seed, True)
     partition_args = copy(args)
@@ -79,6 +103,10 @@ def run(train, test, args, seed, device):
                                              args.probe_examples, rng)
     anchor_rows = np.arange(len(anchors))
     candidate_rows = len(anchors) + np.arange(left.size)
+    if args.teacher_moments:
+        odd_projector = np.diag(features["odd"].astype(float))
+        rotated, _ = np.linalg.qr(rng.normal(size=odd_projector.shape))
+        rotated_projector = rotated @ odd_projector @ rotated.T
     measurements = {}
     for overlap in args.overlaps:
         common = round(overlap * left.shape[1])
@@ -106,7 +134,7 @@ def run(train, test, args, seed, device):
         common_ids = left[:, :common].ravel()
         true_pairs = np.r_[anchors, common_ids]
         matrices = {"trusted_only": orbit(anchors, anchors), "oracle": orbit(true_pairs, true_pairs)}
-        common_energy = np.trace(orbit(common_ids, common_ids))
+        common_energy = np.trace(orbit(common_ids, common_ids)) if common else 0
         correspondence = {}
         for name, (rows, columns) in match(cost_matrix(scores, candidate_rows, candidate_rows), threshold).items():
             first, second = left.ravel()[rows], right[columns]
@@ -116,12 +144,22 @@ def run(train, test, args, seed, device):
             correspondence[name] = {
                 "accepted": int(len(first)),
                 "precision": float(correct / len(first)) if len(first) else None,
-                "recall": float(correct / (common * len(source))),
+                "recall": float(correct / (common * len(source))) if common else None,
                 "coverage": float(len(first) / left.size),
                 "recovered_true_orbit_energy_ratio": float(np.trace(orbit(recovered, recovered)) / common_energy)
                 if correct and common_energy > 0 else None,
             }
         reference = matrices["oracle"]
+        moment_diagnostics = {}
+        if args.teacher_moments:
+            estimates, moment_diagnostics = teacher_moment_estimates(
+                observed, anchor_rows, candidate_rows, odd_projector, whitener)
+            randomized, _ = teacher_moment_estimates(
+                observed, anchor_rows, candidate_rows, rotated_projector, whitener)
+            matrices.update(estimates)
+            matrices["rotated_corrected"] = randomized["teacher_corrected"]
+            population = np.r_[anchors, left.ravel()]
+            reference = matrices["population_oracle"] = orbit(population, population)
         supports = {k: v - mean for k, v in features["supports"].items()}
         queries = {k: v - mean for k, v in features["queries"].items()}
         priors = {k: budget_prior(v, whitener, args.budget)[0] for k, v in matrices.items()}
@@ -131,6 +169,7 @@ def run(train, test, args, seed, device):
             "threshold": threshold,
             "anchor_balanced_accuracy": balanced,
             "correspondence": correspondence,
+            "teacher_moment_diagnostics": moment_diagnostics,
             "relative_orbit_error": {k: float(np.linalg.norm(v - reference)
                                              / max(np.linalg.norm(reference), 1e-12))
                                      for k, v in matrices.items()},
@@ -155,6 +194,7 @@ def main():
     parser.add_argument("--source-examples", type=int, default=900)
     parser.add_argument("--probe-examples", type=int, default=128)
     parser.add_argument("--shared-basis-probe", action="store_true")
+    parser.add_argument("--teacher-moments", action="store_true")
     parser.add_argument("--target-pool", type=int, default=600)
     parser.add_argument("--test-per-class", type=int, default=600)
     parser.add_argument("--batch-size", type=int, default=128)
@@ -163,12 +203,14 @@ def main():
     args = parser.parse_args()
     if args.output is None:
         result_dir = "partial_pairs" if args.shared_basis_probe else "partial_pairs_independent"
+        if args.teacher_moments:
+            result_dir = "teacher_moments"
         args.output = HERE / "results" / result_dir / "metrics.json"
     pool_size = (args.probe_examples - args.anchors // 4) // 2
     if args.anchors < 4 or args.anchors % 4 or pool_size < 2:
         parser.error("need a positive anchor count divisible by four and two candidates per class per pool")
-    if not all(0 < f <= 1 and round(f * pool_size) > 0 for f in args.overlaps):
-        parser.error("each overlap must supply at least one common candidate per class")
+    if not all(0 <= f <= 1 and (args.teacher_moments or round(f * pool_size) > 0) for f in args.overlaps):
+        parser.error("zero common candidates require --teacher-moments")
     if not 0 < args.budget < 1 or not np.isfinite(args.alignment_ridge) or args.alignment_ridge <= 0:
         parser.error("invalid variance budget or alignment ridge")
     torch.set_num_threads(2)
