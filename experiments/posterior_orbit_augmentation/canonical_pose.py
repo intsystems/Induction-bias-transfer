@@ -470,7 +470,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
     residuals = [latent[eligible] - latent[partners[name].numpy()[eligible]]
                  for name in ("same_track", "same_class")]
     centroids = None
-    if source_paths is not None:
+    if args.track_head_between:
         centroids = natural_centroid_differences(latent, source_paths, eligible)
         names.extend(("head_track_means", "head_split_means"))
     student_residuals = []
@@ -480,6 +480,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
                              for name in ("same_track", "same_class")]
         names.extend(("head_student_track", "head_student_class"))
     additional_residuals = {}
+    neighbor_diagnostics = None
     if source_labels is not None:
         labels = source_labels.numpy()[eligible]
         sampling = np.random.default_rng(seed + 1000)
@@ -505,7 +506,10 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             random_half = np.concatenate([group[:len(group)//2] for group in order])
             additional_residuals.update(head_near=residuals[1][near], head_far=residuals[1][far],
                                         head_random_half=residuals[1][random_half])
-        names.extend(additional_residuals)
+    if args.track_head_neighbors:
+        neighbor_residuals, neighbor_diagnostics = natural_track_neighbor_residuals(latent, source_paths, eligible, odd)
+        additional_residuals.update(neighbor_residuals)
+    names.extend(additional_residuals)
     priors = {name: np.zeros((2, width, width)) for name in names}
     for block, proportions in ((~odd, (1-MIXTURE[0], 1-MIXTURE[-1])), (odd, (MIXTURE[0], MIXTURE[-1]))):
         moments = []
@@ -534,7 +538,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
         for name, mask in (("head_learned_even", ~odd), ("head_learned_odd", odd)):
             keep = mask[:, None] & mask[None, :]
             priors[name] = np.where(keep, priors["head_same_class"], priors["head_rotated"])
-    return priors
+    return priors, neighbor_diagnostics
 
 
 def natural_centroid_differences(latent, paths, eligible):
@@ -550,6 +554,34 @@ def natural_centroid_differences(latent, paths, eligible):
                       for part in (slice(None), slice(0, None, 2), slice(1, None, 2))]
         centered.append([means - means.mean(axis=0) for means in aggregates])
     return tuple(np.concatenate(parts) for parts in zip(*centered, strict=True))
+
+
+def natural_track_neighbor_residuals(latent, paths, eligible, odd):
+    frames = defaultdict(list)
+    for index in eligible:
+        path = paths[index]
+        track, frame = path.stem.rsplit("_", 1)
+        frames[path.parent, track].append((int(frame), index))
+    groups = [np.array([index for _, index in sorted(paths_in_track)]) for paths_in_track in frames.values()]
+    centroids = np.stack([latent[group].mean(axis=0) for group in groups])
+    labels = np.array([key[0].name for key in frames])
+    residuals, diagnostics = {}, {}
+    for name, features in (("head_neighbor_even", centroids[:, ~odd]), ("head_neighbor_full", centroids)):
+        normalized = features / np.maximum(np.linalg.norm(features, axis=1, keepdims=True), 1e-8)
+        similarities = normalized @ normalized.T
+        np.fill_diagonal(similarities, -np.inf)
+        neighbors = similarities.argmax(axis=1)
+        differences = []
+        for group, partner in zip(groups, neighbors, strict=True):
+            other = groups[partner]
+            positions = np.rint(np.linspace(0, len(other) - 1, len(group))).astype(int)
+            differences.append(latent[group] - latent[other[positions]])
+        residuals[name] = np.concatenate(differences)
+        diagnostics[name] = {
+            "same_class_fraction": float(np.average(labels == labels[neighbors], weights=list(map(len, groups)))),
+            "unique_partner_tracks": len(np.unique(neighbors)),
+        }
+    return residuals, diagnostics
 
 
 @torch.inference_mode()
@@ -1040,9 +1072,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
         tracks, natural_queries = split_natural_tracks(tracks, args.shots, args.test_per_class, seed + 400)
         teacher_rotation = None
         teacher_parity = None
+        neighbor_diagnostics = None
         if args.track_head_prior:
             models = {}
-            head_kernels = natural_track_head_priors(
+            head_kernels, neighbor_diagnostics = natural_track_head_priors(
                 teacher, basis, odd, source, source_partners, args, seed + 250, source_paths=source_paths,
                 student=student if args.track_head_student else None,
                 source_labels=labels if (args.track_head_budget or args.track_head_pair_control
@@ -1083,6 +1116,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
             diagnostics["teacher_rotation"] = teacher_rotation
         if teacher_parity is not None:
             diagnostics["teacher_parity"] = teacher_parity
+        if neighbor_diagnostics is not None:
+            diagnostics["neighbor_pairing"] = neighbor_diagnostics
     elif args.pose_refinement:
         calibration = fit_pose_refinement(probe[1::2], pose_model, args, seed + 250)
         query, errors = refinement_embeddings(student, pose_model, test, args, device, seed + 300,
@@ -1188,11 +1223,13 @@ def main():
     selection.add_argument("--track-head-blocks", action="store_true")
     selection.add_argument("--track-head-pair-control", action="store_true")
     selection.add_argument("--track-head-distance", action="store_true")
+    selection.add_argument("--track-head-neighbors", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget
-            or args.track_head_blocks or args.track_head_pair_control or args.track_head_distance):
+            or args.track_head_blocks or args.track_head_pair_control or args.track_head_distance
+            or args.track_head_neighbors):
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1208,7 +1245,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_distance:
+        if args.track_head_neighbors:
+            name = "track_head_neighbors"
+        elif args.track_head_distance:
             name = "track_head_distance"
         elif args.track_head_pair_control:
             name = "track_head_pair_control"
@@ -1302,7 +1341,7 @@ def main():
             output["source_budget_counts"] = {
                 str(budget): int(np.minimum(counts, budget).sum()) for budget in TRACK_PAIR_BUDGETS
             }
-    retained_paths = source_paths if args.track_head_between else None
+    retained_paths = source_paths if args.track_head_between or args.track_head_neighbors else None
     start = time.monotonic()
     for seed in args.seeds:
         output["runs"].append(run(data, args, device, seed, source_partners=source_partners,
