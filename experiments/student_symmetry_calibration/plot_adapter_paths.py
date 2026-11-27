@@ -33,6 +33,10 @@ SPECTRAL_METHODS = {"path_matched": "Path prior", "global_quarter_split_matched"
                     "block_high_matched": "High-precision block", "block_high_rotated_matched": "High block · rotated",
                     "block_low_matched": "Low-precision block", "block_low_rotated_matched": "Low block · rotated",
                     "split_matched": "Separate generators"}
+ORIENTATION_METHODS = {"path_matched": "Path prior", "global_quarter_split_matched": "25% separate precision",
+                       "block_high_matched": "High block · aligned", "block_high_signed_matched": "High block · sign flips",
+                       "block_high_diagonal_matched": "High block · diagonal",
+                       "block_high_rotated_matched": "High block · rotated"}
 
 
 def main():
@@ -53,6 +57,8 @@ def main():
         methods = HYBRID_METHODS
     if data["config"].get("spectral_blocks", False):
         methods = SPECTRAL_METHODS
+    if data["config"].get("spectral_orientation", False):
+        methods = ORIENTATION_METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     if source := data["config"].get("source_domain"):
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]

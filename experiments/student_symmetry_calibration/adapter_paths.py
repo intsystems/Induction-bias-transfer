@@ -52,7 +52,7 @@ def hybrid_precisions(path, split, seed):
             "hybrid_rotated": rotation @ halfway @ rotation.T}
 
 
-def spectral_block_precisions(path, split, seed):
+def spectral_block_precisions(path, split, seed, *, orientation_control=False):
     _, axes = np.linalg.eigh(path)
     rng = np.random.default_rng(seed + 5100)
     result = {"global_quarter_split": .75 * path + .25 * split}
@@ -62,7 +62,13 @@ def spectral_block_precisions(path, split, seed):
         separate = block.T @ split @ block
         separate *= np.trace(original) / np.trace(separate)
         rotation, _ = np.linalg.qr(rng.normal(size=separate.shape))
-        for key, candidate in ((name, separate), (name + "_rotated", rotation @ separate @ rotation.T)):
+        candidates = [(name, separate), (name + "_rotated", rotation @ separate @ rotation.T)]
+        if orientation_control and name == "high":
+            signs = np.ones(len(separate))
+            signs[rng.permutation(len(signs))[:len(signs) // 2]] = -1
+            candidates.extend((("high_signed", separate * np.outer(signs, signs)),
+                               ("high_diagonal", np.diag(np.diag(separate)))))
+        for key, candidate in candidates:
             updated = path + .5 * block @ (candidate - original) @ block.T
             result["block_" + key] = (updated + updated.T) / 2
     return result
@@ -176,8 +182,16 @@ def run(train, test, args, seed, device, traffic_paths=None):
             key: torch.as_tensor(value, device=device, dtype=weights.dtype)
             for key, value in hybrid_precisions(priors["path"], priors["split"], seed).items()
         })
-    if args.spectral_blocks:
-        block_precisions = spectral_block_precisions(priors["path"], priors["split"], seed)
+    if args.spectral_blocks or args.spectral_orientation:
+        block_precisions = spectral_block_precisions(
+            priors["path"], priors["split"], seed, orientation_control=args.spectral_orientation)
+        if args.spectral_orientation:
+            aligned, signed = (block_precisions[key] for key in ("block_high", "block_high_signed"))
+            diagnostics["signed_control_spectrum_gap"] = float(
+                np.abs(np.linalg.eigvalsh(aligned) - np.linalg.eigvalsh(signed)).max())
+            if not args.spectral_blocks:
+                block_precisions.pop("block_low")
+                block_precisions.pop("block_low_rotated")
         extra_precisions.update({
             key: torch.as_tensor(value, device=device, dtype=weights.dtype)
             for key, value in block_precisions.items()
@@ -265,6 +279,8 @@ def main():
                         help="test mixtures of path and separate-generator precision")
     parser.add_argument("--spectral-blocks", action="store_true",
                         help="mix separate-generator precision into one path eigenspace at a time")
+    parser.add_argument("--spectral-orientation", action="store_true",
+                        help="test off-diagonal signs in the high-precision path eigenspace")
     parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--output", type=Path, default=HERE / "results/adapter_paths/metrics.json")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
@@ -293,7 +309,7 @@ def main():
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
     if (args.teacher_row_prior or args.intertwining_prior or args.compare_probe_domain
-            or args.hybrid_prior or args.spectral_blocks):
+            or args.hybrid_prior or args.spectral_blocks or args.spectral_orientation):
         args.match_update_rms = True
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:
         parser.error("need at least two probe examples per class, a variance budget in (0, 1), and a nonnegative penalty")
