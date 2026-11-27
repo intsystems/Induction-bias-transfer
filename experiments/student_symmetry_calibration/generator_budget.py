@@ -11,6 +11,7 @@ import torch
 from experiment import (CIFAR10, GTSRB, HERE, TRAFFIC_SOURCE, budget_weights, class_split,
                         data_partitions, discover_basis, fit_student, fit_teacher, paths_by_class,
                         predict, traffic_source)
+from reflection_evidence.experiment import Teacher
 
 ROTATION = (2, 7, 4, 1, 6, 3, 0, 5)
 REFLECTION = (1, 0, 3, 2, 5, 4, 7, 6)
@@ -195,17 +196,8 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
     return {k: whitener @ v @ whitener.T for k, v in natural.items()}, diagnostics
 
 
-def run(train, test, args, seed, device, traffic_paths=None):
-    source, target = class_split(seed, True)
-    x, probe, support, test_views = data_partitions(train, test, args, seed, device, source, target)
-    if traffic_paths is not None:
-        x, probe = traffic_source(traffic_paths, args, seed, device)
-        source = TRAFFIC_SOURCE
-    training_labels = torch.arange(len(source), device=device).repeat_interleave(args.source_examples)
-    teacher = fit_teacher(x, training_labels, args, seed, classes=len(source))
-    mean, basis, _ = discover_basis(teacher, probe[::2], args)
-    student = fit_student(x, teacher, basis, mean, args, seed + 100)
-    source_views = embed_orbit(student, probe[1::2], device, args.batch_size)
+def measure_orbit_prior(student, probe, support, test_views, target, args, seed, device):
+    source_views = embed_orbit(student, probe, device, args.batch_size)
     center = source_views.mean(axis=(0, 1))
     priors, diagnostics = source_priors(source_views - center, args.budget, seed,
                                        args.generator_controls, args.operator_composition, args.path_composition)
@@ -227,9 +219,48 @@ def run(train, test, args, seed, device, traffic_paths=None):
                                 **{view: float((correct[0] & correct[index]).mean())
                                    for view, index in TEST_VIEWS.items()}}
             rows[str(n)].append(methods)
+    return {"latent_width": source_views.shape[-1], "diagnostics": diagnostics, "shots": rows}
+
+
+def match_teacher_basis(basis, odd, ranks, seed):
+    rng = np.random.default_rng(seed)
+    blocks = []
+    for is_odd, rank in zip((False, True), ranks, strict=True):
+        block = basis[:, odd == is_odd]
+        axes, _ = np.linalg.qr(rng.normal(size=(block.shape[1], rank)))
+        blocks.append(block @ torch.as_tensor(axes, device=basis.device, dtype=basis.dtype))
+    return torch.cat(blocks, dim=1)
+
+
+def run(train, test, args, seed, device, traffic_paths=None):
+    source, target = class_split(seed, True)
+    x, probe, support, test_views = data_partitions(train, test, args, seed, device, source, target)
+    if traffic_paths is not None:
+        x, probe = traffic_source(traffic_paths, args, seed, device)
+        source = TRAFFIC_SOURCE
+    training_labels = torch.arange(len(source), device=device).repeat_interleave(args.source_examples)
+    teacher = fit_teacher(x, training_labels, args, seed, classes=len(source))
+    mean, basis, energies = discover_basis(teacher, probe[::2], args)
+    result = {"seed": seed, "source_classes": source, "target_classes": target}
+    if args.compare_teacher_training:
+        torch.manual_seed(seed)
+        frozen = Teacher(len(source)).to(device).eval()
+        frozen_mean, frozen_basis, frozen_energies = discover_basis(frozen, probe[::2], args)
+        odd, frozen_odd = energies > .5, frozen_energies > .5
+        learned_ranks = (int((~odd).sum()), int(odd.sum()))
+        frozen_ranks = (int((~frozen_odd).sum()), int(frozen_odd.sum()))
+        ranks = tuple(min(a, b) for a, b in zip(learned_ranks, frozen_ranks, strict=True))
+        basis = match_teacher_basis(basis, odd, ranks, seed + 727)
+        frozen_basis = match_teacher_basis(frozen_basis, frozen_odd, ranks, seed + 727)
+        frozen_student = fit_student(x, frozen, frozen_basis, frozen_mean, args, seed + 100)
+        result["initialized_teacher"] = measure_orbit_prior(
+            frozen_student, probe[1::2], support, test_views, target, args, seed, device
+        )
+        result["teacher_ranks"] = {"matched": ranks, "learned": learned_ranks, "initialized": frozen_ranks}
+    student = fit_student(x, teacher, basis, mean, args, seed + 100)
+    result.update(measure_orbit_prior(student, probe[1::2], support, test_views, target, args, seed, device))
     print(seed, "completed", flush=True)
-    return {"seed": seed, "source_classes": source, "target_classes": target,
-            "latent_width": source_views.shape[-1], "diagnostics": diagnostics, "shots": rows}
+    return result
 
 
 def main():
@@ -256,6 +287,8 @@ def main():
                         help="infer composition moments from disjoint generator pairs")
     parser.add_argument("--path-composition", action="store_true",
                         help="compare two equivalent paths estimated from disjoint generator pairs")
+    parser.add_argument("--compare-teacher-training", action="store_true",
+                        help="compare trained and initialized teachers with matched parity ranks")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
     if not 0 < args.budget < 1 or args.noise <= 0:

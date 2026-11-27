@@ -36,8 +36,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=RESULTS / "metrics.json")
     parser.add_argument("--output", type=Path, default=RESULTS / "curves.png")
+    parser.add_argument("--teacher-state", choices=("trained", "initialized"), default="trained")
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
+    rows = data["runs"]
+    teacher_comparison = data["config"].get("compare_teacher_training", False)
+    if args.teacher_state == "initialized":
+        if not teacher_comparison:
+            parser.error("initialized teacher results are unavailable in these metrics")
+        rows = [r["initialized_teacher"] for r in rows]
     shots = data["config"]["shots"]
     metrics = [("rotation", "Clean and quarter-turn"), ("composition", "Clean and composed transform"),
                ("all_views", "All eight views")]
@@ -54,11 +61,14 @@ def main():
     fig, axes = plt.subplots(1, len(metrics), figsize=(17 if len(metrics) == 4 else 13, 4), layout="constrained")
     if "source_domain" in data["config"]:
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[data["config"]["source_domain"]]
-        fig.suptitle(f"Source {label} · Target CIFAR-10")
+        title = f"Source {label} · Target CIFAR-10"
+        if teacher_comparison:
+            title += f" · {args.teacher_state.capitalize()} teacher"
+        fig.suptitle(title)
     for ax, (metric, title) in zip(axes, metrics, strict=True):
         for key, label in methods.items():
             names = [f"{key}_{i}" for i in range(4)] if key.endswith("_rotated") else [key]
-            values = [100 * np.mean([ep[name][metric] for r in data["runs"] for ep in r["shots"][str(n)]
+            values = [100 * np.mean([ep[name][metric] for r in rows for ep in r["shots"][str(n)]
                                      for name in names]) for n in shots]
             ax.plot(shots, values, marker="o", label=label)
         ax.set_title(title)
