@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from scipy.special import ndtr
 
 from experiment import GTSRB, HERE, budget_weights, discover_basis, embed, fit_student, fit_teacher
 from partial_pairs import project_teacher_action
@@ -178,18 +179,66 @@ def calibrated_hybrids(x, labels, parity, relative_even, teacher_modes, relative
     }, {"source_factor": scale, "cross_fit_factor": oof_scale}
 
 
-def judge(test, truth, true_sign, coefficients):
-    clean, reflected = np.where(test @ coefficients >= 0, 1, -1)
+def balanced_mean(values, truth):
+    return float((values[..., truth < 0].mean() + values[..., truth > 0].mean()) / 2)
+
+
+def judge_labels(predictions, truth, true_sign):
+    clean, reflected = predictions
     good_clean, good_reflected = clean == truth, reflected == true_sign * truth
-    return {key: float((result[truth < 0].mean() + result[truth > 0].mean()) / 2)
+    return {key: balanced_mean(result, truth)
             for key, result in (("clean", good_clean), ("reflected", good_reflected),
                                 ("both", good_clean & good_reflected),
                                 ("parity", reflected == true_sign * clean))}
 
 
+def judge(test, truth, true_sign, coefficients):
+    return judge_labels(np.where(test @ coefficients >= 0, 1, -1), truth, true_sign)
+
+
+def judge_probabilities(probability, truth, true_sign):
+    result = judge_labels(np.where(probability >= .5, 1, -1), truth, true_sign)
+    targets = np.stack((truth, true_sign * truth)) > 0
+    correct = np.where(targets, probability, 1 - probability)
+    result["brier"] = balanced_mean((1 - correct) ** 2, truth)
+    result["log_loss"] = balanced_mean(-np.log(np.clip(correct, 1e-12, 1)), truth)
+    return result
+
+
+def predictive_bank(kernels, query):
+    flat = query.reshape(-1, query.shape[-1])
+    products = flat @ kernels
+    diagonal = np.sum(products * flat, axis=-1)
+    return kernels, products, diagonal
+
+
+def predictive_probabilities(cache, x, labels, noise, shape):
+    kernels, products, diagonal = cache
+    covariance = x @ kernels @ x.T + noise ** 2 * np.eye(len(x))
+    factor = np.linalg.cholesky(covariance)
+    whitened = np.linalg.solve(factor, x @ products.swapaxes(-2, -1))
+    whitened_labels = np.linalg.solve(factor, np.broadcast_to(labels[:, None], (*factor.shape[:-1], 1)))
+    mean = (whitened.swapaxes(-2, -1) @ whitened_labels)[..., 0]
+    variance = np.maximum(diagonal - np.sum(whitened ** 2, axis=-2), 0)
+    return (ndtr(mean / noise).reshape(-1, *shape),
+            ndtr(mean / np.sqrt(variance + noise ** 2)).reshape(-1, *shape))
+
+
+def probabilistic_hybrids(cache, x, labels, noise, shape, weights, budgets):
+    predictions = predictive_probabilities(cache, x, labels, noise, shape)
+    result = {}
+    for kind, probability in zip(("plugin", "predictive"), predictions, strict=True):
+        teacher_even, teacher_odd, *relative = probability
+        even = np.tensordot(budgets, np.stack(relative), axes=1)
+        result[f"teacher_{kind}_prob"] = weights[0] * teacher_even + weights[1] * teacher_odd
+        result[f"hybrid_{kind}_prob"] = weights[0] * even + weights[1] * teacher_odd
+    return result
+
+
 def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, block_banks=None,
-            hybrid_actions=False, source_moment=None):
+            hybrid_actions=False, source_moment=None, predictive_cache=None):
     estimates, diagnostics, modes = {}, {}, {}
+    probability = {}
     selected = SIGNS.index(sign)
     for name, kernels in banks.items():
         fitted, scores = support_fit(kernels, x, labels, noise)
@@ -250,19 +299,29 @@ def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, b
                         x, labels, parity, kernels[0, 0], teacher_modes, conditionals, weights, source_moment, noise)
                     estimates.update(calibrated)
                 even_budget_weights = probabilities(scores["centered"][0, 0])
+                if predictive_cache is not None:
+                    probability = probabilistic_hybrids(
+                        predictive_cache, x, labels, noise, test.shape[:-1], weights, even_budget_weights)
                 for i, rotated in enumerate(fitted[1:, 0, :, :, 0]):
                     even = even_budget_weights @ rotated
                     estimates[f"hybrid_rotated_{i}"] = weights[0] * even + weights[1] * teacher_modes[1]
         for control, candidate in enumerate(fitted[1:, :, BLOCK_FIXED, :, 0]):
             estimates[f"{name}_rotated_known_sign_{control}"] = candidate[selected]
             estimates[f"{name}_rotated_teacher_sign_{control}"] = weights @ candidate
-    return {"metrics": {key: judge(test, truth, sign, coefficient) for key, coefficient in estimates.items()},
-            "diagnostics": diagnostics}
+    metrics = {key: judge(test, truth, sign, coefficient) for key, coefficient in estimates.items()}
+    if predictive_cache is not None:
+        for key in ("teacher_parity", "hybrid_actions", "hybrid_source_scale", "hybrid_cross_fit"):
+            probability[key] = ndtr(test @ estimates[key] / noise)
+        metrics.update({key: judge_probabilities(p, truth, sign) for key, p in probability.items()})
+    return {"metrics": metrics, "diagnostics": diagnostics}
 
 
 def measure_task(pair, sign, train, test, tracks, banks, parity, args, rng, block_banks=None, source_moment=None):
     query = np.concatenate([test[label] for label in pair], axis=1)
     truth = np.concatenate([np.full(len(test[label][0]), k) for label, k in zip(pair, (-1, 1), strict=True)])
+    cache = None
+    if args.mix_probabilities:
+        cache = predictive_bank(np.concatenate((parity, block_banks["relative"][0, 0])), query)
     rows = {str(n): [] for n in args.shots}
     for _ in range(args.episodes):
         selected = []
@@ -275,7 +334,7 @@ def measure_task(pair, sign, train, test, tracks, banks, parity, args, rng, bloc
             labels = np.repeat([-1., 1.], shots)
             rows[str(shots)].append(episode(
                 x, query, labels, truth, sign, banks, parity, args.noise, args.crossed, block_banks,
-                args.hybrid_actions, source_moment))
+                args.hybrid_actions, source_moment, cache))
     return rows
 
 
@@ -334,7 +393,10 @@ def main():
     parser.add_argument("--relative-blocks", action="store_true")
     parser.add_argument("--hybrid-actions", action="store_true")
     parser.add_argument("--calibrate-hybrid", action="store_true")
+    parser.add_argument("--mix-probabilities", action="store_true")
     args = parser.parse_args()
+    if args.mix_probabilities:
+        args.calibrate_hybrid = True
     if args.calibrate_hybrid:
         args.hybrid_actions = True
     if args.hybrid_actions:
@@ -348,7 +410,7 @@ def main():
         if args.relative_blocks:
             name = "hybrid_actions" if args.hybrid_actions else "relative_blocks"
         if args.calibrate_hybrid:
-            name = "calibrated_hybrid"
+            name = "probability_mixing" if args.mix_probabilities else "calibrated_hybrid"
         args.output = HERE / "results" / name / "metrics.json"
     if not np.isfinite(args.noise) or args.noise <= 0 or min(args.shots) <= 0:
         parser.error("shots and noise must be positive")

@@ -32,6 +32,10 @@ HYBRID = {"teacher_parity": "Teacher parity", "relative_adaptive_teacher_sign": 
 CALIBRATION = {"teacher_parity": "Teacher parity", "hybrid_actions": "Uncalibrated hybrid",
                "hybrid_source_scale": "Source RMS matching", "hybrid_cross_fit": "Cross-fitted RMS matching",
                "teacher_scale_only": "Teacher parity with hybrid scale"}
+PREDICTIVE = {"teacher_parity": "Teacher parity", "hybrid_source_scale": "Source RMS matching",
+              "teacher_predictive_prob": "Teacher predictive probabilities",
+              "hybrid_plugin_prob": "Hybrid probabilities · mean only",
+              "hybrid_predictive_prob": "Hybrid predictive probabilities"}
 
 
 def main():
@@ -46,7 +50,8 @@ def main():
     relative = data["config"].get("relative_blocks", False)
     hybrid = data["config"].get("hybrid_actions", False)
     calibrated = data["config"].get("calibrate_hybrid", False)
-    methods = (CALIBRATION if calibrated else HYBRID if hybrid else RELATIVE if relative
+    predictive = data["config"].get("mix_probabilities", False)
+    methods = (PREDICTIVE if predictive else CALIBRATION if calibrated else HYBRID if hybrid else RELATIVE if relative
                else BLOCKS if blocked else CROSSED if crossed else METHODS)
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
@@ -60,7 +65,15 @@ def main():
                                      for ep in task[str(n)] for model in names]) for n in shots]
             ax.plot(shots, values, marker="o", label=label)
         ax.set_ylabel("Reflected balanced accuracy (%)")
-    if hybrid:
+    if predictive:
+        for key, label in methods.items():
+            values = [np.mean([ep["metrics"][key]["log_loss"]
+                               for r in data["runs"] for tasks in r["tasks"].values()
+                               for task in tasks.values() for ep in task[str(n)]]) for n in shots]
+            axes[2].plot(shots, values, marker="o", label=label)
+        axes[2].set_xlabel("Labels per class")
+        axes[2].set_ylabel("Balanced log loss · both view types")
+    elif hybrid:
         selected = tuple(CALIBRATION) if calibrated else (
             "teacher_parity", "hybrid_actions", "relative_adaptive_teacher_sign", "hybrid_rotated")
         for key in selected:
