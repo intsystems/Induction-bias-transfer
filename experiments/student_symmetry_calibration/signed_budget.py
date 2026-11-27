@@ -137,6 +137,11 @@ def conditional_coefficients(fitted, scores):
     return np.stack([probabilities(logits) @ vectors for logits, vectors in zip(scores, fitted, strict=True)])
 
 
+def asymmetric_actions(relative, teacher, weights):
+    """Fit each label action with its own prior and mix with shared weights."""
+    return weights[0] * relative[0] + weights[1] * teacher[1]
+
+
 def judge(test, truth, true_sign, coefficients):
     clean, reflected = np.where(test @ coefficients >= 0, 1, -1)
     good_clean, good_reflected = clean == truth, reflected == true_sign * truth
@@ -146,7 +151,7 @@ def judge(test, truth, true_sign, coefficients):
                                 ("parity", reflected == true_sign * clean))}
 
 
-def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, block_banks=None):
+def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, block_banks=None, hybrid_actions=False):
     estimates, diagnostics, modes = {}, {}, {}
     selected = SIGNS.index(sign)
     for name, kernels in banks.items():
@@ -195,6 +200,18 @@ def episode(x, test, labels, truth, sign, banks, parity, noise, crossed=False, b
         if name == "relative":
             estimates["relative_metric_known_sign"] = measured[selected, 0]
             estimates["relative_metric_teacher_sign"] = weights @ measured[:, 0]
+            if hybrid_actions:
+                teacher_modes = modes["teacher"]
+                estimates.update({
+                    "hybrid_actions": asymmetric_actions(conditionals, teacher_modes, weights),
+                    "hybrid_known_sign": conditionals[0] if selected == 0 else teacher_modes[1],
+                    "hybrid_reverse": asymmetric_actions(teacher_modes, conditionals, weights),
+                    "hybrid_metric": asymmetric_actions(measured[:, 0], teacher_modes, weights),
+                })
+                even_budget_weights = probabilities(scores["centered"][0, 0])
+                for i, rotated in enumerate(fitted[1:, 0, :, :, 0]):
+                    even = even_budget_weights @ rotated
+                    estimates[f"hybrid_rotated_{i}"] = weights[0] * even + weights[1] * teacher_modes[1]
         for control, candidate in enumerate(fitted[1:, :, BLOCK_FIXED, :, 0]):
             estimates[f"{name}_rotated_known_sign_{control}"] = candidate[selected]
             estimates[f"{name}_rotated_teacher_sign_{control}"] = weights @ candidate
@@ -216,7 +233,7 @@ def measure_task(pair, sign, train, test, tracks, banks, parity, args, rng, bloc
             x = np.concatenate([train[label][0, ids[:shots]] for label, ids in zip(pair, selected, strict=True)])
             labels = np.repeat([-1., 1.], shots)
             rows[str(shots)].append(episode(
-                x, query, labels, truth, sign, banks, parity, args.noise, args.crossed, block_banks))
+                x, query, labels, truth, sign, banks, parity, args.noise, args.crossed, block_banks, args.hybrid_actions))
     return rows
 
 
@@ -268,14 +285,19 @@ def main():
     parser.add_argument("--crossed", action="store_true")
     parser.add_argument("--parity-blocks", action="store_true")
     parser.add_argument("--relative-blocks", action="store_true")
+    parser.add_argument("--hybrid-actions", action="store_true")
     args = parser.parse_args()
+    if args.hybrid_actions:
+        args.relative_blocks = True
     if args.relative_blocks:
         args.parity_blocks = True
     if args.parity_blocks:
         args.crossed = True
     if args.output is None:
         name = "parity_blocks" if args.parity_blocks else "signed_budget_crossed" if args.crossed else "signed_budget"
-        args.output = HERE / "results" / ("relative_blocks" if args.relative_blocks else name) / "metrics.json"
+        if args.relative_blocks:
+            name = "hybrid_actions" if args.hybrid_actions else "relative_blocks"
+        args.output = HERE / "results" / name / "metrics.json"
     if not np.isfinite(args.noise) or args.noise <= 0 or min(args.shots) <= 0:
         parser.error("shots and noise must be positive")
     torch.set_num_threads(2)

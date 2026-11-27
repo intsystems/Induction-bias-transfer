@@ -25,6 +25,10 @@ RELATIVE = {"teacher_known_sign": "Teacher parity", "block_fixed_known_sign": "A
             "relative_metric_known_sign": "Compatible metric only", "relative_fixed_known_sign": "Relative orbit error",
             "relative_rotated_known_sign": "Relative spectrum · rotated",
             "relative_adaptive_known_sign": "Relative error · adaptive"}
+HYBRID = {"teacher_parity": "Teacher parity", "relative_adaptive_teacher_sign": "Relative error · both actions",
+          "hybrid_actions": "Action-specific hybrid", "hybrid_metric": "Hybrid · metric only",
+          "hybrid_rotated": "Hybrid · rotated spectrum", "hybrid_reverse": "Reverse hybrid",
+          "hybrid_known_sign": "Hybrid · known action"}
 
 
 def main():
@@ -37,20 +41,30 @@ def main():
     crossed = data["config"].get("crossed", False)
     blocked = data["config"].get("parity_blocks", False)
     relative = data["config"].get("relative_blocks", False)
-    methods = RELATIVE if relative else BLOCKS if blocked else CROSSED if crossed else METHODS
+    hybrid = data["config"].get("hybrid_actions", False)
+    methods = HYBRID if hybrid else RELATIVE if relative else BLOCKS if blocked else CROSSED if crossed else METHODS
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), layout="constrained")
     for ax, family in zip(axes, ("invariant", "antisymmetric")):
         title = "Reflection preserves label" if family == "invariant" else "Reflection swaps labels"
         ax.set_title(title)
         for key, label in methods.items():
             names = ([f"{key}_{i}" for i in range(data["block_orientation_controls"])]
-                     if key.endswith("_rotated_known_sign") else [key])
+                     if key == "hybrid_rotated" or key.endswith("_rotated_known_sign") else [key])
             values = [100 * np.mean([ep["metrics"][model]["reflected"]
                                      for r in data["runs"] for task in r["tasks"][family].values()
                                      for ep in task[str(n)] for model in names]) for n in shots]
             ax.plot(shots, values, marker="o", label=label)
         ax.set_ylabel("Reflected balanced accuracy (%)")
-    if relative:
+    if hybrid:
+        for key in ("teacher_parity", "hybrid_actions", "relative_adaptive_teacher_sign", "hybrid_rotated"):
+            names = [f"{key}_{i}" for i in range(data["block_orientation_controls"])] if key == "hybrid_rotated" else [key]
+            values = [100 * np.mean([ep["metrics"][model]["both"]
+                                     for r in data["runs"] for tasks in r["tasks"].values()
+                                     for task in tasks.values() for ep in task[str(n)] for model in names]) for n in shots]
+            axes[2].plot(shots, values, marker="o", label=HYBRID[key])
+        axes[2].set_xlabel("Labels per class")
+        axes[2].set_ylabel("Both views correct (%)")
+    elif relative:
         for i, label in enumerate(("Even", "Odd")):
             records = [r["achieved_budgets"]["relative_blocks"][i] for r in data["runs"]]
             signal = np.array([r["native_signal"] for r in records])
