@@ -52,6 +52,9 @@ def main():
         methods = CONTROL_METHODS
         metrics.insert(0, ("reflection", "Clean and reflection"))
     fig, axes = plt.subplots(1, len(metrics), figsize=(17 if len(metrics) == 4 else 13, 4), layout="constrained")
+    if "source_domain" in data["config"]:
+        label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[data["config"]["source_domain"]]
+        fig.suptitle(f"Source {label} · Target CIFAR-10")
     for ax, (metric, title) in zip(axes, metrics, strict=True):
         for key, label in methods.items():
             names = [f"{key}_{i}" for i in range(4)] if key.endswith("_rotated") else [key]

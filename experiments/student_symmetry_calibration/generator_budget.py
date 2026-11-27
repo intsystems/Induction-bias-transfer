@@ -8,8 +8,9 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from experiment import (CIFAR10, HERE, budget_weights, class_split, data_partitions, discover_basis,
-                        fit_student, fit_teacher, predict)
+from experiment import (CIFAR10, GTSRB, HERE, TRAFFIC_SOURCE, budget_weights, class_split,
+                        data_partitions, discover_basis, fit_student, fit_teacher, paths_by_class,
+                        predict, traffic_source)
 
 ROTATION = (2, 7, 4, 1, 6, 3, 0, 5)
 REFLECTION = (1, 0, 3, 2, 5, 4, 7, 6)
@@ -194,9 +195,12 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
     return {k: whitener @ v @ whitener.T for k, v in natural.items()}, diagnostics
 
 
-def run(train, test, args, seed, device):
+def run(train, test, args, seed, device, traffic_paths=None):
     source, target = class_split(seed, True)
     x, probe, support, test_views = data_partitions(train, test, args, seed, device, source, target)
+    if traffic_paths is not None:
+        x, probe = traffic_source(traffic_paths, args, seed, device)
+        source = TRAFFIC_SOURCE
     training_labels = torch.arange(len(source), device=device).repeat_interleave(args.source_examples)
     teacher = fit_teacher(x, training_labels, args, seed, classes=len(source))
     mean, basis, _ = discover_basis(teacher, probe[::2], args)
@@ -224,12 +228,15 @@ def run(train, test, args, seed, device):
                                    for view, index in TEST_VIEWS.items()}}
             rows[str(n)].append(methods)
     print(seed, "completed", flush=True)
-    return {"seed": seed, "diagnostics": diagnostics, "shots": rows}
+    return {"seed": seed, "source_classes": source, "target_classes": target,
+            "latent_width": source_views.shape[-1], "diagnostics": diagnostics, "shots": rows}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("/tmp/ibt-cifar-data"))
+    parser.add_argument("--source-domain", choices=("cifar", "gtsrb"), default="cifar")
+    parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--output", type=Path, default=HERE / "results/generator_budget/metrics.json")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--seeds", type=int, nargs="+", default=list(range(701, 717)))
@@ -258,11 +265,13 @@ def main():
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train, test = (CIFAR10(args.data, train=flag, download=True) for flag in (True, False))
+    traffic_paths = (paths_by_class(GTSRB(args.gtsrb_data, split="train", download=True))
+                     if args.source_domain == "gtsrb" else None)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     output = {"config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}, "runs": []}
     start = time.monotonic()
     for seed in args.seeds:
-        output["runs"].append(run(train, test, args, seed, device))
+        output["runs"].append(run(train, test, args, seed, device, traffic_paths))
         output["elapsed_seconds"] = time.monotonic() - start
         temporary = args.output.with_suffix(".tmp")
         temporary.write_text(json.dumps(output, allow_nan=False) + "\n")
