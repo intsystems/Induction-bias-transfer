@@ -87,7 +87,7 @@ def teacher_row_precisions(views, seed):
             "reversed_rows": (axes * strengths[::-1]) @ axes.T}, strengths
 
 
-def target_row_precisions(center, supports, count, shots, rotation):
+def target_row_precisions(center, supports, count, shots, rotation, *, permutation=None):
     centroids = F.linear(supports.reshape(count, shots, -1).mean(dim=1), center)
     centroids = centroids - centroids.mean(dim=0)
     between = centroids.T @ centroids
@@ -95,7 +95,16 @@ def target_row_precisions(center, supports, count, shots, rotation):
     normalized = between / energy.clamp_min(1e-9)
     identity = torch.eye(len(center), device=center.device, dtype=center.dtype)
     aligned = identity + .5 * (normalized - normalized.diagonal().mean() * identity)
-    return {"aligned": aligned, "rotated": rotation @ aligned @ rotation.T}
+    result = {"aligned": aligned, "rotated": rotation @ aligned @ rotation.T}
+    if permutation is not None:
+        eigenvalues = torch.linalg.eigvalsh(aligned)
+        outputs = F.linear(supports, center)
+        shuffled = outputs[permutation].reshape(count, shots, -1).mean(dim=1)
+        for name, samples in (("permuted_labels", shuffled), ("unlabeled_pca", outputs)):
+            centered = samples - samples.mean(dim=0)
+            _, basis = torch.linalg.eigh(centered.T @ centered)
+            result[name] = (basis * eigenvalues) @ basis.T
+    return result
 
 
 def composition_action_penalties(stem_action, teacher_views, seed):
@@ -227,10 +236,12 @@ def run(train, test, args, seed, device, traffic_paths=None):
             for key, (a, b, scale) in matrices.items()
         }
         diagnostics["action_penalty_normalizers"] = {key: scale for key, (_, _, scale) in matrices.items()}
-    if args.target_row_prior:
+    if args.target_row_prior or args.target_row_labels:
         shape = (len(weights), len(weights))
         rotation, _ = np.linalg.qr(np.random.default_rng(seed + 6100).normal(size=shape))
         target_rotation = torch.as_tensor(rotation, device=device, dtype=weights.dtype)
+    if args.target_row_labels:
+        label_shuffle = torch.Generator(device=device).manual_seed(seed + 6200)
 
     def coordinates(views):
         return torch.as_tensor((views - offset) @ whitener, device=device, dtype=weights.dtype)
@@ -267,8 +278,12 @@ def run(train, test, args, seed, device, traffic_paths=None):
                         weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
                         radii=reference_radii, row_precision=row_precision
                     )
-                if args.target_row_prior:
-                    target_rows = target_row_precisions(weights, design, len(target), n, target_rotation)
+                if args.target_row_prior or args.target_row_labels:
+                    permutation = None
+                    if args.target_row_labels:
+                        permutation = torch.randperm(len(design), device=device, generator=label_shuffle)
+                    target_rows = target_row_precisions(weights, design, len(target), n, target_rotation,
+                                                        permutation=permutation)
                     for input_name in ("path", "rotated"):
                         for output_name, row_precision in target_rows.items():
                             results[f"target_rows_{input_name}_{output_name}"], _ = fit_target(
@@ -330,10 +345,13 @@ def main():
                               help="penalize changes that disrupt the composition action across the adapter")
     output_prior.add_argument("--target-row-prior", action="store_true",
                               help="protect clean target class-centroid directions in the adapter output")
+    output_prior.add_argument("--target-row-labels", action="store_true",
+                              help="compare label-dependent and unlabeled output bases at matched spectra")
     args = parser.parse_args()
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
-    if (args.teacher_row_prior or args.intertwining_prior or args.target_row_prior or args.compare_probe_domain
+    if (args.teacher_row_prior or args.intertwining_prior or args.target_row_prior or args.target_row_labels
+            or args.compare_probe_domain
             or args.hybrid_prior or args.spectral_blocks or args.spectral_orientation):
         args.match_update_rms = True
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:

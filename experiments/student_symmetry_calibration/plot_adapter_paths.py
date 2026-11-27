@@ -24,6 +24,10 @@ TARGET_ROW_METHODS = {"path_matched": "Path · uniform output", "rotated_matched
                       "target_rows_path_rotated": "Path · rotated centroids",
                       "target_rows_rotated_aligned": "Rotated path · target centroids",
                       "target_rows_rotated_rotated": "Rotated path · rotated centroids"}
+TARGET_LABEL_METHODS = {"path_matched": "Uniform output", "target_rows_path_aligned": "True centroids",
+                        "target_rows_path_permuted_labels": "Permuted-label centroids",
+                        "target_rows_path_unlabeled_pca": "Unlabeled PCA",
+                        "target_rows_path_rotated": "Rotated centroids"}
 ACTION_METHODS = {"path_matched": "Input path prior", "split_matched": "Separate generator budgets",
                   "teacher_action": "Teacher action", "rotated_action": "Rotated teacher action",
                   "identity_action": "Identity output action"}
@@ -56,6 +60,8 @@ def main():
         methods = ROW_METHODS
     elif data["config"].get("target_row_prior", False):
         methods = TARGET_ROW_METHODS
+    elif data["config"].get("target_row_labels", False):
+        methods = TARGET_LABEL_METHODS
     elif data["config"].get("intertwining_prior", False):
         methods = ACTION_METHODS
     if data["config"].get("compare_probe_domain", False):
