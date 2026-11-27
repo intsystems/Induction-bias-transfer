@@ -14,7 +14,7 @@ import torch
 
 from experiment import (GTSRB, HERE, TASKS, PoseGenerator, batches, discover_basis, embed,
                         fit_student, fit_teacher, predict, preprocess, prior_kernels)
-from reflection_evidence.experiment import paths_by_class
+from reflection_evidence.experiment import MIXTURE, paths_by_class
 
 ANGLE = math.radians(32)
 SHIFT = .24
@@ -457,6 +457,35 @@ def calibrate_teacher_parity(teacher, basis, odd, source, partners, args):
     return {"even_teacher": (matched[0], 0.), "odd_teacher": (0., matched[1])}, energy.tolist()
 
 
+@torch.no_grad()
+def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed):
+    rng = np.random.default_rng(seed)
+    names = ("head_same_track", "head_same_class", "head_rotated")
+    width = basis.shape[1]
+    odd = odd.cpu().numpy()
+    priors = {name: np.zeros((2, width, width)) for name in names}
+    eligible = np.flatnonzero(partners["same_track"].numpy() >= 0)
+    latent = torch.cat([teacher.encode(batch) @ basis for batch in source.split(args.batch_size)]).cpu().numpy()
+    residuals = [latent[eligible] - latent[partners[name].numpy()[eligible]]
+                 for name in ("same_track", "same_class")]
+    for block, proportions in ((~odd, (1-MIXTURE[0], 1-MIXTURE[-1])), (odd, (MIXTURE[0], MIXTURE[-1]))):
+        moments = []
+        for residual in residuals:
+            part = residual[:, block].astype(np.float64)
+            moments.append(part.T @ part / len(part))
+        energies, same = np.linalg.eigh(moments[0])
+        _, other = np.linalg.eigh(moments[1])
+        rotated, _ = np.linalg.qr(rng.normal(size=same.shape))
+        spectrum = 1 / (.25 + np.maximum(energies, 0) / max(float(energies.mean()), 1e-12))
+        spectrum /= spectrum.sum()
+        index = np.ix_(block, block)
+        for name, axes in zip(names, (same, other, rotated), strict=True):
+            block_covariance = (axes * spectrum) @ axes.T
+            for mode, proportion in enumerate(proportions):
+                priors[name][mode][index] = proportion * block_covariance
+    return priors
+
+
 @torch.inference_mode()
 def natural_track_embeddings(student, models, images, tracks, args, device, *, angle_control=False):
     output = {}
@@ -847,7 +876,7 @@ def select_posterior_logits(choices):
     return steps
 
 
-def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng):
+def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, head_kernels=None):
     parity = np.concatenate((kernels["fixed_even"], kernels["fixed_odd"]))
     batches_by_strength = {}
     for strength in map(str, args.strengths):
@@ -870,11 +899,14 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng):
             width = f.shape[1]
             weights, probability = predict(parity, f, y, np.eye(width), args.noise, center_evidence=True)
             even, _ = predict(kernels["fixed_even"], f, y, np.eye(width), args.noise)
+            heads = {name: predict(prior, f, y, np.eye(width), args.noise, center_evidence=True)[0]
+                     for name, prior in (head_kernels or {}).items()}
             values = {"posterior_same": float(probability[0]), "strengths": {}}
             if args.track_parity_policy:
                 values["correct_action"] = float((probability[0] >= .5) == (sign == 1))
             for strength, (embeddings, truth, n_negative) in batches_by_strength.items():
                 choices = {name: features @ weights for name, features in embeddings.items()}
+                choices.update({name: embeddings["raw"] @ head for name, head in heads.items()})
                 if args.track_parity_policy:
                     p_same = probability[0]
                     even_logits, odd_logits = (choices[name] for name in ("even_teacher", "odd_teacher"))
@@ -927,11 +959,15 @@ def run(data, args, device, seed, *, source_partners=None):
             or args.natural_track_pose):
         pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
+    head_kernels = None
     if args.natural_track_pose:
         tracks, natural_queries = split_natural_tracks(tracks, args.shots, args.test_per_class, seed + 400)
         teacher_rotation = None
         teacher_parity = None
-        if source_partners is None:
+        if args.track_head_prior:
+            models = {}
+            head_kernels = natural_track_head_priors(teacher, basis, odd, source, source_partners, args, seed + 250)
+        elif source_partners is None:
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
         else:
@@ -958,7 +994,7 @@ def run(data, args, device, seed, *, source_partners=None):
             query = pooled_track_embeddings(student, models["same_track"], train, natural_queries, args, device, seed + 500)
         else:
             query = natural_track_embeddings(student, models, train, natural_queries, args, device,
-                                             angle_control=source_partners is None)
+                                             angle_control=source_partners is None and not args.track_head_prior)
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
         if args.track_consistency:
@@ -1022,7 +1058,7 @@ def run(data, args, device, seed, *, source_partners=None):
     rng = np.random.default_rng(seed)
     kernels = prior_kernels(energies.cpu().numpy(), rng)
     tasks = {family: {"-".join(map(str, pair)): evaluate_task(
-        pair, 1 if family == "invariant" else -1, support, query, tracks, kernels, args, rng)
+        pair, 1 if family == "invariant" else -1, support, query, tracks, kernels, args, rng, head_kernels=head_kernels)
         for pair in pairs} for family, pairs in TASKS.items()}
     print(seed, "completed", flush=True)
     return {"seed": seed, "tasks": tasks, **diagnostics}
@@ -1064,6 +1100,7 @@ def main():
     selection.add_argument("--track-teacher-basis", action="store_true")
     selection.add_argument("--track-teacher-parity", action="store_true")
     selection.add_argument("--track-parity-policy", action="store_true")
+    selection.add_argument("--track-head-prior", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1071,7 +1108,7 @@ def main():
         args.track_teacher_parity = True
     if args.track_consistency or args.track_pooling or args.track_teacher_basis or args.track_teacher_parity:
         args.train_track_canonicalizer = True
-    if args.train_track_canonicalizer:
+    if args.train_track_canonicalizer or args.track_head_prior:
         args.natural_track_pose = True
     if args.shots is None:
         args.shots = [1, 2, 3] if args.natural_track_pose else [1, 2, 4, 5]
@@ -1081,7 +1118,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_parity_policy:
+        if args.track_head_prior:
+            name = "track_head_prior"
+        elif args.track_parity_policy:
             name = "track_parity_policy"
         elif args.track_teacher_parity:
             name = "track_teacher_parity"
@@ -1131,10 +1170,11 @@ def main():
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train_dataset = GTSRB(args.data, split="train", download=True)
+    use_source_paths = args.train_track_canonicalizer or args.track_head_prior
     data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args,
-                      include_source_paths=args.train_track_canonicalizer)
+                      include_source_paths=use_source_paths)
     source_partners = None
-    if args.train_track_canonicalizer:
+    if use_source_paths:
         data, source_paths = data[:-1], data[-1]
         source_partners = natural_source_partners(source_paths)
     if args.natural_track_pose:

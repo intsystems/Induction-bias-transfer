@@ -57,6 +57,8 @@ TRACK_TEACHER_PARITY_METHODS = {"raw": "Uncorrected", "pose_point": "Synthetic p
 TRACK_PARITY_POLICY_METHODS = {"raw": "Uncorrected", "same_track": "Both blocks",
                                "parity_fixed": "Fixed mixture", "parity_soft": "Posterior mixture",
                                "parity_hard": "Posterior hard choice", "parity_oracle": "Known label action"}
+TRACK_HEAD_PRIOR_METHODS = {"raw": "Uniform parity blocks", "head_same_track": "Same-track basis",
+                            "head_same_class": "Same-class basis", "head_rotated": "Rotated basis"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -87,7 +89,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if track_pooling:
+    if results["config"].get("track_head_prior", False):
+        methods = TRACK_HEAD_PRIOR_METHODS
+    elif track_pooling:
         methods = TRACK_POOLING_METHODS
     elif results["config"].get("track_parity_policy", False):
         methods = TRACK_PARITY_POLICY_METHODS
