@@ -35,6 +35,10 @@ RELATIVE_MODELS = {"pose": "Absolute loss", "relative": "Same-image relative los
 RELATIVE_METHODS = {"raw": "Uncorrected",
                     **{name + "_point": label for name, label in RELATIVE_MODELS.items()},
                     "relative_posterior": "Same-image posterior", "oracle": "Known inverse"}
+ANGLE_MODELS = {"pose": "Absolute loss", "angle_same": "Same-image mean error",
+                "angle_shuffled": "Cross-image mean error", "angle_point": "Individual squared errors"}
+ANGLE_METHODS = {"raw": "Uncorrected", **{name + "_point": label for name, label in ANGLE_MODELS.items()},
+                 "oracle": "Known inverse"}
 
 
 def main():
@@ -53,8 +57,11 @@ def main():
     refinement = results["config"].get("pose_refinement", False)
     trained_residual = results["config"].get("train_residual", False)
     relative_pose = results["config"].get("relative_pose", False)
+    paired_angle_bias = results["config"].get("paired_angle_bias", False)
     methods = METHODS
-    if relative_pose:
+    if paired_angle_bias:
+        methods = ANGLE_METHODS
+    elif relative_pose:
         methods = RELATIVE_METHODS
     elif trained_residual:
         methods = RESIDUAL_METHODS
@@ -117,7 +124,11 @@ def main():
         axes[2].set_ylabel("Mean correction fraction")
         axes[2].set_ylim(0, 1)
     else:
-        pose_models = RELATIVE_MODELS if relative_pose else {"pose": "Pose-only training", "hidden": "Teacher loss"}
+        pose_models = {"pose": "Pose-only training", "hidden": "Teacher loss"}
+        if paired_angle_bias:
+            pose_models = ANGLE_MODELS
+        elif relative_pose:
+            pose_models = RELATIVE_MODELS
         for key, label in pose_models.items():
             mse = np.array([[r["pose_calibration"][str(level)][key]["mse"] for level in levels] for r in runs])
             axes[2].plot(levels, np.sqrt(mse.mean(axis=0)[:, 0]) * 32, marker="o", label=label)

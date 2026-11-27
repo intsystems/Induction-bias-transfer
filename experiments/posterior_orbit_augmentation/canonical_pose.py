@@ -84,7 +84,7 @@ def fit_canonicalizer(source, teacher, basis, odd, args, seed, hidden_weight):
     return model.eval()
 
 
-def fit_paired_canonicalizer(source, args, seed, pairing):
+def fit_paired_canonicalizer(source, args, seed, pairing, *, angle_bias=False):
     torch.manual_seed(seed)
     model = PoseGenerator().to(source.device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=.003)
@@ -96,6 +96,8 @@ def fit_paired_canonicalizer(source, args, seed, pairing):
             reflected = torch.rand(len(clean), device=clean.device, generator=rng) < .5
             clean = torch.where(reflected[:, None, None, None], clean.flip(-1), clean)
             pose = 2 * torch.rand(2, len(clean), 3, device=clean.device, generator=rng) - 1
+            if angle_bias:
+                pose[1, :, 0] = -pose[0, :, 0]
             images = pose_warp(clean.repeat(2, 1, 1, 1), pose.flatten(0, 1))
             center, log_std = parameters(model, images)
             target = inverse_pose(pose)
@@ -106,9 +108,17 @@ def fit_paired_canonicalizer(source, args, seed, pairing):
                 if pairing == "shuffled":
                     second = second.roll(1, dims=0)
                     y_second = y_second.roll(1, dims=0)
-                estimated = compose_pose(first, inverse_pose(second))
-                relative = compose_pose(y_first, inverse_pose(y_second))
-                loss = loss + .5 * (estimated - relative).square().mean()
+                if angle_bias:
+                    first_error = first[:, 0] - y_first[:, 0]
+                    second_error = second[:, 0] - y_second[:, 0]
+                    if pairing == "point":
+                        loss = loss + .25 * (first_error.square() + second_error.square()).mean()
+                    else:
+                        loss = loss + .25 * (first_error + second_error).square().mean()
+                else:
+                    estimated = compose_pose(first, inverse_pose(second))
+                    relative = compose_pose(y_first, inverse_pose(y_second))
+                    loss = loss + .5 * (estimated - relative).square().mean()
             optimizer.zero_grad(set_to_none=True)
             loss.backward()
             optimizer.step()
@@ -649,7 +659,7 @@ def run(data, args, device, seed):
     mean, basis, energies = discover_basis(teacher, basis_probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
     odd = energies > .5
-    if not (args.identity_mixture or args.relative_pose):
+    if not (args.identity_mixture or args.relative_pose or args.paired_angle_bias):
         pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
     if args.pose_refinement:
@@ -681,7 +691,11 @@ def run(data, args, device, seed):
             student, pose_model, teacher, basis, odd, selection, test, args, device, seed + 300)
         diagnostics = {"source_fixed_step": STEPS[selection[0]], "policy_statistics": policy_stats}
     else:
-        if args.relative_pose:
+        if args.paired_angle_bias:
+            models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
+                      for name, pairing in (("pose", "absolute"), ("angle_same", "same"),
+                                            ("angle_shuffled", "shuffled"), ("angle_point", "point"))}
+        elif args.relative_pose:
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing)
                       for name, pairing in (("pose", "absolute"), ("relative", "same"), ("relative_shuffled", "shuffled"))}
         else:
@@ -728,11 +742,14 @@ def main():
     selection.add_argument("--pose-refinement", action="store_true")
     selection.add_argument("--train-residual", action="store_true")
     selection.add_argument("--relative-pose", action="store_true")
+    selection.add_argument("--paired-angle-bias", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if args.output is None:
-        if args.relative_pose:
+        if args.paired_angle_bias:
+            name = "paired_angle_bias"
+        elif args.relative_pose:
             name = "relative_pose"
         elif args.train_residual:
             name = "trained_residual_pose"
