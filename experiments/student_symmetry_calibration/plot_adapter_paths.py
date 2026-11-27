@@ -28,6 +28,10 @@ TARGET_LABEL_METHODS = {"path_matched": "Uniform output", "target_rows_path_alig
                         "target_rows_path_permuted_labels": "Permuted-label centroids",
                         "target_rows_path_unlabeled_pca": "Unlabeled PCA",
                         "target_rows_path_rotated": "Rotated centroids"}
+TARGET_SCATTER_METHODS = {"path_matched": "Uniform output", "target_rows_path_aligned": "Target centroids",
+                          "target_rows_path_within_scatter": "Within-class scatter adjustment",
+                          "target_rows_path_total_scatter": "Total scatter adjustment",
+                          "target_rows_path_rotated": "Rotated centroids"}
 ACTION_METHODS = {"path_matched": "Input path prior", "split_matched": "Separate generator budgets",
                   "teacher_action": "Teacher action", "rotated_action": "Rotated teacher action",
                   "identity_action": "Identity output action"}
@@ -62,6 +66,8 @@ def main():
         methods = TARGET_ROW_METHODS
     elif data["config"].get("target_row_labels", False):
         methods = TARGET_LABEL_METHODS
+    elif data["config"].get("target_row_scatter", False):
+        methods = TARGET_SCATTER_METHODS
     elif data["config"].get("intertwining_prior", False):
         methods = ACTION_METHODS
     if data["config"].get("compare_probe_domain", False):

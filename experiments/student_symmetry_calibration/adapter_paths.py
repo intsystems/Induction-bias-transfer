@@ -87,7 +87,7 @@ def teacher_row_precisions(views, seed):
             "reversed_rows": (axes * strengths[::-1]) @ axes.T}, strengths
 
 
-def target_row_precisions(center, supports, count, shots, rotation, *, permutation=None):
+def target_row_precisions(center, supports, count, shots, rotation, *, permutation=None, scatter=False):
     centroids = F.linear(supports.reshape(count, shots, -1).mean(dim=1), center)
     centroids = centroids - centroids.mean(dim=0)
     between = centroids.T @ centroids
@@ -96,14 +96,26 @@ def target_row_precisions(center, supports, count, shots, rotation, *, permutati
     identity = torch.eye(len(center), device=center.device, dtype=center.dtype)
     aligned = identity + .5 * (normalized - normalized.diagonal().mean() * identity)
     result = {"aligned": aligned, "rotated": rotation @ aligned @ rotation.T}
+    if permutation is None and not scatter:
+        return result
+    outputs = F.linear(supports, center)
+    candidates = {}
     if permutation is not None:
-        eigenvalues = torch.linalg.eigvalsh(aligned)
-        outputs = F.linear(supports, center)
-        shuffled = outputs[permutation].reshape(count, shots, -1).mean(dim=1)
-        for name, samples in (("permuted_labels", shuffled), ("unlabeled_pca", outputs)):
-            centered = samples - samples.mean(dim=0)
-            _, basis = torch.linalg.eigh(centered.T @ centered)
-            result[name] = (basis * eigenvalues) @ basis.T
+        candidates["permuted_labels"] = outputs[permutation].reshape(count, shots, -1).mean(dim=1)
+        candidates["unlabeled_pca"] = outputs
+    if scatter:
+        groups = outputs.reshape(count, shots, -1)
+        within = (groups - groups.mean(dim=1, keepdim=True)).flatten(0, 1)
+        total = outputs - outputs.mean(dim=0)
+        for name, residuals in (("within_scatter", within), ("total_scatter", total)):
+            covariance = residuals.T @ residuals / len(residuals)
+            ridge = (.5 * covariance.diagonal().mean()).clamp_min(1e-8)
+            candidates[name] = torch.linalg.solve(covariance + ridge * identity, centroids.T).T
+    eigenvalues = torch.linalg.eigvalsh(aligned)
+    for name, samples in candidates.items():
+        centered = samples - samples.mean(dim=0)
+        _, basis = torch.linalg.eigh(centered.T @ centered)
+        result[name] = (basis * eigenvalues) @ basis.T
     return result
 
 
@@ -236,7 +248,8 @@ def run(train, test, args, seed, device, traffic_paths=None):
             for key, (a, b, scale) in matrices.items()
         }
         diagnostics["action_penalty_normalizers"] = {key: scale for key, (_, _, scale) in matrices.items()}
-    if args.target_row_prior or args.target_row_labels:
+    target_rows_enabled = args.target_row_prior or args.target_row_labels or args.target_row_scatter
+    if target_rows_enabled:
         shape = (len(weights), len(weights))
         rotation, _ = np.linalg.qr(np.random.default_rng(seed + 6100).normal(size=shape))
         target_rotation = torch.as_tensor(rotation, device=device, dtype=weights.dtype)
@@ -278,12 +291,12 @@ def run(train, test, args, seed, device, traffic_paths=None):
                         weights, bias, head, design, labels, target_views, truth, precisions["path"], args,
                         radii=reference_radii, row_precision=row_precision
                     )
-                if args.target_row_prior or args.target_row_labels:
+                if target_rows_enabled:
                     permutation = None
                     if args.target_row_labels:
                         permutation = torch.randperm(len(design), device=device, generator=label_shuffle)
                     target_rows = target_row_precisions(weights, design, len(target), n, target_rotation,
-                                                        permutation=permutation)
+                                                        permutation=permutation, scatter=args.target_row_scatter)
                     for input_name in ("path", "rotated"):
                         for output_name, row_precision in target_rows.items():
                             results[f"target_rows_{input_name}_{output_name}"], _ = fit_target(
@@ -347,10 +360,13 @@ def main():
                               help="protect clean target class-centroid directions in the adapter output")
     output_prior.add_argument("--target-row-labels", action="store_true",
                               help="compare label-dependent and unlabeled output bases at matched spectra")
+    output_prior.add_argument("--target-row-scatter", action="store_true",
+                              help="adjust target centroid directions for within-class or total scatter")
     args = parser.parse_args()
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
     if (args.teacher_row_prior or args.intertwining_prior or args.target_row_prior or args.target_row_labels
+            or args.target_row_scatter
             or args.compare_probe_domain
             or args.hybrid_prior or args.spectral_blocks or args.spectral_orientation):
         args.match_update_rms = True
