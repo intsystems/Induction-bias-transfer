@@ -87,6 +87,28 @@ def plot_target_pairs(rows, shots):
     return fig
 
 
+def plot_active_target_pairs(rows, shots):
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
+    n = 20 if 20 in shots else shots[0]
+    counts = sorted({0, 1, min(3, n), min(5, n)})
+    methods = {"constraint": "Random", "expected_update": "Expected update",
+               "action_leverage": "Action leverage", "clean_leverage": "Clean leverage"}
+    for ax, prior, title in zip(axes, ("split_balanced", "composition_mean_moment"),
+                                ("Separate source budgets", "Source path moments"), strict=True):
+        for rule, label in methods.items():
+            keys = [prior if count == 0 else f"{prior}_{rule}_{count}" for count in counts]
+            values = [100 * np.mean([ep[key]["composition"] for r in rows for ep in r["shots"][str(n)]])
+                      for key in keys]
+            ax.plot(counts, values, marker="o", label=label)
+        ax.set_title(title)
+        ax.set_xlabel("Target composition pairs per class")
+        ax.set_ylabel(f"Correct on clean and composition (%), {n} labels/class")
+        ax.set_xticks(counts)
+        ax.grid(alpha=.2)
+    axes[0].legend(fontsize=8)
+    return fig
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=RESULTS / "metrics.json")
@@ -102,7 +124,8 @@ def main():
         fig.savefig(args.output, dpi=170)
         return
     if data["config"].get("target_pairs", False):
-        fig = plot_target_pairs(rows, shots)
+        plot_pairs = plot_active_target_pairs if data["config"].get("active_target_pairs", False) else plot_target_pairs
+        fig = plot_pairs(rows, shots)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(args.output, dpi=170)
         return

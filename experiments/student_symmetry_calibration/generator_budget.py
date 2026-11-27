@@ -62,6 +62,7 @@ def composition_moments(orbit, path_composition=False):
     if path_composition:
         names += ("reverse_path", "mean_prediction", "mean_moment", "wrong_prediction")
     moments = {key: np.zeros((width, width)) for key in names}
+    composition_operator = np.zeros((width, width))
     for holdout in (folds < 2, folds >= 2):
         operators, innovations = [], []
         for parity, action in enumerate((ROTATION, REFLECTION)):
@@ -88,6 +89,7 @@ def composition_moments(orbit, path_composition=False):
         moments["additive"] += plug_in + rotation_error + reflection_error
         moments["transported"] += plug_in + reflection.T @ rotation_error @ reflection + reflection_error
         if path_composition:
+            composition_operator += (rotation @ reflection + reflection @ inverse_rotation) / 4
             reverse = points - points @ reflection @ inverse_rotation
             mean = (difference + reverse) / 2
             wrong = (difference + points - points @ reflection @ rotation) / 2
@@ -96,7 +98,7 @@ def composition_moments(orbit, path_composition=False):
             moments["mean_prediction"] += mean.T @ mean / len(mean)
             moments["mean_moment"] += (plug_in + reverse_moment) / 2
             moments["wrong_prediction"] += wrong.T @ wrong / len(wrong)
-    return {key: normalize_moment(moment) for key, moment in moments.items()}
+    return {key: normalize_moment(moment) for key, moment in moments.items()}, composition_operator
 
 
 def budget_covariance(moment, budget):
@@ -155,6 +157,7 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
     orbit = probe @ whitener
     natural = {"isotropic": np.eye(width) / width}
     diagnostics = {}
+    residual_model = None
     rng = np.random.default_rng(seed + 407)
     for key, complete in (("canonical", False), ("orbit", True)):
         moments = generator_moments(orbit, complete)
@@ -183,7 +186,10 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
             for parity, action in enumerate((ROTATION, REFLECTION))
         ])
         natural["split_balanced"], _, _, _ = generator_balanced(split_moments, budget)
-        inferred = composition_moments(orbit, path_composition)
+        inferred, composition_operator = composition_moments(orbit, path_composition)
+        if path_composition:
+            residual = whitener @ (np.eye(width) - composition_operator) / np.sqrt(2)
+            residual_model = np.linalg.solve(whitener.T, residual.T).T, metric
         for key, moment in inferred.items():
             natural[f"composition_{key}"] = budget_covariance(moment, budget)
         for i in range(4):
@@ -199,7 +205,7 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
             "estimated_composition_variance": {key: float(np.sum(natural[f"composition_{key}"] * moment))
                                                for key, moment in inferred.items()},
         }
-    return {k: whitener @ v @ whitener.T for k, v in natural.items()}, diagnostics
+    return {k: whitener @ v @ whitener.T for k, v in natural.items()}, diagnostics, residual_model
 
 
 def measure_orbit_prior(student, probe, support, test_views, target, args, seed, device, *, both_axes=False):
@@ -242,9 +248,41 @@ def orbit_accuracy(prior, inputs, labels, queries, truth, noise):
             **{view: float((correct[0] & correct[index]).mean()) for view, index in TEST_VIEWS.items()}}
 
 
+def active_pair_scores(inputs, labels, prior, residual_model, noise):
+    operator, metric = residual_model
+    differences = inputs @ operator
+    precision = np.linalg.solve(prior, np.eye(len(prior))) + inputs.T @ inputs / noise ** 2
+    weight = np.linalg.solve(precision, inputs.T @ labels / noise ** 2)
+    moved = np.linalg.solve(precision, differences.T).T
+    leverage = np.sum(differences * moved, axis=1)
+    displacement = np.sum((moved @ metric) * moved, axis=1)
+    violation = np.sum((differences @ weight) ** 2, axis=1)
+    update = violation * displacement / (noise ** 2 + leverage) ** 2
+    clean_covariance = np.linalg.solve(precision, inputs.T).T
+    clean_leverage = np.sum(inputs * clean_covariance, axis=1)
+    return {"expected_update": update, "action_leverage": leverage, "clean_leverage": clean_leverage}
+
+
+def compare_active_pairs(inputs, labels, counterparts, priors, residual_model, queries, truth, args, n):
+    metrics = {}
+    for key in TARGET_PAIR_PRIORS[1:]:
+        prior = priors[key]
+        orders = active_pair_scores(inputs, labels, prior, residual_model, args.noise)
+        for policy, scores in orders.items():
+            rank = np.argsort(np.argsort(-scores.reshape(-1, n), axis=1, kind="stable"), axis=1)
+            for count in sorted({1, min(3, n), min(5, n)}):
+                mask = (rank < count).ravel()
+                x_pair, y_pair = target_pair_designs(inputs, labels, counterparts, mask)["constraint"]
+                metrics[f"{key}_{policy}_{count}"] = orbit_accuracy(
+                    prior, x_pair, y_pair, queries, truth, args.noise
+                )
+    return metrics
+
+
 def evaluate_orbit(source_views, supports, queries, truth, target, args, seed, *, paired=None):
-    priors, diagnostics = source_priors(source_views, args.budget, seed,
-                                       args.generator_controls, args.operator_composition, args.path_composition)
+    priors, diagnostics, residual_model = source_priors(
+        source_views, args.budget, seed, args.generator_controls, args.operator_composition, args.path_composition
+    )
     if args.compare_teacher_views:
         difference = (source_views - source_views[list(REFLECTION)]) / 2
         diagnostics["reflection_feature_energy"] = float(np.mean(difference ** 2)
@@ -260,7 +298,13 @@ def evaluate_orbit(source_views, supports, queries, truth, target, args, seed, *
                        for key, prior in priors.items()}
             if paired is not None:
                 counterparts = np.concatenate([paired[k][chosen[k][:n]] for k in target])
-                for count in sorted({1, min(5, n), n}):
+                counts = {1, min(5, n), n}
+                if args.active_target_pairs:
+                    counts.add(min(3, n))
+                    methods.update(compare_active_pairs(
+                        inputs, labels, counterparts, priors, residual_model, queries, truth, args, n
+                    ))
+                for count in sorted(counts):
                     mask = np.tile(np.arange(n) < count, len(target))
                     for rule, (x_pair, y_pair) in target_pair_designs(inputs, labels, counterparts, mask).items():
                         for key in TARGET_PAIR_PRIORS:
@@ -365,6 +409,8 @@ def main():
                         help="compare two equivalent paths estimated from disjoint generator pairs")
     parser.add_argument("--target-pairs", action="store_true",
                         help="measure the value of direct composition pairs in labeled target support")
+    parser.add_argument("--active-target-pairs", action="store_true",
+                        help="select composition pairs using only clean support and source operators")
     teacher_comparison = parser.add_mutually_exclusive_group()
     teacher_comparison.add_argument("--compare-teacher-training", action="store_true",
                                     help="compare trained and initialized teachers with matched parity ranks")
@@ -372,6 +418,8 @@ def main():
                                     help="compare horizontal and vertical parity with the same training views")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
+    if args.active_target_pairs:
+        args.target_pairs = True
     if not 0 < args.budget < 1 or args.noise <= 0:
         parser.error("need a variance budget in (0, 1) and positive noise")
     if (args.operator_composition or args.path_composition) and args.probe_examples < 2:
