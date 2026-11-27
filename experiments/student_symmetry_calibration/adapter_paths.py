@@ -12,7 +12,7 @@ from torch.nn import functional as F
 
 from experiment import (CIFAR10, GTSRB, HERE, TRAFFIC_SOURCE, class_split, data_partitions, discover_basis,
                         fit_student, fit_teacher, paths_by_class, traffic_source)
-from generator_budget import TEST_VIEWS, composition_moments, embed_orbit, source_priors
+from generator_budget import ORBIT_ORDERS, TEST_VIEWS, composition_moments, embed_orbit, source_priors
 
 
 def source_adapter_priors(views, budget, seed, *, reference_views=None):
@@ -50,6 +50,15 @@ def hybrid_precisions(path, split, seed):
             "hybrid_three_quarters": .75 * path + .25 * split,
             "hybrid_covariance": harmonic / (np.trace(harmonic) / len(harmonic)),
             "hybrid_rotated": rotation @ halfway @ rotation.T}
+
+
+def shared_axis_precisions(horizontal, vertical, seed):
+    h_values, h_basis = np.linalg.eigh(horizontal)
+    v_values, v_basis = np.linalg.eigh(vertical)
+    values = (h_values + v_values) / 2
+    rotated, _ = np.linalg.qr(np.random.default_rng(seed + 7100).normal(size=horizontal.shape))
+    return {key: (basis * values) @ basis.T for key, basis in
+            (("axis_horizontal", h_basis), ("axis_vertical", v_basis), ("axis_rotated", rotated))}
 
 
 def spectral_block_precisions(path, split, seed, *, orientation_control=False):
@@ -176,6 +185,9 @@ def fit_target(center, bias, init_head, supports, labels, queries, truth, precis
         metrics = {"clean": correct[0].float().mean().item(), "all_views": correct.all(0).float().mean().item(),
                    "adapter_rms_change": residual.item(),
                    **{key: (correct[0] & correct[index]).float().mean().item() for key, index in TEST_VIEWS.items()}}
+        if args.path_axes:
+            index = ORBIT_ORDERS["vertical"][TEST_VIEWS["composition"]]
+            metrics["vertical_composition"] = (correct[0] & correct[index]).float().mean().item()
         if radii is not None:
             metrics["max_rms_gap"] = (torch.stack(history) - torch.stack(radii)).abs().max().item()
         return metrics, history
@@ -204,6 +216,15 @@ def run(train, test, args, seed, device, traffic_paths=None):
     action_penalties = {}
     diagnostics = {}
     extra_precisions = {}
+    if args.path_axes:
+        centered = source_views - offset
+        vertical_orbit = centered[list(ORBIT_ORDERS["vertical"])]
+        _, vertical_priors, vertical_error, _ = source_adapter_priors(
+            vertical_orbit, args.budget, seed, reference_views=centered)
+        axes = shared_axis_precisions(priors["path"], vertical_priors["path"], seed)
+        extra_precisions.update({name: torch.as_tensor(precision, device=device, dtype=weights.dtype)
+                                 for name, precision in axes.items()})
+        diagnostics["vertical_moment_error"] = vertical_error
     if auxiliary_probe is not None:
         auxiliary_views = embed_orbit(stem, auxiliary_probe, device, args.batch_size)
         auxiliary_views -= auxiliary_views.mean(axis=(0, 1))
@@ -343,6 +364,8 @@ def main():
                         help="mix separate-generator precision into one path eigenspace at a time")
     parser.add_argument("--spectral-orientation", action="store_true",
                         help="test off-diagonal signs in the high-precision path eigenspace")
+    parser.add_argument("--path-axes", action="store_true",
+                        help="compare horizontal- and vertical-reflection paths with a shared precision spectrum")
     parser.add_argument("--gtsrb-data", type=Path, default=Path("/tmp/ibt-gtsrb-data"))
     parser.add_argument("--output", type=Path, default=HERE / "results/adapter_paths/metrics.json")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
@@ -381,7 +404,7 @@ def main():
     if (args.teacher_row_prior or args.intertwining_prior or args.target_row_prior or args.target_row_labels
             or args.target_row_scatter or args.target_row_coupling
             or args.compare_probe_domain
-            or args.hybrid_prior or args.spectral_blocks or args.spectral_orientation):
+            or args.hybrid_prior or args.spectral_blocks or args.spectral_orientation or args.path_axes):
         args.match_update_rms = True
     if args.probe_examples < 2 or not 0 < args.budget < 1 or args.penalty < 0:
         parser.error("need at least two probe examples per class, a variance budget in (0, 1), and a nonnegative penalty")

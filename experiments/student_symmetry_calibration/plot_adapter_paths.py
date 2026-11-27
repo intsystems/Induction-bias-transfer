@@ -55,6 +55,9 @@ ORIENTATION_METHODS = {"path_matched": "Path prior", "global_quarter_split_match
                        "block_high_matched": "High block · aligned", "block_high_signed_matched": "High block · sign flips",
                        "block_high_diagonal_matched": "High block · diagonal",
                        "block_high_rotated_matched": "High block · rotated"}
+AXIS_METHODS = {"axis_horizontal_matched": "Horizontal-reflection path",
+                "axis_vertical_matched": "Vertical-reflection path",
+                "axis_rotated_matched": "Rotated basis"}
 
 
 def main():
@@ -85,13 +88,17 @@ def main():
         methods = SPECTRAL_METHODS
     if data["config"].get("spectral_orientation", False):
         methods = ORIENTATION_METHODS
+    panels = (("clean", "Clean"), ("composition", "Clean and composition"), ("all_views", "All eight views"))
+    if data["config"].get("path_axes", False):
+        methods = AXIS_METHODS
+        panels = (("composition", "Clean and horizontal-reflection composition"),
+                  ("vertical_composition", "Clean and vertical-reflection composition"),
+                  ("all_views", "All eight views"))
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     if source := data["config"].get("source_domain"):
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]
         fig.suptitle(f"Source {label} · Target CIFAR-10")
-    for ax, (metric, title) in zip(axes, (("clean", "Clean"),
-                                         ("composition", "Clean and composition"),
-                                         ("all_views", "All eight views")), strict=True):
+    for ax, (metric, title) in zip(axes, panels, strict=True):
         for name, label in methods.items():
             values = [100 * np.mean([episode[name][metric] for run in data["runs"] for episode in run["shots"][str(n)]])
                       for n in shots]
