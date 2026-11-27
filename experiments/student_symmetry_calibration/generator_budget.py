@@ -45,12 +45,15 @@ def normalize_moment(moment):
     return moment / max(np.trace(moment) / len(moment), 1e-12)
 
 
-def composition_moments(orbit):
+def composition_moments(orbit, path_composition=False):
     """Build composition moments from disjoint sets of rotation and reflection pairs."""
     width = orbit.shape[-1]
     folds = np.arange(orbit.shape[1]) % 4
     ridge = .001 * np.eye(width)
-    moments = {key: np.zeros((width, width)) for key in ("plug_in", "additive", "transported")}
+    names = ("plug_in", "additive", "transported")
+    if path_composition:
+        names += ("reverse_path", "mean_prediction", "mean_moment", "wrong_prediction")
+    moments = {key: np.zeros((width, width)) for key in names}
     for holdout in (folds < 2, folds >= 2):
         operators, innovations = [], []
         for parity, action in enumerate((ROTATION, REFLECTION)):
@@ -59,7 +62,11 @@ def composition_moments(orbit):
             x = train.reshape(-1, width)
             y = train[np.asarray(action)].reshape(-1, width)
             gram = x.T @ x / len(x)
-            operator = np.linalg.solve(gram + ridge, x.T @ y / len(x))
+            cross = x.T @ y / len(x)
+            operator = np.linalg.solve(gram + ridge, cross)
+            if path_composition and parity == 0:
+                # Reversing the pairs preserves the Gram matrix on each complete orbit.
+                inverse_rotation = np.linalg.solve(gram + ridge, cross.T)
             validation = orbit[:, holdout & use_action]
             residual = (validation[np.asarray(action)] - validation @ operator).reshape(-1, width)
             operators.append(operator)
@@ -72,6 +79,15 @@ def composition_moments(orbit):
         moments["plug_in"] += plug_in
         moments["additive"] += plug_in + rotation_error + reflection_error
         moments["transported"] += plug_in + reflection.T @ rotation_error @ reflection + reflection_error
+        if path_composition:
+            reverse = points - points @ reflection @ inverse_rotation
+            mean = (difference + reverse) / 2
+            wrong = (difference + points - points @ reflection @ rotation) / 2
+            reverse_moment = reverse.T @ reverse / len(reverse)
+            moments["reverse_path"] += reverse_moment
+            moments["mean_prediction"] += mean.T @ mean / len(mean)
+            moments["mean_moment"] += (plug_in + reverse_moment) / 2
+            moments["wrong_prediction"] += wrong.T @ wrong / len(wrong)
     return {key: normalize_moment(moment) for key, moment in moments.items()}
 
 
@@ -121,7 +137,8 @@ def generator_balanced(moments, requested):
     return covariance, achieved.tolist(), float(weight), float(budget)
 
 
-def source_priors(probe, budget, seed, generator_controls=False, operator_composition=False):
+def source_priors(probe, budget, seed, generator_controls=False, operator_composition=False,
+                  path_composition=False):
     width = probe.shape[-1]
     flat = probe.reshape(-1, width)
     ridge = 1e-4 * max(float(np.mean(flat ** 2)), 1e-12)
@@ -143,7 +160,7 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
             for i in range(4):
                 rotation, _ = np.linalg.qr(rng.normal(size=(width, width)))
                 natural[f"orbit_rotated_{i}"] = rotation @ joint @ rotation.T
-            if generator_controls or operator_composition:
+            if generator_controls or operator_composition or path_composition:
                 composition, = generator_moments(orbit, complete, (COMPOSITION,))
                 action_moments = np.concatenate([moments, composition[None]], axis=0)
                 for key, moment in zip(("rotation", "reflection", "composition"), action_moments, strict=True):
@@ -152,18 +169,20 @@ def source_priors(probe, budget, seed, generator_controls=False, operator_compos
                     diagnostics["orbit"][f"{key}_only"] = np.einsum("gij,ij->g", action_moments, control).tolist()
                 diagnostics["orbit"]["balanced_composition"] = float(np.sum(joint * composition))
                 diagnostics["orbit"]["average_composition"] = float(np.sum(average * composition))
-    if operator_composition:
+    if operator_composition or path_composition:
         split_moments = np.concatenate([
             generator_moments(orbit[:, parity::2], True, (action,))
             for parity, action in enumerate((ROTATION, REFLECTION))
         ])
         natural["split_balanced"], _, _, _ = generator_balanced(split_moments, budget)
-        inferred = composition_moments(orbit)
+        inferred = composition_moments(orbit, path_composition)
         for key, moment in inferred.items():
             natural[f"composition_{key}"] = budget_covariance(moment, budget)
         for i in range(4):
             axes, _ = np.linalg.qr(rng.normal(size=(width, width)))
             natural[f"transported_rotated_{i}"] = axes @ natural["composition_transported"] @ axes.T
+            if path_composition:
+                natural[f"path_rotated_{i}"] = axes @ natural["composition_mean_prediction"] @ axes.T
         composition_scale = max(float(np.linalg.norm(composition)), 1e-12)
         diagnostics["composition_operators"] = {
             "relative_moment_error": {key: float(np.linalg.norm(moment - composition) / composition_scale)
@@ -185,7 +204,7 @@ def run(train, test, args, seed, device):
     source_views = embed_orbit(student, probe[1::2], device, args.batch_size)
     center = source_views.mean(axis=(0, 1))
     priors, diagnostics = source_priors(source_views - center, args.budget, seed,
-                                       args.generator_controls, args.operator_composition)
+                                       args.generator_controls, args.operator_composition, args.path_composition)
     supports = {k: embed_orbit(student, v, device, args.batch_size)[0] - center for k, v in support.items()}
     queries = np.concatenate([embed_orbit(student, test_views[k], device, args.batch_size)
                               for k in target], axis=1) - center
@@ -228,11 +247,13 @@ def main():
                         help="include full-orbit priors estimated from each action alone")
     parser.add_argument("--operator-composition", action="store_true",
                         help="infer composition moments from disjoint generator pairs")
+    parser.add_argument("--path-composition", action="store_true",
+                        help="compare two equivalent paths estimated from disjoint generator pairs")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
     if not 0 < args.budget < 1 or args.noise <= 0:
         parser.error("need a variance budget in (0, 1) and positive noise")
-    if args.operator_composition and args.probe_examples < 2:
+    if (args.operator_composition or args.path_composition) and args.probe_examples < 2:
         parser.error("operator composition needs at least two probe examples per source class")
     torch.set_num_threads(2)
     device = torch.device(args.device)

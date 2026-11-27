@@ -23,6 +23,13 @@ OPERATOR_METHODS = {"split_balanced": "Separate budgets · split pairs",
                     "composition_transported": "Transported residuals",
                     "orbit_composition_only": "Direct composition pairs",
                     "transported_rotated": "Rotated transported spectrum"}
+PATH_METHODS = {"composition_plug_in": "Quarter-turn, then reflection",
+                "composition_reverse_path": "Reflection, then inverse quarter-turn",
+                "composition_mean_prediction": "Mean of equivalent predictions",
+                "composition_mean_moment": "Mean of equivalent moments",
+                "composition_wrong_prediction": "Mean with non-equivalent path",
+                "orbit_composition_only": "Direct composition pairs",
+                "path_rotated": "Rotated mean-prediction spectrum"}
 
 
 def main():
@@ -35,7 +42,10 @@ def main():
     metrics = [("rotation", "Clean and quarter-turn"), ("composition", "Clean and composed transform"),
                ("all_views", "All eight views")]
     methods = METHODS
-    if data["config"].get("operator_composition", False):
+    if data["config"].get("path_composition", False):
+        methods = PATH_METHODS
+        metrics.insert(0, ("reflection", "Clean and reflection"))
+    elif data["config"].get("operator_composition", False):
         methods = OPERATOR_METHODS
         metrics.insert(0, ("reflection", "Clean and reflection"))
     elif data["config"].get("generator_controls", False):
