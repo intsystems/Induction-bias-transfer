@@ -120,6 +120,10 @@ def main():
         panels = (("composition", "Horizontal-reflection composition"),
                   ("vertical_composition", "Vertical-reflection composition"),
                   ("both_compositions", "Clean and both compositions"))
+    if data["config"].get("path_axis_interpolation", False):
+        panels = (("both_compositions_45", "Both compositions · 45°"),
+                  ("both_compositions", "Both compositions · 90°"),
+                  ("both_compositions_135", "Both compositions · 135°"))
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
     if source := data["config"].get("source_domain"):
         label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]

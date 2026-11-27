@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import math
 import time
 from pathlib import Path
 
@@ -13,6 +14,8 @@ from torch.nn import functional as F
 from experiment import (CIFAR10, GTSRB, HERE, TRAFFIC_SOURCE, class_split, data_partitions, discover_basis,
                         fit_student, fit_teacher, paths_by_class, traffic_source)
 from generator_budget import ORBIT_ORDERS, TEST_VIEWS, composition_moments, embed_orbit, source_priors
+
+INTERMEDIATE_ANGLES = (45, 135)
 
 
 def source_adapter_priors(views, budget, seed, *, reference_views=None):
@@ -159,15 +162,39 @@ def composition_action_penalties(stem_action, teacher_views, seed):
     return penalties
 
 
+@torch.inference_mode()
+def embed_intermediate_compositions(stem, images, device, batch_size):
+    views = [[] for _ in range(2 * len(INTERMEDIATE_ANGLES))]
+    for batch in images.split(batch_size):
+        pixels = batch.to(device=device, dtype=torch.float32)
+        if images.dtype == torch.uint8:
+            pixels = pixels / 255
+        for i, degrees in enumerate(INTERMEDIATE_ANGLES):
+            angle = math.radians(degrees)
+            cosine, sine = math.cos(angle), math.sin(angle)
+            matrix = pixels.new_tensor(((cosine, -sine, 0.), (sine, cosine, 0.)))
+            grid = F.affine_grid(matrix.expand(len(pixels), -1, -1), pixels.shape, align_corners=False)
+            rotated = F.grid_sample(pixels, grid, padding_mode="border", align_corners=False)
+            for j, axis in enumerate((-1, -2)):
+                views[2 * i + j].append(stem(rotated.flip(axis)).cpu().numpy())
+    return np.stack([np.concatenate(view) for view in views])
+
+
 def target_accuracies(logits, truth, args):
     correct = logits.argmax(-1) == truth
-    metrics = {"clean": correct[0].float().mean().item(), "all_views": correct.all(0).float().mean().item(),
+    metrics = {"clean": correct[0].float().mean().item(), "all_views": correct[:8].all(0).float().mean().item(),
                **{key: (correct[0] & correct[index]).float().mean().item() for key, index in TEST_VIEWS.items()}}
     if args.path_axes:
         horizontal = TEST_VIEWS["composition"]
         vertical = ORBIT_ORDERS["vertical"][horizontal]
         metrics["vertical_composition"] = (correct[0] & correct[vertical]).float().mean().item()
         metrics["both_compositions"] = (correct[0] & correct[horizontal] & correct[vertical]).float().mean().item()
+    if args.path_axis_interpolation:
+        for i, angle in enumerate(INTERMEDIATE_ANGLES):
+            first, second = correct[8 + 2 * i:10 + 2 * i]
+            metrics[f"horizontal_composition_{angle}"] = (correct[0] & first).float().mean().item()
+            metrics[f"vertical_composition_{angle}"] = (correct[0] & second).float().mean().item()
+            metrics[f"both_compositions_{angle}"] = (correct[0] & first & second).float().mean().item()
     return metrics
 
 
@@ -349,8 +376,14 @@ def run(train, test, args, seed, device, traffic_paths=None):
         return torch.as_tensor((views - offset) @ whitener, device=device, dtype=weights.dtype)
 
     supports = {label: coordinates(embed_orbit(stem, v, device, args.batch_size)[0]) for label, v in support.items()}
-    target_views = coordinates(np.concatenate([embed_orbit(stem, queries[k], device, args.batch_size)
-                                                for k in target], axis=1))
+    views = []
+    for key in target:
+        orbit = embed_orbit(stem, queries[key], device, args.batch_size)
+        if args.path_axis_interpolation:
+            additional = embed_intermediate_compositions(stem, queries[key], device, args.batch_size)
+            orbit = np.concatenate((orbit, additional), axis=0)
+        views.append(orbit)
+    target_views = coordinates(np.concatenate(views, axis=1))
     truth = torch.arange(len(target), device=device).repeat_interleave(args.test_per_class)
     rng = np.random.default_rng(seed + 422)
     rows = {str(n): [] for n in args.shots}
@@ -472,7 +505,11 @@ def main():
                               help="compare additive and product penalties with equal marginal strengths")
     output_prior.add_argument("--path-axis-output", action="store_true",
                               help="cross target centroid output geometry with two-axis input priors")
+    output_prior.add_argument("--path-axis-interpolation", action="store_true",
+                              help="evaluate two-axis output priors at unseen intermediate rotation angles")
     args = parser.parse_args()
+    if args.path_axis_interpolation:
+        args.path_axis_output = True
     if args.path_axis_mixture or args.path_axis_ensemble or args.path_axis_output:
         args.path_axes = True
     if args.compare_probe_domain and args.source_domain != "gtsrb":
