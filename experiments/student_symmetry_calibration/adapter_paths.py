@@ -61,18 +61,20 @@ def shared_axis_precisions(horizontal, vertical, seed):
             (("axis_horizontal", h_basis), ("axis_vertical", v_basis), ("axis_rotated", rotated))}
 
 
-def axis_mixture_precisions(horizontal, vertical, seed):
+def axis_mixture_precisions(horizontal, vertical, seed, *, include_log=True):
+    arithmetic = (horizontal + vertical) / 2
+    rotation, _ = np.linalg.qr(np.random.default_rng(seed + 7200).normal(size=horizontal.shape))
+    result = {"axis_arithmetic": arithmetic, "axis_arithmetic_rotated": rotation @ arithmetic @ rotation.T}
+    if not include_log:
+        return result
     h_values, h_basis = np.linalg.eigh(horizontal)
     v_values, v_basis = np.linalg.eigh(vertical)
     log_mean = ((h_basis * np.log(h_values)) @ h_basis.T + (v_basis * np.log(v_values)) @ v_basis.T) / 2
     log_values, log_basis = np.linalg.eigh(log_mean)
     geometric = (log_basis * np.exp(log_values)) @ log_basis.T
     geometric /= np.trace(geometric) / len(geometric)
-    arithmetic = (horizontal + vertical) / 2
-    rotation, _ = np.linalg.qr(np.random.default_rng(seed + 7200).normal(size=horizontal.shape))
-    return {"axis_arithmetic": arithmetic, "axis_log_mean": geometric,
-            "axis_arithmetic_rotated": rotation @ arithmetic @ rotation.T,
-            "axis_log_mean_rotated": rotation @ geometric @ rotation.T}
+    result.update(axis_log_mean=geometric, axis_log_mean_rotated=rotation @ geometric @ rotation.T)
+    return result
 
 
 def spectral_block_precisions(path, split, seed, *, orientation_control=False):
@@ -268,8 +270,9 @@ def run(train, test, args, seed, device, traffic_paths=None):
         _, vertical_priors, vertical_error, _ = source_adapter_priors(
             vertical_orbit, args.budget, seed, reference_views=centered)
         axes = shared_axis_precisions(priors["path"], vertical_priors["path"], seed)
-        if args.path_axis_mixture:
-            axes.update(axis_mixture_precisions(axes["axis_horizontal"], axes["axis_vertical"], seed))
+        if args.path_axis_mixture or args.path_axis_output:
+            axes.update(axis_mixture_precisions(axes["axis_horizontal"], axes["axis_vertical"], seed,
+                                                include_log=args.path_axis_mixture))
         if args.path_axis_ensemble:
             axes["axis_arithmetic"] = (axes["axis_horizontal"] + axes["axis_vertical"]) / 2
             axes["axis_rotated_partner"] = shared_axis_precisions(priors["path"], vertical_priors["path"], seed + 9000)[
@@ -328,9 +331,14 @@ def run(train, test, args, seed, device, traffic_paths=None):
         }
         diagnostics["action_penalty_normalizers"] = {key: scale for key, (_, _, scale) in matrices.items()}
     target_rows_enabled = (args.target_row_prior or args.target_row_labels or args.target_row_scatter
-                           or args.target_row_coupling)
+                           or args.target_row_coupling or args.path_axis_output)
     couplings = ("product", "additive") if args.target_row_coupling else (None,)
     if target_rows_enabled:
+        if args.path_axis_output:
+            target_inputs = {name: extra_precisions[name] for name in
+                             ("axis_horizontal", "axis_vertical", "axis_arithmetic", "axis_arithmetic_rotated")}
+        else:
+            target_inputs = {name: precisions[name] for name in ("path", "rotated")}
         shape = (len(weights), len(weights))
         rotation, _ = np.linalg.qr(np.random.default_rng(seed + 6100).normal(size=shape))
         target_rotation = torch.as_tensor(rotation, device=device, dtype=weights.dtype)
@@ -378,13 +386,13 @@ def run(train, test, args, seed, device, traffic_paths=None):
                         permutation = torch.randperm(len(design), device=device, generator=label_shuffle)
                     target_rows = target_row_precisions(weights, design, len(target), n, target_rotation,
                                                         permutation=permutation, scatter=args.target_row_scatter)
-                    for input_name in ("path", "rotated"):
+                    for input_name, input_precision in target_inputs.items():
                         for output_name, row_precision in target_rows.items():
                             name = f"target_rows_{input_name}_{output_name}"
                             for coupling in couplings:
                                 key = f"{name}_{coupling}" if coupling else name
                                 results[key], _ = fit_target(
-                                    weights, bias, head, design, labels, target_views, truth, precisions[input_name],
+                                    weights, bias, head, design, labels, target_views, truth, input_precision,
                                     args, radii=reference_radii, row_precision=row_precision, coupling=coupling
                                 )
                 for name, action_penalty in action_penalties.items():
@@ -462,8 +470,10 @@ def main():
                               help="adjust target centroid directions for within-class or total scatter")
     output_prior.add_argument("--target-row-coupling", action="store_true",
                               help="compare additive and product penalties with equal marginal strengths")
+    output_prior.add_argument("--path-axis-output", action="store_true",
+                              help="cross target centroid output geometry with two-axis input priors")
     args = parser.parse_args()
-    if args.path_axis_mixture or args.path_axis_ensemble:
+    if args.path_axis_mixture or args.path_axis_ensemble or args.path_axis_output:
         args.path_axes = True
     if args.compare_probe_domain and args.source_domain != "gtsrb":
         parser.error("probe-domain comparison requires --source-domain gtsrb")
