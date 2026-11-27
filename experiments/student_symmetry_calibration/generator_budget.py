@@ -13,6 +13,7 @@ from experiment import (CIFAR10, HERE, budget_weights, class_split, data_partiti
 
 ROTATION = (2, 7, 4, 1, 6, 3, 0, 5)
 REFLECTION = (1, 0, 3, 2, 5, 4, 7, 6)
+COMPOSITION = tuple(REFLECTION[i] for i in ROTATION)
 TEST_VIEWS = {"reflection": 1, "rotation": 2, "composition": 3, "half_turn": 4}
 
 
@@ -30,10 +31,10 @@ def embed_orbit(student, images, device, batch_size):
     return np.stack([np.concatenate(view) for view in views]).astype(np.float64)
 
 
-def generator_moments(orbit, complete):
+def generator_moments(orbit, complete, actions=(ROTATION, REFLECTION)):
     outputs = []
     start = np.arange(8) if complete else np.array([0])
-    for action in (ROTATION, REFLECTION):
+    for action in actions:
         error = ((orbit[start] - orbit[np.asarray(action)[start]]) / 2).reshape(-1, orbit.shape[-1])
         moment = error.T @ error / len(error)
         outputs.append(moment / max(np.trace(moment) / len(moment), 1e-12))
@@ -86,7 +87,7 @@ def generator_balanced(moments, requested):
     return covariance, achieved.tolist(), float(weight), float(budget)
 
 
-def source_priors(probe, budget, seed):
+def source_priors(probe, budget, seed, generator_controls=False):
     width = probe.shape[-1]
     flat = probe.reshape(-1, width)
     ridge = 1e-4 * max(float(np.mean(flat ** 2)), 1e-12)
@@ -108,6 +109,15 @@ def source_priors(probe, budget, seed):
             for i in range(4):
                 rotation, _ = np.linalg.qr(rng.normal(size=(width, width)))
                 natural[f"orbit_rotated_{i}"] = rotation @ joint @ rotation.T
+            if generator_controls:
+                composition, = generator_moments(orbit, complete, (COMPOSITION,))
+                action_moments = np.concatenate([moments, composition[None]], axis=0)
+                for key, moment in zip(("rotation", "reflection", "composition"), action_moments, strict=True):
+                    control = budget_covariance(moment, budget)
+                    natural[f"orbit_{key}_only"] = control
+                    diagnostics["orbit"][f"{key}_only"] = np.einsum("gij,ij->g", action_moments, control).tolist()
+                diagnostics["orbit"]["balanced_composition"] = float(np.sum(joint * composition))
+                diagnostics["orbit"]["average_composition"] = float(np.sum(average * composition))
     return {k: whitener @ v @ whitener.T for k, v in natural.items()}, diagnostics
 
 
@@ -120,7 +130,7 @@ def run(train, test, args, seed, device):
     student = fit_student(x, teacher, basis, mean, args, seed + 100)
     source_views = embed_orbit(student, probe[1::2], device, args.batch_size)
     center = source_views.mean(axis=(0, 1))
-    priors, diagnostics = source_priors(source_views - center, args.budget, seed)
+    priors, diagnostics = source_priors(source_views - center, args.budget, seed, args.generator_controls)
     supports = {k: embed_orbit(student, v, device, args.batch_size)[0] - center for k, v in support.items()}
     queries = np.concatenate([embed_orbit(student, test_views[k], device, args.batch_size)
                               for k in target], axis=1) - center
@@ -159,6 +169,8 @@ def main():
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--budget", type=float, default=.25)
+    parser.add_argument("--generator-controls", action="store_true",
+                        help="include full-orbit priors estimated from each action alone")
     parser.add_argument("--noise", type=float, default=.45)
     args = parser.parse_args()
     if not 0 < args.budget < 1 or args.noise <= 0:

@@ -13,6 +13,9 @@ RESULTS = Path(__file__).resolve().parent / "results/generator_budget"
 METHODS = {"isotropic": "Isotropic", "canonical_average": "Canonical edges · average",
            "canonical_balanced": "Canonical edges · balanced", "orbit_average": "Orbit edges · average",
            "orbit_balanced": "Orbit edges · balanced", "orbit_rotated": "Rotated spectrum"}
+CONTROL_METHODS = {"orbit_rotation_only": "Quarter-turn only", "orbit_reflection_only": "Reflection only",
+                   "orbit_composition_only": "Composition only", "orbit_average": "Shared budget",
+                   "orbit_balanced": "Separate budgets", "orbit_rotated": "Rotated spectrum"}
 
 
 def main():
@@ -22,11 +25,15 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
-    for ax, (metric, title) in zip(axes, (("rotation", "Clean and quarter-turn"),
-                                         ("composition", "Clean and composed transform"),
-                                         ("all_views", "All eight views")), strict=True):
-        for key, label in METHODS.items():
+    metrics = [("rotation", "Clean and quarter-turn"), ("composition", "Clean and composed transform"),
+               ("all_views", "All eight views")]
+    methods = METHODS
+    if data["config"].get("generator_controls", False):
+        methods = CONTROL_METHODS
+        metrics.insert(0, ("reflection", "Clean and reflection"))
+    fig, axes = plt.subplots(1, len(metrics), figsize=(17 if len(metrics) == 4 else 13, 4), layout="constrained")
+    for ax, (metric, title) in zip(axes, metrics, strict=True):
+        for key, label in methods.items():
             names = [f"{key}_{i}" for i in range(4)] if key == "orbit_rotated" else [key]
             values = [100 * np.mean([ep[name][metric] for r in data["runs"] for ep in r["shots"][str(n)]
                                      for name in names]) for n in shots]
