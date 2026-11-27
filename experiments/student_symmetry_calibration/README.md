@@ -1958,3 +1958,21 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/adapter_paths.py" \
 В проверенной смеси штрафов согласование с действием учителя не усилило перенос относительно входного априора или повёрнутого контроля. Результат относится к средней смеси двух штрафов, оценённым линейным действиям и фиксированной траектории нормы. Интервалы 95%, парные по разбиениям.
 
 [График](results/adapter_intertwining/curves.png) · [Метрики и нормировки штрафа](results/adapter_intertwining/metrics.json)
+
+### Междоменный перенос композиционного априора на адаптер
+
+Обучаем учителя и студента на четырёх классах GTSRB и строим композиционный априор по признакам студента на других треках этих классов. В контрольном запуске используем исходные классы CIFAR-10. Оба источника проверяем на одних и тех же целевых классах, изображениях и эпизодах CIFAR-10. При дообучении доступны только чистые целевые изображения. На каждом шаге норма обновления адаптера совпадает между априором по путям и повёрнутым контролем с тем же спектром внутри каждого источника.
+
+Основной контраст на seed 1085–1100 при 20 метках на класс и 35 шагах сравнивает априор по путям с повёрнутым спектром при источнике GTSRB. Метрика — точность одновременно на исходном виде и композиции. Дополнительно измеряем этот же выигрыш с источником CIFAR-10, разность выигрышей между источниками и точность на всех восьми видах. Смена источника одновременно меняет обученное представление, его ширину и данные оценки априора.
+
+```bash
+dir=experiments/student_symmetry_calibration
+run="$dir/results/adapter_source_shift"
+export OPENBLAS_NUM_THREADS=1
+~/venv/bin/python "$dir/adapter_paths.py" --match-update-rms --source-domain gtsrb \
+  --seeds $(seq 1085 1100) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_adapter_paths.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+~/venv/bin/python "$dir/adapter_paths.py" --match-update-rms --source-domain cifar \
+  --seeds $(seq 1085 1100) --output "$run/cifar_metrics.json"
+~/venv/bin/python "$dir/plot_adapter_paths.py" --metrics "$run/cifar_metrics.json" --output "$run/cifar_curves.png"
+```

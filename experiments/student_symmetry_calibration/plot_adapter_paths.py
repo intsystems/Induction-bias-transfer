@@ -37,6 +37,9 @@ def main():
     elif data["config"].get("intertwining_prior", False):
         methods = ACTION_METHODS
     fig, axes = plt.subplots(1, 3, figsize=(13, 4), layout="constrained")
+    if source := data["config"].get("source_domain"):
+        label = {"cifar": "CIFAR-10", "gtsrb": "GTSRB"}[source]
+        fig.suptitle(f"Source {label} · Target CIFAR-10")
     for ax, (metric, title) in zip(axes, (("clean", "Clean"),
                                          ("composition", "Clean and composition"),
                                          ("all_views", "All eight views")), strict=True):
