@@ -87,12 +87,17 @@ def plot_target_pairs(rows, shots):
     return fig
 
 
-def plot_active_target_pairs(rows, shots):
+def plot_active_target_pairs(rows, shots, *, sequential=False):
     fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
     n = 20 if 20 in shots else shots[0]
-    counts = sorted({0, 1, min(3, n), min(5, n)})
+    counts = {0, 1, min(3, n), min(5, n)}
     methods = {"constraint": "Random", "expected_update": "Expected update",
                "action_leverage": "Action leverage", "clean_leverage": "Clean leverage"}
+    if sequential:
+        counts.add(min(2, n))
+        methods = {"constraint": "Random", "expected_update": "One-step selection",
+                   "actual_feedback": "Observed feedback", "predicted_feedback": "Predicted feedback"}
+    counts = sorted(counts)
     for ax, prior, title in zip(axes, ("split_balanced", "composition_mean_moment"),
                                 ("Separate source budgets", "Source path moments"), strict=True):
         for rule, label in methods.items():
@@ -124,8 +129,10 @@ def main():
         fig.savefig(args.output, dpi=170)
         return
     if data["config"].get("target_pairs", False):
-        plot_pairs = plot_active_target_pairs if data["config"].get("active_target_pairs", False) else plot_target_pairs
-        fig = plot_pairs(rows, shots)
+        if data["config"].get("active_target_pairs", False):
+            fig = plot_active_target_pairs(rows, shots, sequential=data["config"].get("sequential_target_pairs", False))
+        else:
+            fig = plot_target_pairs(rows, shots)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(args.output, dpi=170)
         return
