@@ -97,6 +97,10 @@ TRACK_HEAD_PREDICTED_METHODS = {"raw": "Uniform parity blocks", "head_same_class
 TRACK_HEAD_SOURCE_SPLIT_METHODS = {"raw": "Uniform parity blocks", "head_same_class": "Full training-track basis",
                                    "head_matched_train": "Matched training tracks",
                                    "head_matched_probe": "Matched held-out tracks", "head_rotated": "Rotated basis"}
+TRACK_HEAD_SYNTHETIC_METHODS = {"raw": "Uniform parity blocks", "head_same_class": "Natural track pairs",
+                                 "head_synthetic_pairs": "Synthetic pose pairs",
+                                 "head_natural_synthetic": "Natural and synthetic mixture",
+                                 "head_rotated": "Rotated basis"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -129,6 +133,8 @@ def main():
     methods = METHODS
     if results["config"].get("track_parity_prior_route", False):
         methods = TRACK_PARITY_PRIOR_ROUTE_METHODS
+    elif results["config"].get("track_head_synthetic", False):
+        methods = TRACK_HEAD_SYNTHETIC_METHODS
     elif results["config"].get("track_head_source_split", False):
         methods = TRACK_HEAD_SOURCE_SPLIT_METHODS
     elif results["config"].get("track_head_predicted", False):

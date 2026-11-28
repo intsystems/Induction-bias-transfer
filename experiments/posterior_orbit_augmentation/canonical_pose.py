@@ -527,7 +527,17 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             residuals[1], source_labels.numpy()[eligible], probe_latent, probe_labels.numpy(),
             probe_partners["same_class"].numpy(), seed + 1100)
         additional_residuals.update(matched)
+    if args.track_head_synthetic:
+        rng_pose = torch.Generator(device=source.device).manual_seed(seed + 1200)
+        distorted = []
+        for indices in torch.from_numpy(eligible).split(args.batch_size):
+            images = source[indices]
+            pose = torch.rand(len(images), 3, device=source.device, generator=rng_pose) - .5
+            distorted.append(teacher.encode(pose_warp(images, pose)) @ basis)
+        additional_residuals["head_synthetic_pairs"] = latent[eligible] - torch.cat(distorted).cpu().numpy()
     names.extend(additional_residuals)
+    if args.track_head_synthetic:
+        names.append("head_natural_synthetic")
     if args.track_head_spectrum:
         names.extend(spectrum_names)
     priors = {name: np.zeros((2, width, width)) for name in names}
@@ -547,6 +557,12 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
         for residual in (*student_residuals, *additional_residuals.values()):
             part = residual[:, block].astype(np.float64)
             bases.append(np.linalg.eigh(part.T @ part)[1])
+        if args.track_head_synthetic:
+            synthetic = additional_residuals["head_synthetic_pairs"][:, block].astype(np.float64)
+            synthetic_moment = synthetic.T @ synthetic / len(synthetic)
+            mixed = moments[1] / max(float(np.trace(moments[1])), 1e-12)
+            mixed += synthetic_moment / max(float(np.trace(synthetic_moment)), 1e-12)
+            bases.append(np.linalg.eigh(mixed)[1])
         spectrum = track_prior_spectrum(energies)
         spectra = {name: spectrum for name in names}
         if args.track_head_spectrum:
@@ -1304,6 +1320,7 @@ def main():
     selection.add_argument("--track-head-spectrum", action="store_true")
     selection.add_argument("--track-head-predicted", action="store_true")
     selection.add_argument("--track-head-source-split", action="store_true")
+    selection.add_argument("--track-head-synthetic", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1312,7 +1329,7 @@ def main():
     if (args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget
             or args.track_head_blocks or args.track_head_pair_control or args.track_head_distance
             or args.track_head_neighbors or args.track_head_spectrum or args.track_head_predicted
-            or args.track_head_source_split):
+            or args.track_head_source_split or args.track_head_synthetic):
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1330,6 +1347,8 @@ def main():
     if args.output is None:
         if args.track_parity_prior_route:
             name = "track_parity_prior_route"
+        elif args.track_head_synthetic:
+            name = "track_head_synthetic"
         elif args.track_head_source_split:
             name = "track_head_source_split"
         elif args.track_head_predicted:
