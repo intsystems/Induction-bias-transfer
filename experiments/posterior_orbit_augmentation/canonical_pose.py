@@ -15,7 +15,7 @@ import torch
 
 from experiment import (GTSRB, HERE, TASKS, PoseGenerator, batches, discover_basis, embed,
                         fit_student, fit_teacher, predict, preprocess, prior_kernels)
-from reflection_evidence.experiment import MIXTURE, paths_by_class
+from reflection_evidence.experiment import FoldedReflectionStudent, MIXTURE, paths_by_class
 
 ANGLE = math.radians(32)
 SHIFT = .24
@@ -777,6 +777,48 @@ def add_track_readout(name, support, original, query, prior, distilled_support):
             query[label][strength][0][name] = values["raw"]
 
 
+@torch.inference_mode()
+def compare_folded_projection(student, folded, probe, odd, device):
+    sign = torch.where(odd, -1., 1.)
+
+    def two_views(batch):
+        clean, reflected = student(torch.cat((batch, batch.flip(-1)))).chunk(2)
+        return (clean + reflected * sign) / 2
+
+    timings = {}
+    max_error = 0.
+    for size in sorted({min(size, len(probe)) for size in (16, 64, 128)}):
+        batch = probe[:size]
+        max_error = max(max_error, float((two_views(batch) - folded(batch)).abs().max()))
+        samples = {"two_view": [], "folded": []}
+        methods = (("two_view", two_views), ("folded", folded))
+        for _, method in methods:
+            for _ in range(10):
+                method(batch)
+        if device.type == "cuda":
+            stream = torch.cuda.current_stream(device)
+            torch.cuda.synchronize(device)
+        for index in range(6):
+            for name, method in (methods if index % 2 == 0 else methods[::-1]):
+                if device.type == "cuda":
+                    start = torch.cuda.Event(enable_timing=True)
+                    end = torch.cuda.Event(enable_timing=True)
+                    start.record(stream)
+                    for _ in range(30):
+                        method(batch)
+                    end.record(stream)
+                    end.synchronize()
+                    milliseconds = start.elapsed_time(end)
+                else:
+                    start = time.perf_counter()
+                    for _ in range(30):
+                        method(batch)
+                    milliseconds = 1000 * (time.perf_counter() - start)
+                samples[name].append(milliseconds / 30)
+        timings[str(len(batch))] = {name: float(np.median(times)) for name, times in samples.items()}
+    return {"latency_ms": timings, "max_prediction_difference": max_error}
+
+
 def select_track_corrections(query, odd, seed):
     steps = np.asarray((0., .5, 1.), dtype=np.float32)
     odd = odd.cpu().numpy()
@@ -1253,6 +1295,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
         teacher_rotation = None
         teacher_parity = None
         pair_diagnostics = None
+        folding = None
         if args.track_distillation:
             models = {}
         elif args.track_head_prior:
@@ -1370,6 +1413,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 elif args.track_distillation_projection_compress:
                     variants.append(("trained_late", "head_same_class", source, late))
                     projection_penalties = {"trained_late": 0.}
+                elif args.track_distillation_projection_folded:
+                    variants = [("trained_late", "head_same_class", source, late)]
+                    projection_penalties = {"trained_late": 0.}
                 else:
                     rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                         (len(reflection_sign), len(reflection_sign))))
@@ -1448,6 +1494,13 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     compressed_query = natural_track_embeddings(compressed, {}, train, natural_queries, args, device)
                     add_track_readout(f"{name}_compressed", compressed_support, compressed_query, query,
                                       projection_prior, distilled_support)
+                if args.track_distillation_projection_folded:
+                    folded = FoldedReflectionStudent(learned, odd).eval()
+                    folded_support = {label: views[0] for label, views in embed(folded, train, args, device).items()}
+                    folded_query = natural_track_embeddings(folded, {}, train, natural_queries, args, device)
+                    add_track_readout(f"{name}_folded", folded_support, folded_query, query,
+                                      projection_prior, distilled_support)
+                    folding = compare_folded_projection(learned, folded, probe, odd, device)
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
         if args.track_distillation_budget:
@@ -1457,6 +1510,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                                               "distance": projection_distances}
             if args.track_distillation_projection_shrink:
                 diagnostics["student_reflection_calibration"]["sparse_pair_count"] = len(sparse)
+        if folding is not None:
+            diagnostics["folded_projection"] = folding
         if args.track_consistency:
             diagnostics["mean_track_weight"] = select_track_corrections(query, odd, seed + 500)
         if teacher_rotation is not None:
@@ -1600,6 +1655,7 @@ def main():
     selection.add_argument("--track-distillation-projection-schedule", action="store_true")
     selection.add_argument("--track-distillation-projection-compress", action="store_true")
     selection.add_argument("--track-distillation-projection-timing-weights", action="store_true")
+    selection.add_argument("--track-distillation-projection-folded", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1607,7 +1663,8 @@ def main():
         args.track_distillation_projection_calibrated = True
     if (args.track_distillation_projection_train or args.track_distillation_projection_calibrated
             or args.track_distillation_projection_penalty or args.track_distillation_projection_schedule
-            or args.track_distillation_projection_compress or args.track_distillation_projection_timing_weights):
+            or args.track_distillation_projection_compress or args.track_distillation_projection_timing_weights
+            or args.track_distillation_projection_folded):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1656,6 +1713,8 @@ def main():
             name = "track_distillation_projection_compress"
         elif args.track_distillation_projection_timing_weights:
             name = "track_distillation_projection_timing_weights"
+        elif args.track_distillation_projection_folded:
+            name = "track_distillation_projection_folded"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:

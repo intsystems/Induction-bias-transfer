@@ -195,6 +195,32 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
     return student.eval()
 
 
+class FoldedReflectionStudent(nn.Module):
+    def __init__(self, student, odd):
+        super().__init__()
+        first, last = student[1], student[3]
+        with torch.no_grad():
+            weights = first.weight.reshape(-1, 3, 32, 32)
+            left, right = weights[..., :16], weights[..., 16:].flip(-1)
+            self.register_buffer("input_even", (left + right).flatten(1))
+            self.register_buffer("input_odd", (left - right).flatten(1))
+            self.register_buffer("input_bias", first.bias.detach().clone())
+            self.register_buffer("output_even", last.weight[~odd])
+            self.register_buffer("output_even_bias", last.bias[~odd])
+            self.register_buffer("output_odd", last.weight[odd])
+            indices = torch.cat((torch.where(~odd)[0], torch.where(odd)[0]))
+            self.register_buffer("output_order", indices.argsort())
+
+    def forward(self, images):
+        left, right = images[..., :16], images[..., 16:].flip(-1)
+        even = F.linear(((left + right) / 2).flatten(1), self.input_even, self.input_bias)
+        odd = F.linear(((left - right) / 2).flatten(1), self.input_odd)
+        first, second = F.gelu(even + odd), F.gelu(even - odd)
+        invariant = F.linear((first + second) / 2, self.output_even, self.output_even_bias)
+        changing = F.linear((first - second) / 2, self.output_odd)
+        return torch.cat((invariant, changing), dim=-1)[:, self.output_order]
+
+
 def prior_kernels(energies, rng):
     width = len(energies)
     odd = np.diag(energies > 0.5).astype(float)
