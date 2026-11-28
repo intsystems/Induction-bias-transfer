@@ -186,6 +186,19 @@ TRACK_DISTILLATION_PROJECTION_CANONICAL_TRAIN_METHODS = {
     "canonical_trained_aligned": "Corrected training · original prediction",
     "canonical_trained_canonical_aligned": "Corrected training · corrected prediction",
 }
+TRACK_DISTILLATION_PROJECTION_SINGLE_VIEW_PENALTY_METHODS = {
+    "late_track": "Ordinary loss · one view", "penalty_free": "No penalty · one view",
+    "even_penalty": "Even penalty · one view", "odd_penalty": "Odd penalty · one view",
+    "even_penalty_aligned": "Even penalty · two views", "odd_penalty_aligned": "Odd penalty · two views",
+}
+TRACK_DISTILLATION_PROJECTION_STUDENT_PRIOR_METHODS = {
+    "late_track_natural_head_aligned": "Prediction-only projection · teacher prior",
+    "late_track_student_head_aligned": "Prediction-only projection · student prior",
+    "late_track_rotated_head_aligned": "Prediction-only projection · rotated prior",
+    "trained_late_natural_head_aligned": "Training projection · teacher prior",
+    "trained_late_student_head_aligned": "Training projection · student prior",
+    "trained_late_rotated_head_aligned": "Training projection · rotated prior",
+}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -246,10 +259,14 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_TERMINAL_METHODS
     elif results["config"].get("track_distillation_projection_canonical", False):
         methods = TRACK_DISTILLATION_PROJECTION_CANONICAL_METHODS
+    elif results["config"].get("track_distillation_projection_student_prior", False):
+        methods = TRACK_DISTILLATION_PROJECTION_STUDENT_PRIOR_METHODS
     elif results["config"].get("track_distillation_projection_joint_head", False):
         methods = TRACK_DISTILLATION_PROJECTION_JOINT_HEAD_METHODS
     elif results["config"].get("track_distillation_projection_canonical_train", False):
         methods = TRACK_DISTILLATION_PROJECTION_CANONICAL_TRAIN_METHODS
+    elif results["config"].get("track_distillation_projection_single_view_penalty", False):
+        methods = TRACK_DISTILLATION_PROJECTION_SINGLE_VIEW_PENALTY_METHODS
     elif results["config"].get("track_distillation_projection", False):
         methods = TRACK_DISTILLATION_PROJECTION_METHODS
     elif results["config"].get("track_distillation_schedule", False):

@@ -145,7 +145,7 @@ def discover_basis(teacher, probe, args):
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
                 hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.,
                 reflection_epochs=None, orbit_actions=None, orbit_order=None, invariant_variance_weight=0.,
-                target_inputs=None, variance_projector=None):
+                target_inputs=None, variance_projector=None, reflection_penalty_mask=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
                             nn.Linear(hidden_width, basis.shape[1])).to(x.device)
@@ -156,6 +156,10 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         raise ValueError("reflection projection requires the teacher's default training view")
     if reflection_penalty and reflection_action is None:
         raise ValueError("a reflection penalty requires a projection action")
+    penalty_metric = metric
+    if reflection_penalty_mask is not None and metric is not None:
+        block = metric[reflection_penalty_mask][:, reflection_penalty_mask]
+        penalty_metric = block / block.diag().mean()
     if orbit_actions is not None:
         if orbit_actions.ndim == 3:
             orbit_actions = orbit_actions.unsqueeze(0)
@@ -219,7 +223,9 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
                 loss = ((residual @ metric) * residual).mean()
             if project and reflection_penalty:
                 complement = raw_prediction - prediction
-                energy = ((complement @ metric) * complement).mean() if weighted else complement.square().mean()
+                if reflection_penalty_mask is not None:
+                    complement = complement[:, reflection_penalty_mask]
+                energy = ((complement @ penalty_metric) * complement).mean() if weighted else complement.square().mean()
                 loss = loss + reflection_penalty * energy
             if invariant_variance_weight:
                 if variance_projector is None:
