@@ -6,6 +6,7 @@ import math
 import time
 from collections import defaultdict
 from copy import deepcopy
+from functools import partial
 from itertools import combinations
 from pathlib import Path
 from types import SimpleNamespace
@@ -15,7 +16,8 @@ import torch
 
 from experiment import (GTSRB, HERE, TASKS, PoseGenerator, batches, discover_basis, embed,
                         fit_student, fit_teacher, predict, preprocess, prior_kernels)
-from reflection_evidence.experiment import BatchedFoldedReflectionStudent, FoldedReflectionStudent, MIXTURE, paths_by_class
+from reflection_evidence.experiment import (BatchedFoldedReflectionStudent, FoldedReflectionStudent, MIXTURE,
+                                            ParityStudent, paths_by_class)
 
 ANGLE = math.radians(32)
 SHIFT = .24
@@ -1550,6 +1552,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             reflection_penalty_masks = {}
             training_projection_actions = {}
             training_target_indices = {}
+            model_factories = {}
+            architecture_diagnostics = {}
             projection_strengths = None
             confidence_priors = {}
             if args.track_distillation_projection:
@@ -1649,6 +1653,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                             training_target_indices[name] = torch.where(partners >= 0, partners, source_indices)
                             variants.append((name, None, source, None))
                             projection_penalties[name] = 0.
+                    elif args.track_distillation_projection_parity_student:
+                        model_factories = {"folded_parameterization": partial(ParityStudent, odd),
+                                           "gated_parameterization": partial(ParityStudent, odd, gated=True)}
+                        variants.extend((name, None, source, None) for name in model_factories)
                     else:
                         variants.append(("rotated_training", None, source, None))
                         projection_penalties["rotated_training"] = 0.
@@ -1716,7 +1724,17 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       reflection_penalty_mask=reflection_penalty_masks.get(name),
                                       reflection_strengths=source.new_tensor(projection_strengths)
                                       if name == "confident_training" else None,
-                                      match_reflection_residual=name == "match_residual")
+                                      match_reflection_residual=name == "match_residual",
+                                      model_factory=model_factories.get(name))
+                if args.track_distillation_projection_parity_student:
+                    width = len(odd)
+                    encoder = SimpleNamespace(encode=learned, view=teacher.view)
+                    architecture_diagnostics[name] = {
+                        "parameters": sum(parameter.numel() for parameter in learned.parameters()),
+                        "native_reflection_error": teacher_reflection_error(
+                            encoder, probe[1::2], torch.eye(width, device=device), source.new_zeros(width),
+                            odd, args.batch_size),
+                    }
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, models, train, natural_queries, args, device,
@@ -1827,6 +1845,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 teacher, probe[1::2], basis, mean, odd, args.batch_size)
         if args.track_distillation_projection_confident_teacher:
             diagnostics["mean_projection_strength"] = float(projection_strengths.mean())
+        if args.track_distillation_projection_parity_student:
+            diagnostics["student_architectures"] = architecture_diagnostics
         if args.track_consistency:
             diagnostics["mean_track_weight"] = select_track_corrections(query, odd, seed + 500)
         if teacher_rotation is not None:
@@ -1990,6 +2010,7 @@ def main():
     selection.add_argument("--track-distillation-projection-teacher-residual", action="store_true")
     selection.add_argument("--track-distillation-projection-projected-teacher-prior", action="store_true")
     selection.add_argument("--track-distillation-projection-track-targets", action="store_true")
+    selection.add_argument("--track-distillation-projection-parity-student", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1997,7 +2018,8 @@ def main():
             or args.track_distillation_projection_approx_teacher_track_prior
             or args.track_distillation_projection_teacher_residual
             or args.track_distillation_projection_projected_teacher_prior
-            or args.track_distillation_projection_track_targets):
+            or args.track_distillation_projection_track_targets
+            or args.track_distillation_projection_parity_student):
         args.track_distillation_projection_approx_teacher = True
     if args.track_distillation_projection_mixed_prior:
         args.track_distillation_projection_student_prior = True
@@ -2095,6 +2117,8 @@ def main():
             name = "track_distillation_projection_projected_teacher_prior"
         elif args.track_distillation_projection_track_targets:
             name = "track_distillation_projection_track_targets"
+        elif args.track_distillation_projection_parity_student:
+            name = "track_distillation_projection_parity_student"
         elif args.track_distillation_projection_approx_teacher:
             name = "track_distillation_projection_approx_teacher"
         elif args.track_distillation_projection_joint_head:

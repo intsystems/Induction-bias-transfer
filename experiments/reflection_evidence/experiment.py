@@ -149,10 +149,14 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
                 hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.,
                 reflection_epochs=None, orbit_actions=None, orbit_order=None, invariant_variance_weight=0.,
                 target_inputs=None, variance_projector=None, reflection_penalty_mask=None, reflection_strengths=None,
-                match_reflection_residual=False):
+                match_reflection_residual=False, model_factory=None):
     torch.manual_seed(seed)
-    student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
-                            nn.Linear(hidden_width, basis.shape[1])).to(x.device)
+    if model_factory is None:
+        student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
+                                nn.Linear(hidden_width, basis.shape[1]))
+    else:
+        student = model_factory()
+    student.to(x.device)
     optimizer = torch.optim.AdamW(student.parameters(), lr=0.002)
     rng = torch.Generator().manual_seed(seed)
     views = (teacher.view,) if training_views is None else training_views
@@ -280,6 +284,33 @@ class FoldedReflectionStudent(nn.Module):
         invariant = F.linear((first + second) / 2, self.output_even, self.output_even_bias)
         changing = F.linear((first - second) / 2, self.output_odd)
         return torch.cat((invariant, changing), dim=-1)[:, self.output_order]
+
+
+class ParityStudent(nn.Module):
+    def __init__(self, odd, width=192, *, gated=False):
+        super().__init__()
+        even_count, odd_count = int((~odd).sum()), int(odd.sum())
+        self.even_input = nn.Linear(3 * 32 * 16, width)
+        self.odd_input = nn.Linear(3 * 32 * 16, width, bias=False)
+        self.even_output = nn.Linear(width, even_count)
+        self.odd_output = nn.Linear(width, odd_count, bias=False)
+        order = torch.cat((torch.where(~odd)[0], torch.where(odd)[0])).argsort()
+        self.register_buffer("output_order", order)
+        self.gated = gated
+
+    def forward(self, images):
+        left, right = images[..., :16], images[..., 16:].flip(-1)
+        even = self.even_input(((left + right) / 2).flatten(1))
+        odd = self.odd_input(((left - right) / 2).flatten(1))
+        if self.gated:
+            signed = odd.tanh()
+            even_features = F.gelu(even) * (1 + signed.square())
+            odd_features = signed * even.sigmoid()
+        else:
+            first, second = F.gelu(even + odd), F.gelu(even - odd)
+            even_features, odd_features = (first + second) / 2, (first - second) / 2
+        output = torch.cat((self.even_output(even_features), self.odd_output(odd_features)), dim=-1)
+        return output[:, self.output_order]
 
 
 class BatchedFoldedReflectionStudent(nn.Module):
