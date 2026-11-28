@@ -1154,3 +1154,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-budget --seeds $(seq 617 632) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Геометрия естественных пар в дистилляции и в целевой голове
+
+Скрещиваем три функции дистилляции и три априора целевой головы. В каждом месте проверяем равномерный вариант, геометрию естественных пар и её повёрнутый контроль. Функция дистилляции меняет параметры студента до целевого эпизода. Априор головы меняет способ обучения классификатора после выбора студента. Используем один спектр для исходного и повёрнутого вариантов в каждом месте. В каждом целевом эпизоде все сочетания получают одни и те же чистые размеченные кадры.
+
+Основной парный контраст на seed 633–648 при трёх метках сравнивает выигрыш естественной головы над повёрнутой при естественной и при повёрнутой дистилляции. Метрика — средняя сбалансированная точность отражённых кадров с равными весами двух семейств задач и трёх позиций кадра. Дополнительно проверяем выигрыш совместного применения, сравнения с равномерными вариантами, исходные кадры и меньшие бюджеты меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_joint"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-joint --seeds $(seq 633 648) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```

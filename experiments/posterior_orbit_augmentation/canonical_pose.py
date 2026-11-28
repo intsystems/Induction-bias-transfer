@@ -1119,9 +1119,10 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
             heads = {name: predict(prior, f, y, identity, args.noise, center_evidence=True)[0]
                      for name, prior in prediction_priors.items()}
             distilled_heads = {}
-            for name, features in (distilled_support or {}).items():
+            for name, (features, prior) in (distilled_support or {}).items():
                 design = np.concatenate([features[label][j[:count]] for label, j in zip(pair, ids, strict=True)])
-                distilled_heads[name] = predict(parity, design, y, identity, args.noise, center_evidence=True)[0]
+                selected_prior = parity if prior is None else prior
+                distilled_heads[name] = predict(selected_prior, design, y, identity, args.noise, center_evidence=True)[0]
             values = {"posterior_same": float(probability[0]), "strengths": {}}
             if args.track_head_evidence:
                 adaptive, joint_mass = predict(joint, f, y, identity, args.noise, center_evidence=True)
@@ -1252,6 +1253,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
         if args.track_distillation:
             priors, _ = natural_track_head_priors(teacher, basis, odd, source, source_partners, args, seed + 250)
             distilled_support = {}
+            if args.track_distillation_joint:
+                head_kernels = {key: priors[key] for key in ("head_same_class", "head_rotated")}
             variants = [("track_distilled", "head_same_class", source), ("rotated_distilled", "head_rotated", source)]
             if args.track_distillation_budget:
                 indices = repeated_source_indices(labels.numpy(), 32, seed + 600)
@@ -1265,11 +1268,17 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     metric = source.new_tensor(matrix / np.diag(matrix).mean())
                 learned = fit_student(training_source, teacher, basis, mean, args, seed + 100, metric=metric)
                 features = embed(learned, train, args, device)
-                distilled_support[name] = {label: values[0] for label, values in features.items()}
+                variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
-                for label, positions in transformed.items():
-                    for strength, (values, _) in positions.items():
-                        query[label][strength][0][name] = values["raw"]
+                evaluators = [(name, None)]
+                if args.track_distillation_joint:
+                    evaluators.extend(((name + "_track_head", priors["head_same_class"]),
+                                       (name + "_rotated_head", priors["head_rotated"])))
+                for method, prior in evaluators:
+                    distilled_support[method] = variant_support, prior
+                    for label, positions in transformed.items():
+                        for strength, (values, _) in positions.items():
+                            query[label][strength][0][method] = values["raw"]
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
         if args.track_distillation_budget:
@@ -1402,10 +1411,11 @@ def main():
     selection.add_argument("--track-head-cross-parity", action="store_true")
     selection.add_argument("--track-distillation", action="store_true")
     selection.add_argument("--track-distillation-budget", action="store_true")
+    selection.add_argument("--track-distillation-joint", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_distillation_budget:
+    if args.track_distillation_budget or args.track_distillation_joint:
         args.track_distillation = True
     if args.track_parity_prior_route:
         args.track_parity_policy = True
@@ -1428,7 +1438,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_distillation_budget:
+        if args.track_distillation_joint:
+            name = "track_distillation_joint"
+        elif args.track_distillation_budget:
             name = "track_distillation_budget"
         elif args.track_distillation:
             name = "track_distillation"

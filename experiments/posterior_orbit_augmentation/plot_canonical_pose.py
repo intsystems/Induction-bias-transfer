@@ -109,6 +109,11 @@ TRACK_DISTILLATION_METHODS = {"raw": "Uniform distillation loss", "track_distill
 TRACK_DISTILLATION_BUDGET_METHODS = {"raw": "All frames · uniform", "track_distilled": "All frames · natural pairs",
                                     "rotated_distilled": "All frames · rotated", "budget_uniform": "32 frames · uniform",
                                     "budget_track": "32 frames · natural pairs", "budget_rotated": "32 frames · rotated"}
+TRACK_DISTILLATION_JOINT_METHODS = {"raw": "Uniform loss and head", "head_same_class": "Uniform loss · natural head",
+                                   "track_distilled": "Natural loss · uniform head",
+                                   "track_distilled_track_head": "Natural loss and head",
+                                   "track_distilled_rotated_head": "Natural loss · rotated head",
+                                   "rotated_distilled_rotated_head": "Rotated loss and head"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -139,7 +144,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if results["config"].get("track_distillation_budget", False):
+    if results["config"].get("track_distillation_joint", False):
+        methods = TRACK_DISTILLATION_JOINT_METHODS
+    elif results["config"].get("track_distillation_budget", False):
         methods = TRACK_DISTILLATION_BUDGET_METHODS
     elif results["config"].get("track_distillation", False):
         methods = TRACK_DISTILLATION_METHODS
