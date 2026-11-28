@@ -26,7 +26,7 @@ def main():
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
     if data["config"].get("view_budget", False):
-        plot_view_budget(data["runs"], shots, args.output)
+        plot_view_budget(data["runs"], shots, args.output, data.get("invariant_variance_weights", {}))
         return
     methods = APPROXIMATE_METHODS if data["config"].get("approximate_action", False) else METHODS
     if data["config"].get("dihedral_subgroups", False):
@@ -52,13 +52,16 @@ def main():
     figure.savefig(args.output, dpi=170)
 
 
-def plot_view_budget(runs, shots, output):
+def plot_view_budget(runs, shots, output, variance_weights):
     names = ("one", "adjacent", "opposite", "four")
     labels = ("One", "Two adjacent", "Two opposite", "Four")
     figure, axes = plt.subplots(1, 2, figsize=(11, 4), layout="constrained")
     models = {"inference_only": "Projection only at prediction", "learned_training": "Four views in training projection"}
     if "half_turn_training" in runs[0]["shots"][str(min(shots))]:
-        models["half_turn_training"] = "Two views in training projection"
+        models["half_turn_training"] = "Opposite pairs in training"
+    if "adjacent_training" in runs[0]["shots"][str(min(shots))]:
+        models["adjacent_training"] = "Adjacent pairs in training"
+    models.update({name: f"Invariant variance weight {value:g}" for name, value in variance_weights.items()})
     for axis, (metric, title) in zip(axes, (("mean_accuracy", "Mean over input rotations"),
                                            ("all_rotations_accuracy", "All input rotations correct")), strict=True):
         for model, label in models.items():
