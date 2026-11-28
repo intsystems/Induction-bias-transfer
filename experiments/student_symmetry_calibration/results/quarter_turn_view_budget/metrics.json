@@ -1,0 +1,2270 @@
+{
+  "config": {
+    "data": "/tmp/ibt-cifar-data",
+    "output": "experiments/student_symmetry_calibration/results/quarter_turn_view_budget/metrics.json",
+    "device": "cuda",
+    "seeds": [
+      1281,
+      1282,
+      1283,
+      1284,
+      1285,
+      1286,
+      1287,
+      1288,
+      1289,
+      1290,
+      1291,
+      1292,
+      1293,
+      1294,
+      1295,
+      1296
+    ],
+    "shots": [
+      5,
+      20,
+      60
+    ],
+    "teacher_epochs": 26,
+    "student_epochs": 22,
+    "source_examples": 1400,
+    "probe_examples": 320,
+    "target_pool": 600,
+    "test_per_class": 600,
+    "batch_size": 128,
+    "episodes": 8,
+    "noise": 0.45,
+    "approximate_action": false,
+    "view_budget": true
+  },
+  "device_name": "NVIDIA GeForce RTX 3070 Laptop GPU",
+  "torch_version": "2.14.0+cu130",
+  "runs": [
+    {
+      "seed": 1281,
+      "source_classes": [
+        1,
+        6,
+        7,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "latent_width": 80,
+      "invariant_width": 24,
+      "action_error": {
+        "learned": 0.7212782957631455
+      },
+      "order_four_error": 9.103828801926284e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.250625,
+              "all_rotations_accuracy": 0.09812500000000002
+            },
+            "opposite": {
+              "mean_accuracy": 0.2771180555555556,
+              "all_rotations_accuracy": 0.18753472222222223
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2764756944444444,
+              "all_rotations_accuracy": 0.1857986111111111
+            },
+            "four": {
+              "mean_accuracy": 0.2925,
+              "all_rotations_accuracy": 0.2925
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2404079861111111,
+              "all_rotations_accuracy": 0.043159722222222224
+            },
+            "opposite": {
+              "mean_accuracy": 0.25480902777777775,
+              "all_rotations_accuracy": 0.13329861111111108
+            },
+            "adjacent": {
+              "mean_accuracy": 0.25921875,
+              "all_rotations_accuracy": 0.08909722222222222
+            },
+            "four": {
+              "mean_accuracy": 0.28375000000000006,
+              "all_rotations_accuracy": 0.28375000000000006
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.27726562499999996,
+              "all_rotations_accuracy": 0.09312500000000001
+            },
+            "opposite": {
+              "mean_accuracy": 0.30776041666666665,
+              "all_rotations_accuracy": 0.1970833333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3107204861111111,
+              "all_rotations_accuracy": 0.18791666666666665
+            },
+            "four": {
+              "mean_accuracy": 0.33076388888888886,
+              "all_rotations_accuracy": 0.33076388888888886
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2776736111111111,
+              "all_rotations_accuracy": 0.06375
+            },
+            "opposite": {
+              "mean_accuracy": 0.3194097222222222,
+              "all_rotations_accuracy": 0.1832638888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3111805555555555,
+              "all_rotations_accuracy": 0.12208333333333334
+            },
+            "four": {
+              "mean_accuracy": 0.3549305555555555,
+              "all_rotations_accuracy": 0.3549305555555555
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3001649305555556,
+              "all_rotations_accuracy": 0.10659722222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.33749999999999997,
+              "all_rotations_accuracy": 0.21989583333333335
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33882812500000004,
+              "all_rotations_accuracy": 0.1786805555555556
+            },
+            "four": {
+              "mean_accuracy": 0.36968750000000006,
+              "all_rotations_accuracy": 0.36968750000000006
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3156423611111111,
+              "all_rotations_accuracy": 0.09288194444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.35230902777777784,
+              "all_rotations_accuracy": 0.2220486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3511197916666667,
+              "all_rotations_accuracy": 0.155625
+            },
+            "four": {
+              "mean_accuracy": 0.39579861111111114,
+              "all_rotations_accuracy": 0.39579861111111114
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1282,
+      "source_classes": [
+        0,
+        1,
+        3,
+        4
+      ],
+      "target_classes": [
+        2,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "latent_width": 107,
+      "invariant_width": 33,
+      "action_error": {
+        "learned": 0.7425322481176322
+      },
+      "order_four_error": 8.881784197001252e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2289496527777778,
+              "all_rotations_accuracy": 0.057534722222222216
+            },
+            "opposite": {
+              "mean_accuracy": 0.2656076388888889,
+              "all_rotations_accuracy": 0.17815972222222223
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2577517361111111,
+              "all_rotations_accuracy": 0.12913194444444445
+            },
+            "four": {
+              "mean_accuracy": 0.2942013888888889,
+              "all_rotations_accuracy": 0.2942013888888889
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.24417534722222223,
+              "all_rotations_accuracy": 0.03243055555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.30137152777777776,
+              "all_rotations_accuracy": 0.16687500000000002
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27468750000000003,
+              "all_rotations_accuracy": 0.08277777777777778
+            },
+            "four": {
+              "mean_accuracy": 0.3410763888888889,
+              "all_rotations_accuracy": 0.3410763888888889
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2502083333333333,
+              "all_rotations_accuracy": 0.08097222222222221
+            },
+            "opposite": {
+              "mean_accuracy": 0.2907638888888889,
+              "all_rotations_accuracy": 0.20524305555555555
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28444444444444444,
+              "all_rotations_accuracy": 0.1625347222222222
+            },
+            "four": {
+              "mean_accuracy": 0.31999999999999995,
+              "all_rotations_accuracy": 0.31999999999999995
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2922048611111111,
+              "all_rotations_accuracy": 0.05920138888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.34875,
+              "all_rotations_accuracy": 0.21322916666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3183854166666667,
+              "all_rotations_accuracy": 0.10447916666666666
+            },
+            "four": {
+              "mean_accuracy": 0.38878472222222216,
+              "all_rotations_accuracy": 0.38878472222222216
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2838368055555555,
+              "all_rotations_accuracy": 0.13
+            },
+            "opposite": {
+              "mean_accuracy": 0.31006944444444445,
+              "all_rotations_accuracy": 0.23784722222222224
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2869704861111111,
+              "all_rotations_accuracy": 0.17947916666666666
+            },
+            "four": {
+              "mean_accuracy": 0.32961805555555557,
+              "all_rotations_accuracy": 0.32961805555555557
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3278472222222223,
+              "all_rotations_accuracy": 0.08888888888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.3900868055555556,
+              "all_rotations_accuracy": 0.26253472222222224
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3532986111111111,
+              "all_rotations_accuracy": 0.1282638888888889
+            },
+            "four": {
+              "mean_accuracy": 0.4330208333333333,
+              "all_rotations_accuracy": 0.4330208333333333
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1283,
+      "source_classes": [
+        0,
+        2,
+        6,
+        9
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        8
+      ],
+      "latent_width": 98,
+      "invariant_width": 33,
+      "action_error": {
+        "learned": 0.6647116797137189
+      },
+      "order_four_error": 5.10702591327572e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.26122395833333334,
+              "all_rotations_accuracy": 0.08236111111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.29137152777777775,
+              "all_rotations_accuracy": 0.18590277777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2866927083333333,
+              "all_rotations_accuracy": 0.16364583333333335
+            },
+            "four": {
+              "mean_accuracy": 0.3010763888888889,
+              "all_rotations_accuracy": 0.3010763888888889
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2506857638888889,
+              "all_rotations_accuracy": 0.03701388888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.2988541666666667,
+              "all_rotations_accuracy": 0.17055555555555557
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2695486111111111,
+              "all_rotations_accuracy": 0.08059027777777779
+            },
+            "four": {
+              "mean_accuracy": 0.3291319444444444,
+              "all_rotations_accuracy": 0.3291319444444444
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.26500868055555554,
+              "all_rotations_accuracy": 0.07809027777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.31395833333333334,
+              "all_rotations_accuracy": 0.20093750000000005
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31373263888888886,
+              "all_rotations_accuracy": 0.17531249999999998
+            },
+            "four": {
+              "mean_accuracy": 0.34298611111111105,
+              "all_rotations_accuracy": 0.34298611111111105
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.29913194444444446,
+              "all_rotations_accuracy": 0.060208333333333336
+            },
+            "opposite": {
+              "mean_accuracy": 0.3559722222222222,
+              "all_rotations_accuracy": 0.22458333333333336
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31914930555555554,
+              "all_rotations_accuracy": 0.1120138888888889
+            },
+            "four": {
+              "mean_accuracy": 0.39656249999999993,
+              "all_rotations_accuracy": 0.39656249999999993
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.29013888888888895,
+              "all_rotations_accuracy": 0.09458333333333332
+            },
+            "opposite": {
+              "mean_accuracy": 0.3432465277777778,
+              "all_rotations_accuracy": 0.22520833333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33775173611111114,
+              "all_rotations_accuracy": 0.1754861111111111
+            },
+            "four": {
+              "mean_accuracy": 0.37243055555555554,
+              "all_rotations_accuracy": 0.37243055555555554
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3452256944444445,
+              "all_rotations_accuracy": 0.09850694444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.4045659722222223,
+              "all_rotations_accuracy": 0.2676041666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3711979166666667,
+              "all_rotations_accuracy": 0.16552083333333334
+            },
+            "four": {
+              "mean_accuracy": 0.45048611111111114,
+              "all_rotations_accuracy": 0.45048611111111114
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1284,
+      "source_classes": [
+        0,
+        2,
+        4,
+        9
+      ],
+      "target_classes": [
+        1,
+        3,
+        5,
+        6,
+        7,
+        8
+      ],
+      "latent_width": 65,
+      "invariant_width": 23,
+      "action_error": {
+        "learned": 0.616527633620797
+      },
+      "order_four_error": 5.329070518200751e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.26624131944444446,
+              "all_rotations_accuracy": 0.10218749999999999
+            },
+            "opposite": {
+              "mean_accuracy": 0.30645833333333333,
+              "all_rotations_accuracy": 0.2189583333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2872395833333334,
+              "all_rotations_accuracy": 0.17770833333333333
+            },
+            "four": {
+              "mean_accuracy": 0.31145833333333334,
+              "all_rotations_accuracy": 0.31145833333333334
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2534548611111111,
+              "all_rotations_accuracy": 0.04097222222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.27434027777777775,
+              "all_rotations_accuracy": 0.14649305555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2778125,
+              "all_rotations_accuracy": 0.09392361111111111
+            },
+            "four": {
+              "mean_accuracy": 0.30072916666666666,
+              "all_rotations_accuracy": 0.30072916666666666
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.31632812499999996,
+              "all_rotations_accuracy": 0.12621527777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.36013888888888884,
+              "all_rotations_accuracy": 0.2601041666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3499479166666667,
+              "all_rotations_accuracy": 0.2043402777777778
+            },
+            "four": {
+              "mean_accuracy": 0.37958333333333333,
+              "all_rotations_accuracy": 0.37958333333333333
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2955989583333334,
+              "all_rotations_accuracy": 0.0553125
+            },
+            "opposite": {
+              "mean_accuracy": 0.3375173611111111,
+              "all_rotations_accuracy": 0.19874999999999998
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3281597222222222,
+              "all_rotations_accuracy": 0.11798611111111111
+            },
+            "four": {
+              "mean_accuracy": 0.38319444444444445,
+              "all_rotations_accuracy": 0.38319444444444445
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.34050347222222227,
+              "all_rotations_accuracy": 0.14854166666666668
+            },
+            "opposite": {
+              "mean_accuracy": 0.38788194444444446,
+              "all_rotations_accuracy": 0.27770833333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.37213541666666666,
+              "all_rotations_accuracy": 0.21715277777777775
+            },
+            "four": {
+              "mean_accuracy": 0.40531249999999996,
+              "all_rotations_accuracy": 0.40531249999999996
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3369097222222222,
+              "all_rotations_accuracy": 0.09184027777777776
+            },
+            "opposite": {
+              "mean_accuracy": 0.3763715277777778,
+              "all_rotations_accuracy": 0.23791666666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.36881076388888884,
+              "all_rotations_accuracy": 0.1501388888888889
+            },
+            "four": {
+              "mean_accuracy": 0.4307638888888889,
+              "all_rotations_accuracy": 0.4307638888888889
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1285,
+      "source_classes": [
+        0,
+        3,
+        7,
+        9
+      ],
+      "target_classes": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8
+      ],
+      "latent_width": 98,
+      "invariant_width": 30,
+      "action_error": {
+        "learned": 0.759775823684142
+      },
+      "order_four_error": 5.218048215738236e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2614583333333333,
+              "all_rotations_accuracy": 0.09809027777777779
+            },
+            "opposite": {
+              "mean_accuracy": 0.284375,
+              "all_rotations_accuracy": 0.1970486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2707638888888889,
+              "all_rotations_accuracy": 0.16621527777777778
+            },
+            "four": {
+              "mean_accuracy": 0.28597222222222224,
+              "all_rotations_accuracy": 0.28597222222222224
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2355295138888889,
+              "all_rotations_accuracy": 0.03503472222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.26840277777777777,
+              "all_rotations_accuracy": 0.13986111111111113
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2672048611111111,
+              "all_rotations_accuracy": 0.0821875
+            },
+            "four": {
+              "mean_accuracy": 0.3033680555555555,
+              "all_rotations_accuracy": 0.3033680555555555
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.30328993055555553,
+              "all_rotations_accuracy": 0.13166666666666668
+            },
+            "opposite": {
+              "mean_accuracy": 0.3286631944444445,
+              "all_rotations_accuracy": 0.23520833333333332
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31945312500000006,
+              "all_rotations_accuracy": 0.2001041666666667
+            },
+            "four": {
+              "mean_accuracy": 0.3377083333333333,
+              "all_rotations_accuracy": 0.3377083333333333
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2867621527777778,
+              "all_rotations_accuracy": 0.057187499999999995
+            },
+            "opposite": {
+              "mean_accuracy": 0.33565972222222223,
+              "all_rotations_accuracy": 0.1976388888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33319444444444446,
+              "all_rotations_accuracy": 0.12965277777777778
+            },
+            "four": {
+              "mean_accuracy": 0.3842361111111111,
+              "all_rotations_accuracy": 0.3842361111111111
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.30960937499999996,
+              "all_rotations_accuracy": 0.1398263888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.3446006944444445,
+              "all_rotations_accuracy": 0.24583333333333335
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33269097222222227,
+              "all_rotations_accuracy": 0.20399305555555558
+            },
+            "four": {
+              "mean_accuracy": 0.35454861111111113,
+              "all_rotations_accuracy": 0.35454861111111113
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.32038194444444446,
+              "all_rotations_accuracy": 0.08260416666666666
+            },
+            "opposite": {
+              "mean_accuracy": 0.36560763888888886,
+              "all_rotations_accuracy": 0.22288194444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.36739583333333337,
+              "all_rotations_accuracy": 0.16159722222222225
+            },
+            "four": {
+              "mean_accuracy": 0.4256250000000001,
+              "all_rotations_accuracy": 0.4256250000000001
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1286,
+      "source_classes": [
+        1,
+        6,
+        7,
+        9
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        8
+      ],
+      "latent_width": 127,
+      "invariant_width": 37,
+      "action_error": {
+        "learned": 0.7956825389667549
+      },
+      "order_four_error": 5.773159728050814e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.277890625,
+              "all_rotations_accuracy": 0.10975694444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.28873263888888884,
+              "all_rotations_accuracy": 0.19100694444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.29420138888888886,
+              "all_rotations_accuracy": 0.2004513888888889
+            },
+            "four": {
+              "mean_accuracy": 0.30718749999999995,
+              "all_rotations_accuracy": 0.30718749999999995
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.24727430555555555,
+              "all_rotations_accuracy": 0.045625
+            },
+            "opposite": {
+              "mean_accuracy": 0.2734201388888889,
+              "all_rotations_accuracy": 0.1498958333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.26732638888888893,
+              "all_rotations_accuracy": 0.09826388888888889
+            },
+            "four": {
+              "mean_accuracy": 0.30361111111111116,
+              "all_rotations_accuracy": 0.30361111111111116
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.29532118055555556,
+              "all_rotations_accuracy": 0.10381944444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.3255555555555556,
+              "all_rotations_accuracy": 0.19961805555555553
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32420138888888894,
+              "all_rotations_accuracy": 0.1996875
+            },
+            "four": {
+              "mean_accuracy": 0.33864583333333337,
+              "all_rotations_accuracy": 0.33864583333333337
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2884375,
+              "all_rotations_accuracy": 0.058368055555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.31703125000000004,
+              "all_rotations_accuracy": 0.17479166666666668
+            },
+            "adjacent": {
+              "mean_accuracy": 0.30648437500000003,
+              "all_rotations_accuracy": 0.10895833333333334
+            },
+            "four": {
+              "mean_accuracy": 0.3520833333333333,
+              "all_rotations_accuracy": 0.3520833333333333
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.31837673611111106,
+              "all_rotations_accuracy": 0.10552083333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.3483680555555556,
+              "all_rotations_accuracy": 0.21302083333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34552951388888886,
+              "all_rotations_accuracy": 0.17875000000000002
+            },
+            "four": {
+              "mean_accuracy": 0.37638888888888894,
+              "all_rotations_accuracy": 0.37638888888888894
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3183680555555555,
+              "all_rotations_accuracy": 0.07083333333333333
+            },
+            "opposite": {
+              "mean_accuracy": 0.3517013888888889,
+              "all_rotations_accuracy": 0.2038888888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33658854166666663,
+              "all_rotations_accuracy": 0.11940972222222224
+            },
+            "four": {
+              "mean_accuracy": 0.3889236111111112,
+              "all_rotations_accuracy": 0.3889236111111112
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1287,
+      "source_classes": [
+        1,
+        4,
+        7,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        5,
+        6,
+        9
+      ],
+      "latent_width": 104,
+      "invariant_width": 30,
+      "action_error": {
+        "learned": 0.7534137770101009
+      },
+      "order_four_error": 5.551115123125783e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.27769965277777775,
+              "all_rotations_accuracy": 0.11333333333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.29097222222222224,
+              "all_rotations_accuracy": 0.18743055555555554
+            },
+            "adjacent": {
+              "mean_accuracy": 0.30210069444444443,
+              "all_rotations_accuracy": 0.1865625
+            },
+            "four": {
+              "mean_accuracy": 0.3086805555555555,
+              "all_rotations_accuracy": 0.3086805555555555
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2562326388888889,
+              "all_rotations_accuracy": 0.050243055555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.29265625,
+              "all_rotations_accuracy": 0.16791666666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28485243055555554,
+              "all_rotations_accuracy": 0.1053125
+            },
+            "four": {
+              "mean_accuracy": 0.3261111111111111,
+              "all_rotations_accuracy": 0.3261111111111111
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3145399305555555,
+              "all_rotations_accuracy": 0.1252777777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.3319791666666667,
+              "all_rotations_accuracy": 0.22236111111111112
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3429861111111111,
+              "all_rotations_accuracy": 0.19670138888888888
+            },
+            "four": {
+              "mean_accuracy": 0.3667013888888889,
+              "all_rotations_accuracy": 0.3667013888888889
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3146614583333333,
+              "all_rotations_accuracy": 0.09128472222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.3518576388888889,
+              "all_rotations_accuracy": 0.22322916666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3377517361111111,
+              "all_rotations_accuracy": 0.1502777777777778
+            },
+            "four": {
+              "mean_accuracy": 0.38135416666666666,
+              "all_rotations_accuracy": 0.38135416666666666
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.331015625,
+              "all_rotations_accuracy": 0.14343750000000002
+            },
+            "opposite": {
+              "mean_accuracy": 0.35501736111111104,
+              "all_rotations_accuracy": 0.24930555555555553
+            },
+            "adjacent": {
+              "mean_accuracy": 0.37133680555555554,
+              "all_rotations_accuracy": 0.2120486111111111
+            },
+            "four": {
+              "mean_accuracy": 0.39760416666666665,
+              "all_rotations_accuracy": 0.39760416666666665
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.35471354166666663,
+              "all_rotations_accuracy": 0.12944444444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.39623263888888893,
+              "all_rotations_accuracy": 0.2718055555555555
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3778385416666667,
+              "all_rotations_accuracy": 0.1856597222222222
+            },
+            "four": {
+              "mean_accuracy": 0.4271180555555556,
+              "all_rotations_accuracy": 0.4271180555555556
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1288,
+      "source_classes": [
+        0,
+        1,
+        3,
+        6
+      ],
+      "target_classes": [
+        2,
+        4,
+        5,
+        7,
+        8,
+        9
+      ],
+      "latent_width": 108,
+      "invariant_width": 35,
+      "action_error": {
+        "learned": 0.6945908588424922
+      },
+      "order_four_error": 5.329070518200751e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2240798611111111,
+              "all_rotations_accuracy": 0.06930555555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.25222222222222224,
+              "all_rotations_accuracy": 0.15267361111111113
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2540538194444445,
+              "all_rotations_accuracy": 0.1409375
+            },
+            "four": {
+              "mean_accuracy": 0.2664930555555555,
+              "all_rotations_accuracy": 0.2664930555555555
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2430642361111111,
+              "all_rotations_accuracy": 0.03069444444444444
+            },
+            "opposite": {
+              "mean_accuracy": 0.2699652777777778,
+              "all_rotations_accuracy": 0.13413194444444446
+            },
+            "adjacent": {
+              "mean_accuracy": 0.25518229166666667,
+              "all_rotations_accuracy": 0.0690625
+            },
+            "four": {
+              "mean_accuracy": 0.29663194444444446,
+              "all_rotations_accuracy": 0.29663194444444446
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.26059895833333335,
+              "all_rotations_accuracy": 0.08302083333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.2898090277777778,
+              "all_rotations_accuracy": 0.17402777777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.29640625000000004,
+              "all_rotations_accuracy": 0.15812500000000002
+            },
+            "four": {
+              "mean_accuracy": 0.3260416666666667,
+              "all_rotations_accuracy": 0.3260416666666667
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.29466145833333335,
+              "all_rotations_accuracy": 0.057673611111111106
+            },
+            "opposite": {
+              "mean_accuracy": 0.3343229166666667,
+              "all_rotations_accuracy": 0.20069444444444443
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31399305555555557,
+              "all_rotations_accuracy": 0.10618055555555556
+            },
+            "four": {
+              "mean_accuracy": 0.3761805555555555,
+              "all_rotations_accuracy": 0.3761805555555555
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.26078993055555555,
+              "all_rotations_accuracy": 0.07930555555555556
+            },
+            "opposite": {
+              "mean_accuracy": 0.2970833333333333,
+              "all_rotations_accuracy": 0.1829513888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.30427083333333327,
+              "all_rotations_accuracy": 0.14885416666666668
+            },
+            "four": {
+              "mean_accuracy": 0.35131944444444446,
+              "all_rotations_accuracy": 0.35131944444444446
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3258072916666666,
+              "all_rotations_accuracy": 0.08510416666666666
+            },
+            "opposite": {
+              "mean_accuracy": 0.36878472222222225,
+              "all_rotations_accuracy": 0.23881944444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3520746527777778,
+              "all_rotations_accuracy": 0.14097222222222222
+            },
+            "four": {
+              "mean_accuracy": 0.41468750000000004,
+              "all_rotations_accuracy": 0.41468750000000004
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1289,
+      "source_classes": [
+        1,
+        5,
+        7,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        4,
+        6,
+        9
+      ],
+      "latent_width": 80,
+      "invariant_width": 23,
+      "action_error": {
+        "learned": 0.7957681754079413
+      },
+      "order_four_error": 8.43769498715119e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.23842013888888888,
+              "all_rotations_accuracy": 0.0884375
+            },
+            "opposite": {
+              "mean_accuracy": 0.28795138888888894,
+              "all_rotations_accuracy": 0.19555555555555554
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27205729166666665,
+              "all_rotations_accuracy": 0.16927083333333334
+            },
+            "four": {
+              "mean_accuracy": 0.3004513888888889,
+              "all_rotations_accuracy": 0.3004513888888889
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2751909722222222,
+              "all_rotations_accuracy": 0.06336805555555557
+            },
+            "opposite": {
+              "mean_accuracy": 0.3006597222222222,
+              "all_rotations_accuracy": 0.17593749999999997
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2934375,
+              "all_rotations_accuracy": 0.11204861111111113
+            },
+            "four": {
+              "mean_accuracy": 0.3271180555555555,
+              "all_rotations_accuracy": 0.3271180555555555
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.26505208333333335,
+              "all_rotations_accuracy": 0.1
+            },
+            "opposite": {
+              "mean_accuracy": 0.29663194444444446,
+              "all_rotations_accuracy": 0.19972222222222225
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2881423611111111,
+              "all_rotations_accuracy": 0.1568402777777778
+            },
+            "four": {
+              "mean_accuracy": 0.30788194444444444,
+              "all_rotations_accuracy": 0.30788194444444444
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3037934027777777,
+              "all_rotations_accuracy": 0.0790625
+            },
+            "opposite": {
+              "mean_accuracy": 0.33454861111111106,
+              "all_rotations_accuracy": 0.2004513888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32872395833333334,
+              "all_rotations_accuracy": 0.13888888888888887
+            },
+            "four": {
+              "mean_accuracy": 0.3776736111111111,
+              "all_rotations_accuracy": 0.3776736111111111
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.28024305555555556,
+              "all_rotations_accuracy": 0.10350694444444443
+            },
+            "opposite": {
+              "mean_accuracy": 0.30868055555555557,
+              "all_rotations_accuracy": 0.20763888888888887
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3103211805555556,
+              "all_rotations_accuracy": 0.14850694444444446
+            },
+            "four": {
+              "mean_accuracy": 0.3248263888888889,
+              "all_rotations_accuracy": 0.3248263888888889
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.34023437500000003,
+              "all_rotations_accuracy": 0.10211805555555556
+            },
+            "opposite": {
+              "mean_accuracy": 0.3831597222222223,
+              "all_rotations_accuracy": 0.2530902777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.363515625,
+              "all_rotations_accuracy": 0.16270833333333332
+            },
+            "four": {
+              "mean_accuracy": 0.42246527777777776,
+              "all_rotations_accuracy": 0.42246527777777776
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1290,
+      "source_classes": [
+        4,
+        6,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        7
+      ],
+      "latent_width": 87,
+      "invariant_width": 30,
+      "action_error": {
+        "learned": 0.7030769164383531
+      },
+      "order_four_error": 7.771561172376096e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2489409722222222,
+              "all_rotations_accuracy": 0.08784722222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.26038194444444446,
+              "all_rotations_accuracy": 0.15680555555555553
+            },
+            "adjacent": {
+              "mean_accuracy": 0.26317708333333334,
+              "all_rotations_accuracy": 0.16996527777777776
+            },
+            "four": {
+              "mean_accuracy": 0.26684027777777775,
+              "all_rotations_accuracy": 0.26684027777777775
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2444878472222222,
+              "all_rotations_accuracy": 0.04142361111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.26939236111111114,
+              "all_rotations_accuracy": 0.14503472222222225
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2545746527777778,
+              "all_rotations_accuracy": 0.08819444444444445
+            },
+            "four": {
+              "mean_accuracy": 0.29468750000000005,
+              "all_rotations_accuracy": 0.29468750000000005
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.29229166666666667,
+              "all_rotations_accuracy": 0.10746527777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.314375,
+              "all_rotations_accuracy": 0.1963888888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32513888888888887,
+              "all_rotations_accuracy": 0.2011111111111111
+            },
+            "four": {
+              "mean_accuracy": 0.3403125,
+              "all_rotations_accuracy": 0.3403125
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.28836805555555556,
+              "all_rotations_accuracy": 0.06878472222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.31732638888888887,
+              "all_rotations_accuracy": 0.18225694444444443
+            },
+            "adjacent": {
+              "mean_accuracy": 0.302734375,
+              "all_rotations_accuracy": 0.11652777777777777
+            },
+            "four": {
+              "mean_accuracy": 0.3519791666666667,
+              "all_rotations_accuracy": 0.3519791666666667
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2976909722222222,
+              "all_rotations_accuracy": 0.09871527777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.3339236111111111,
+              "all_rotations_accuracy": 0.21274305555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3402777777777778,
+              "all_rotations_accuracy": 0.1845486111111111
+            },
+            "four": {
+              "mean_accuracy": 0.36625,
+              "all_rotations_accuracy": 0.36625
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3153559027777778,
+              "all_rotations_accuracy": 0.08996527777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.3540451388888889,
+              "all_rotations_accuracy": 0.21729166666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3363802083333333,
+              "all_rotations_accuracy": 0.13680555555555557
+            },
+            "four": {
+              "mean_accuracy": 0.4019097222222222,
+              "all_rotations_accuracy": 0.4019097222222222
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1291,
+      "source_classes": [
+        1,
+        4,
+        5,
+        9
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        6,
+        7,
+        8
+      ],
+      "latent_width": 90,
+      "invariant_width": 28,
+      "action_error": {
+        "learned": 0.66845849236351
+      },
+      "order_four_error": 8.881784197001252e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2722569444444445,
+              "all_rotations_accuracy": 0.10284722222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.29517361111111107,
+              "all_rotations_accuracy": 0.20100694444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2973437499999999,
+              "all_rotations_accuracy": 0.17427083333333335
+            },
+            "four": {
+              "mean_accuracy": 0.3102777777777777,
+              "all_rotations_accuracy": 0.3102777777777777
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.26875,
+              "all_rotations_accuracy": 0.062118055555555565
+            },
+            "opposite": {
+              "mean_accuracy": 0.30262152777777773,
+              "all_rotations_accuracy": 0.17989583333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2875694444444445,
+              "all_rotations_accuracy": 0.1098611111111111
+            },
+            "four": {
+              "mean_accuracy": 0.3197916666666667,
+              "all_rotations_accuracy": 0.3197916666666667
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.306328125,
+              "all_rotations_accuracy": 0.10423611111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.3359722222222223,
+              "all_rotations_accuracy": 0.2246875
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33891493055555555,
+              "all_rotations_accuracy": 0.19944444444444442
+            },
+            "four": {
+              "mean_accuracy": 0.3535763888888888,
+              "all_rotations_accuracy": 0.3535763888888888
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.30680555555555555,
+              "all_rotations_accuracy": 0.07732638888888888
+            },
+            "opposite": {
+              "mean_accuracy": 0.35144097222222226,
+              "all_rotations_accuracy": 0.22541666666666668
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3321614583333333,
+              "all_rotations_accuracy": 0.1354861111111111
+            },
+            "four": {
+              "mean_accuracy": 0.3783680555555555,
+              "all_rotations_accuracy": 0.3783680555555555
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3270138888888889,
+              "all_rotations_accuracy": 0.12291666666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.3554513888888889,
+              "all_rotations_accuracy": 0.25725694444444447
+            },
+            "adjacent": {
+              "mean_accuracy": 0.35716145833333335,
+              "all_rotations_accuracy": 0.20822916666666666
+            },
+            "four": {
+              "mean_accuracy": 0.3726041666666667,
+              "all_rotations_accuracy": 0.3726041666666667
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.34615451388888885,
+              "all_rotations_accuracy": 0.09888888888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.3935243055555556,
+              "all_rotations_accuracy": 0.26440972222222225
+            },
+            "adjacent": {
+              "mean_accuracy": 0.37125868055555555,
+              "all_rotations_accuracy": 0.16225694444444447
+            },
+            "four": {
+              "mean_accuracy": 0.42378472222222224,
+              "all_rotations_accuracy": 0.42378472222222224
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1292,
+      "source_classes": [
+        0,
+        6,
+        7,
+        8
+      ],
+      "target_classes": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "latent_width": 88,
+      "invariant_width": 29,
+      "action_error": {
+        "learned": 0.7045984920177945
+      },
+      "order_four_error": 7.105427357601002e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.178984375,
+              "all_rotations_accuracy": 0.03319444444444444
+            },
+            "opposite": {
+              "mean_accuracy": 0.19883680555555555,
+              "all_rotations_accuracy": 0.09895833333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.20823784722222222,
+              "all_rotations_accuracy": 0.09065972222222221
+            },
+            "four": {
+              "mean_accuracy": 0.2270486111111111,
+              "all_rotations_accuracy": 0.2270486111111111
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2231857638888889,
+              "all_rotations_accuracy": 0.026250000000000002
+            },
+            "opposite": {
+              "mean_accuracy": 0.24899305555555554,
+              "all_rotations_accuracy": 0.11694444444444443
+            },
+            "adjacent": {
+              "mean_accuracy": 0.24014756944444443,
+              "all_rotations_accuracy": 0.06395833333333333
+            },
+            "four": {
+              "mean_accuracy": 0.27197916666666666,
+              "all_rotations_accuracy": 0.27197916666666666
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.196640625,
+              "all_rotations_accuracy": 0.03881944444444444
+            },
+            "opposite": {
+              "mean_accuracy": 0.2362326388888889,
+              "all_rotations_accuracy": 0.12493055555555554
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2342621527777778,
+              "all_rotations_accuracy": 0.0921875
+            },
+            "four": {
+              "mean_accuracy": 0.2623263888888889,
+              "all_rotations_accuracy": 0.2623263888888889
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.24774305555555556,
+              "all_rotations_accuracy": 0.03975694444444444
+            },
+            "opposite": {
+              "mean_accuracy": 0.29026041666666674,
+              "all_rotations_accuracy": 0.14809027777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2700954861111111,
+              "all_rotations_accuracy": 0.08069444444444444
+            },
+            "four": {
+              "mean_accuracy": 0.3181597222222222,
+              "all_rotations_accuracy": 0.3181597222222222
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.21235243055555558,
+              "all_rotations_accuracy": 0.034513888888888886
+            },
+            "opposite": {
+              "mean_accuracy": 0.2592881944444445,
+              "all_rotations_accuracy": 0.14572916666666663
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2587326388888889,
+              "all_rotations_accuracy": 0.08788194444444444
+            },
+            "four": {
+              "mean_accuracy": 0.3034027777777778,
+              "all_rotations_accuracy": 0.3034027777777778
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2762673611111111,
+              "all_rotations_accuracy": 0.0478125
+            },
+            "opposite": {
+              "mean_accuracy": 0.3206076388888889,
+              "all_rotations_accuracy": 0.17256944444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2977951388888889,
+              "all_rotations_accuracy": 0.09114583333333334
+            },
+            "four": {
+              "mean_accuracy": 0.36315972222222226,
+              "all_rotations_accuracy": 0.36315972222222226
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1293,
+      "source_classes": [
+        1,
+        5,
+        7,
+        9
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        4,
+        6,
+        8
+      ],
+      "latent_width": 117,
+      "invariant_width": 34,
+      "action_error": {
+        "learned": 0.7728742616913711
+      },
+      "order_four_error": 9.769962616701378e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.27566840277777777,
+              "all_rotations_accuracy": 0.10833333333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.30920138888888893,
+              "all_rotations_accuracy": 0.21822916666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31114583333333334,
+              "all_rotations_accuracy": 0.1932638888888889
+            },
+            "four": {
+              "mean_accuracy": 0.32090277777777776,
+              "all_rotations_accuracy": 0.32090277777777776
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.26285590277777776,
+              "all_rotations_accuracy": 0.05010416666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.29515624999999995,
+              "all_rotations_accuracy": 0.1711111111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27282986111111107,
+              "all_rotations_accuracy": 0.09274305555555555
+            },
+            "four": {
+              "mean_accuracy": 0.3082986111111112,
+              "all_rotations_accuracy": 0.3082986111111112
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3154340277777778,
+              "all_rotations_accuracy": 0.1328125
+            },
+            "opposite": {
+              "mean_accuracy": 0.3397048611111111,
+              "all_rotations_accuracy": 0.2431597222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3343055555555555,
+              "all_rotations_accuracy": 0.21225694444444443
+            },
+            "four": {
+              "mean_accuracy": 0.3492361111111111,
+              "all_rotations_accuracy": 0.3492361111111111
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.30312500000000003,
+              "all_rotations_accuracy": 0.073125
+            },
+            "opposite": {
+              "mean_accuracy": 0.33703125,
+              "all_rotations_accuracy": 0.20100694444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32197916666666665,
+              "all_rotations_accuracy": 0.1250347222222222
+            },
+            "four": {
+              "mean_accuracy": 0.3642708333333334,
+              "all_rotations_accuracy": 0.3642708333333334
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3311892361111111,
+              "all_rotations_accuracy": 0.12684027777777776
+            },
+            "opposite": {
+              "mean_accuracy": 0.3556423611111111,
+              "all_rotations_accuracy": 0.24965277777777775
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34943576388888886,
+              "all_rotations_accuracy": 0.20267361111111112
+            },
+            "four": {
+              "mean_accuracy": 0.36451388888888886,
+              "all_rotations_accuracy": 0.36451388888888886
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3251996527777778,
+              "all_rotations_accuracy": 0.08059027777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.3561805555555556,
+              "all_rotations_accuracy": 0.20680555555555558
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34591145833333337,
+              "all_rotations_accuracy": 0.13722222222222222
+            },
+            "four": {
+              "mean_accuracy": 0.3934375,
+              "all_rotations_accuracy": 0.3934375
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1294,
+      "source_classes": [
+        0,
+        1,
+        3,
+        5
+      ],
+      "target_classes": [
+        2,
+        4,
+        6,
+        7,
+        8,
+        9
+      ],
+      "latent_width": 58,
+      "invariant_width": 21,
+      "action_error": {
+        "learned": 0.5854513351008928
+      },
+      "order_four_error": 5.6694434948827944e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2617100694444444,
+              "all_rotations_accuracy": 0.1129861111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.2825347222222222,
+              "all_rotations_accuracy": 0.20142361111111112
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2734722222222222,
+              "all_rotations_accuracy": 0.18173611111111113
+            },
+            "four": {
+              "mean_accuracy": 0.28649305555555554,
+              "all_rotations_accuracy": 0.28649305555555554
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.238515625,
+              "all_rotations_accuracy": 0.03295138888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.2675,
+              "all_rotations_accuracy": 0.14427083333333335
+            },
+            "adjacent": {
+              "mean_accuracy": 0.26914930555555555,
+              "all_rotations_accuracy": 0.08604166666666666
+            },
+            "four": {
+              "mean_accuracy": 0.30201388888888886,
+              "all_rotations_accuracy": 0.30201388888888886
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.28319444444444447,
+              "all_rotations_accuracy": 0.13065972222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.3122743055555555,
+              "all_rotations_accuracy": 0.2273611111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.30409722222222224,
+              "all_rotations_accuracy": 0.19694444444444445
+            },
+            "four": {
+              "mean_accuracy": 0.32618055555555553,
+              "all_rotations_accuracy": 0.32618055555555553
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.29296006944444447,
+              "all_rotations_accuracy": 0.07940972222222221
+            },
+            "opposite": {
+              "mean_accuracy": 0.33609374999999997,
+              "all_rotations_accuracy": 0.21524305555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31894965277777776,
+              "all_rotations_accuracy": 0.1386111111111111
+            },
+            "four": {
+              "mean_accuracy": 0.3638194444444445,
+              "all_rotations_accuracy": 0.3638194444444445
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.30132812499999995,
+              "all_rotations_accuracy": 0.13295138888888888
+            },
+            "opposite": {
+              "mean_accuracy": 0.3381076388888889,
+              "all_rotations_accuracy": 0.25680555555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3267100694444445,
+              "all_rotations_accuracy": 0.19548611111111108
+            },
+            "four": {
+              "mean_accuracy": 0.35864583333333333,
+              "all_rotations_accuracy": 0.35864583333333333
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.32998263888888896,
+              "all_rotations_accuracy": 0.1176736111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.37753472222222223,
+              "all_rotations_accuracy": 0.25881944444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3616493055555556,
+              "all_rotations_accuracy": 0.18777777777777777
+            },
+            "four": {
+              "mean_accuracy": 0.40434027777777776,
+              "all_rotations_accuracy": 0.40434027777777776
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1295,
+      "source_classes": [
+        1,
+        2,
+        3,
+        9
+      ],
+      "target_classes": [
+        0,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "latent_width": 115,
+      "invariant_width": 33,
+      "action_error": {
+        "learned": 0.7453608134977088
+      },
+      "order_four_error": 5.995204332975845e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.25980902777777776,
+              "all_rotations_accuracy": 0.17204861111111114
+            },
+            "opposite": {
+              "mean_accuracy": 0.2809027777777778,
+              "all_rotations_accuracy": 0.25875
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2663888888888889,
+              "all_rotations_accuracy": 0.19100694444444447
+            },
+            "four": {
+              "mean_accuracy": 0.2816666666666667,
+              "all_rotations_accuracy": 0.2816666666666667
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2582291666666667,
+              "all_rotations_accuracy": 0.04315972222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.28984374999999996,
+              "all_rotations_accuracy": 0.1629861111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2811197916666667,
+              "all_rotations_accuracy": 0.09364583333333333
+            },
+            "four": {
+              "mean_accuracy": 0.32805555555555554,
+              "all_rotations_accuracy": 0.32805555555555554
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2759114583333333,
+              "all_rotations_accuracy": 0.15878472222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.28987847222222224,
+              "all_rotations_accuracy": 0.26482638888888893
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28563368055555555,
+              "all_rotations_accuracy": 0.1898263888888889
+            },
+            "four": {
+              "mean_accuracy": 0.28715277777777776,
+              "all_rotations_accuracy": 0.28715277777777776
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3142361111111111,
+              "all_rotations_accuracy": 0.07614583333333333
+            },
+            "opposite": {
+              "mean_accuracy": 0.35534722222222226,
+              "all_rotations_accuracy": 0.21493055555555554
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34105034722222227,
+              "all_rotations_accuracy": 0.13065972222222222
+            },
+            "four": {
+              "mean_accuracy": 0.3932291666666667,
+              "all_rotations_accuracy": 0.3932291666666667
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.28651909722222224,
+              "all_rotations_accuracy": 0.16711805555555556
+            },
+            "opposite": {
+              "mean_accuracy": 0.3109201388888889,
+              "all_rotations_accuracy": 0.2635763888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3015711805555556,
+              "all_rotations_accuracy": 0.1775347222222222
+            },
+            "four": {
+              "mean_accuracy": 0.3035763888888888,
+              "all_rotations_accuracy": 0.3035763888888888
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3544184027777778,
+              "all_rotations_accuracy": 0.1053472222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.39776041666666667,
+              "all_rotations_accuracy": 0.25552083333333336
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3852777777777778,
+              "all_rotations_accuracy": 0.17239583333333333
+            },
+            "four": {
+              "mean_accuracy": 0.44635416666666666,
+              "all_rotations_accuracy": 0.44635416666666666
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1296,
+      "source_classes": [
+        0,
+        5,
+        6,
+        9
+      ],
+      "target_classes": [
+        1,
+        2,
+        3,
+        4,
+        7,
+        8
+      ],
+      "latent_width": 65,
+      "invariant_width": 22,
+      "action_error": {
+        "learned": 0.6035744837765179
+      },
+      "order_four_error": 6.8833827526759706e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.269765625,
+              "all_rotations_accuracy": 0.11291666666666668
+            },
+            "opposite": {
+              "mean_accuracy": 0.2927777777777778,
+              "all_rotations_accuracy": 0.2173263888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2932899305555555,
+              "all_rotations_accuracy": 0.1811111111111111
+            },
+            "four": {
+              "mean_accuracy": 0.31069444444444444,
+              "all_rotations_accuracy": 0.31069444444444444
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.22815104166666667,
+              "all_rotations_accuracy": 0.029027777777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.2554166666666667,
+              "all_rotations_accuracy": 0.12604166666666664
+            },
+            "adjacent": {
+              "mean_accuracy": 0.256328125,
+              "all_rotations_accuracy": 0.07909722222222222
+            },
+            "four": {
+              "mean_accuracy": 0.2975,
+              "all_rotations_accuracy": 0.2975
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2932986111111111,
+              "all_rotations_accuracy": 0.12652777777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.3252083333333333,
+              "all_rotations_accuracy": 0.23086805555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31671875,
+              "all_rotations_accuracy": 0.18729166666666663
+            },
+            "four": {
+              "mean_accuracy": 0.3425347222222222,
+              "all_rotations_accuracy": 0.3425347222222222
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.28791666666666665,
+              "all_rotations_accuracy": 0.0710763888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.3222916666666667,
+              "all_rotations_accuracy": 0.18815972222222224
+            },
+            "adjacent": {
+              "mean_accuracy": 0.30875868055555555,
+              "all_rotations_accuracy": 0.113125
+            },
+            "four": {
+              "mean_accuracy": 0.3597916666666666,
+              "all_rotations_accuracy": 0.3597916666666666
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3044965277777778,
+              "all_rotations_accuracy": 0.12784722222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.3460590277777778,
+              "all_rotations_accuracy": 0.2445486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33135416666666667,
+              "all_rotations_accuracy": 0.1872222222222222
+            },
+            "four": {
+              "mean_accuracy": 0.36947916666666664,
+              "all_rotations_accuracy": 0.36947916666666664
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.31625,
+              "all_rotations_accuracy": 0.08684027777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.3485763888888889,
+              "all_rotations_accuracy": 0.21284722222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34020833333333333,
+              "all_rotations_accuracy": 0.13263888888888886
+            },
+            "four": {
+              "mean_accuracy": 0.39590277777777777,
+              "all_rotations_accuracy": 0.39590277777777777
+            }
+          }
+        }
+      }
+    }
+  ],
+  "elapsed_seconds": 106.55078997800592
+}
