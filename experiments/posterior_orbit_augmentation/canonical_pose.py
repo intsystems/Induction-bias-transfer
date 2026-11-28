@@ -861,18 +861,56 @@ def weight_reflected_targets(views, signs, weight):
     return aligned, aligned * signs
 
 
-def class_target_means(views, labels, *, restore_variance):
+def rotate_class_prototypes(prototypes, counts, seed):
+    values = prototypes.double()
+    weights = (counts.double() / counts.sum()).sqrt()
+    contrast_count = len(weights) - 1
+    rng = torch.Generator(device=values.device).manual_seed(seed)
+    trial = torch.randn((len(weights), contrast_count), generator=rng, device=values.device, dtype=values.dtype)
+    frame, _ = torch.linalg.qr(torch.column_stack((weights, trial)))
+    contrasts = frame[:, 1:]
+    trial = torch.randn((contrast_count, contrast_count), generator=rng, device=values.device, dtype=values.dtype)
+    rotated, _ = torch.linalg.qr(trial)
+    action = torch.outer(weights, weights) + contrasts @ rotated @ contrasts.T
+    mean = (values * weights.square()[None, :, None]).sum(dim=1, keepdim=True)
+    scale = weights[None, :, None]
+    return (mean + (action @ ((values - mean) * scale)) / scale).to(prototypes.dtype)
+
+
+def class_target_means(views, labels, *, restore_variance, rotation_seed=None):
     targets = torch.stack(views)
-    prototypes = torch.empty_like(targets)
-    for label in torch.unique(labels):
-        members = labels == label
-        prototypes[:, members] = targets[:, members].mean(dim=1, keepdim=True)
+    classes, membership, counts = torch.unique(labels, return_inverse=True, return_counts=True)
+    means = torch.stack([targets[:, labels == label].mean(dim=1) for label in classes], dim=1)
+    if rotation_seed is not None:
+        means = rotate_class_prototypes(means, counts, rotation_seed)
+    prototypes = means[:, membership]
     if restore_variance:
         mean = targets.mean(dim=1, keepdim=True)
         total = (targets - mean).square().mean()
         between = (prototypes - mean).square().mean()
         prototypes = mean + (prototypes - mean) * (total / between.clamp_min(1e-12)).sqrt()
     return prototypes.unbind(0)
+
+
+def gaussian_class_targets(views, labels, seed, *, rotation=None):
+    targets = torch.stack(views, dim=1)
+    view_count, width = targets.shape[1:]
+    generated = torch.empty_like(targets)
+    rng = torch.Generator(device=targets.device).manual_seed(seed)
+    for label in torch.unique(labels):
+        members = labels == label
+        group = targets[members].flatten(1)
+        mean = group.mean(dim=0)
+        centered = (group - mean).double()
+        energies, axes = torch.linalg.eigh(centered.T @ centered / len(group))
+        noise = torch.randn(centered.shape, generator=rng, device=targets.device, dtype=centered.dtype)
+        draws = noise @ (axes * energies.clamp_min(0).sqrt()).T
+        draws -= draws.mean(dim=0)
+        draws *= (centered.square().mean() / draws.square().mean().clamp_min(1e-12)).sqrt()
+        if rotation is not None:
+            draws = (draws.reshape(-1, view_count, width) @ rotation).flatten(1)
+        generated[members] = (mean + draws).reshape(-1, view_count, width).to(targets.dtype)
+    return generated.unbind(1)
 
 
 def average_head_directions(teacher_prior, student_prior, odd):
@@ -1694,9 +1732,31 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                 projection_penalties[blended_name] = 0.
                         if args.track_distillation_projection_class_targets:
                             class_labels = labels.to(source.device)
-                            for name, restore in (("class_prototypes", False), ("scaled_class_prototypes", True)):
+                            configurations = [("class_prototypes", False, None), ("scaled_class_prototypes", True, None)]
+                            if args.track_distillation_projection_class_geometry:
+                                configurations.append(("rotated_class_prototypes", True, seed + 995))
+                            for name, restore, rotation_seed in configurations:
                                 target_transforms[name] = partial(class_target_means, labels=class_labels,
-                                                                  restore_variance=restore)
+                                                                  restore_variance=restore, rotation_seed=rotation_seed)
+                                variants.append((name, None, source, None))
+                                projection_penalties[name] = 0.
+                        if args.track_distillation_projection_gaussian_targets:
+                            class_labels = labels.to(source.device)
+                            rotation = np.eye(len(odd))
+                            rng = np.random.default_rng(seed + 980)
+                            parity = odd.cpu().numpy()
+                            for index in (parity, ~parity):
+                                count = int(index.sum())
+                                rotated, _ = np.linalg.qr(rng.standard_normal((count, count)))
+                                rotation[np.ix_(index, index)] = rotated
+                            target_transforms["class_prototypes"] = partial(class_target_means, labels=class_labels,
+                                                                             restore_variance=False)
+                            target_transforms["gaussian_targets"] = partial(gaussian_class_targets, labels=class_labels,
+                                                                            seed=seed + 990)
+                            target_transforms["rotated_gaussian_targets"] = partial(
+                                gaussian_class_targets, labels=class_labels, seed=seed + 990,
+                                rotation=torch.as_tensor(rotation, device=source.device))
+                            for name in ("class_prototypes", "gaussian_targets", "rotated_gaussian_targets"):
                                 variants.append((name, None, source, None))
                                 projection_penalties[name] = 0.
                     elif args.track_distillation_projection_parity_student:
@@ -2068,6 +2128,8 @@ def main():
     selection.add_argument("--track-distillation-projection-track-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-blended-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-class-targets", action="store_true")
+    selection.add_argument("--track-distillation-projection-class-geometry", action="store_true")
+    selection.add_argument("--track-distillation-projection-gaussian-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-student", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-supervision", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
@@ -2075,7 +2137,10 @@ def main():
     args = parser.parse_args()
     if args.track_distillation_projection_parity_supervision:
         args.track_distillation_projection_parity_student = True
-    if args.track_distillation_projection_blended_targets or args.track_distillation_projection_class_targets:
+    if args.track_distillation_projection_class_geometry:
+        args.track_distillation_projection_class_targets = True
+    if (args.track_distillation_projection_blended_targets or args.track_distillation_projection_class_targets
+            or args.track_distillation_projection_gaussian_targets):
         args.track_distillation_projection_track_targets = True
     if (args.track_distillation_projection_confident_teacher or args.track_distillation_projection_teacher_confidence_head
             or args.track_distillation_projection_approx_teacher_track_prior
@@ -2183,8 +2248,12 @@ def main():
             name = "track_distillation_projection_projected_teacher_prior"
         elif args.track_distillation_projection_blended_targets:
             name = "track_distillation_projection_blended_targets"
+        elif args.track_distillation_projection_class_geometry:
+            name = "track_distillation_projection_class_geometry"
         elif args.track_distillation_projection_class_targets:
             name = "track_distillation_projection_class_targets"
+        elif args.track_distillation_projection_gaussian_targets:
+            name = "track_distillation_projection_gaussian_targets"
         elif args.track_distillation_projection_track_targets:
             name = "track_distillation_projection_track_targets"
         elif args.track_distillation_projection_parity_supervision:

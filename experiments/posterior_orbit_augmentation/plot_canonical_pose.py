@@ -274,6 +274,16 @@ TRACK_DISTILLATION_PROJECTION_CLASS_TARGETS_METHODS = {
     "class_prototypes_aligned": "Class mean targets",
     "scaled_class_prototypes_aligned": "Class mean targets with matched variance",
 }
+TRACK_DISTILLATION_PROJECTION_CLASS_GEOMETRY_METHODS = {
+    **TRACK_DISTILLATION_PROJECTION_CLASS_TARGETS_METHODS,
+    "rotated_class_prototypes_aligned": "Rotated class correspondences with matched covariance",
+}
+TRACK_DISTILLATION_PROJECTION_GAUSSIAN_TARGETS_METHODS = {
+    **TRACK_DISTILLATION_PROJECTION_TRACK_TARGETS_METHODS,
+    "class_prototypes_aligned": "Class mean targets",
+    "gaussian_targets_aligned": "Class Gaussian targets",
+    "rotated_gaussian_targets_aligned": "Class Gaussian · rotated covariance",
+}
 TRACK_DISTILLATION_PROJECTION_PARITY_STUDENT_METHODS = {
     "raw_aligned": "Ordinary training · two views",
     "estimated_training_aligned": "Projected training · two views",
@@ -413,8 +423,12 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_PROJECTED_TEACHER_PRIOR_METHODS
     elif results["config"].get("track_distillation_projection_blended_targets", False):
         methods = TRACK_DISTILLATION_PROJECTION_BLENDED_TARGETS_METHODS
+    elif results["config"].get("track_distillation_projection_class_geometry", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CLASS_GEOMETRY_METHODS
     elif results["config"].get("track_distillation_projection_class_targets", False):
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_TARGETS_METHODS
+    elif results["config"].get("track_distillation_projection_gaussian_targets", False):
+        methods = TRACK_DISTILLATION_PROJECTION_GAUSSIAN_TARGETS_METHODS
     elif results["config"].get("track_distillation_projection_track_targets", False):
         methods = TRACK_DISTILLATION_PROJECTION_TRACK_TARGETS_METHODS
     elif results["config"].get("track_distillation_projection_parity_supervision", False):
