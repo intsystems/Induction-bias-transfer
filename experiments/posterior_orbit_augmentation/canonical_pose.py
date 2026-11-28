@@ -736,19 +736,27 @@ def reflect_projected_views(views, action):
     return (views + views[::-1] @ action) / 2
 
 
-def fit_reflection_involution(clean, reflected, odd_count):
+def fit_reflection_involution(clean, reflected, odd_count, reference=None):
     cross = clean.T @ reflected
-    _, basis = np.linalg.eigh((cross + cross.T) / 2)
+    symmetric = (cross + cross.T) / 2
+    if reference is not None:
+        symmetric = symmetric / max(np.linalg.norm(symmetric, "fro"), 1e-12)
+        symmetric += reference / np.linalg.norm(reference, "fro")
+    _, basis = np.linalg.eigh(symmetric)
     negative = basis[:, :odd_count]
     return np.eye(len(basis)) - 2 * negative @ negative.T
 
 
 @torch.inference_mode()
-def calibrate_track_projection(student, images, odd_count, batch_size):
+def calibrate_track_projection(student, images, odd_count, batch_size, *, sparse=None, reference=None):
     pairs = [student(torch.cat((batch, batch.flip(-1)))).reshape(2, len(batch), -1).cpu().numpy()
              for batch in images.split(batch_size)]
     clean, reflected = np.concatenate(pairs, axis=1).astype(np.float64)
-    return fit_reflection_involution(clean, reflected, odd_count)
+    actions = {"calibrated": fit_reflection_involution(clean, reflected, odd_count)}
+    if sparse is not None:
+        actions["sparse"] = fit_reflection_involution(clean[sparse], reflected[sparse], odd_count)
+        actions["shrunk"] = fit_reflection_involution(clean[sparse], reflected[sparse], odd_count, reference)
+    return actions
 
 
 def add_projected_track_readouts(name, support, original, query, actions, prior, distilled_support):
@@ -1327,6 +1335,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             projection_prior = None
             projection_distances = {}
             projection_penalties = {}
+            reflection_schedules = {}
             if args.track_distillation_projection:
                 late = range(args.student_epochs - args.student_epochs // 2, args.student_epochs)
                 variants = [("late_track", "head_same_class", source, late)]
@@ -1339,6 +1348,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 elif args.track_distillation_projection_penalty:
                     variants.extend((method, "head_same_class", source, late) for method in PROJECTION_PENALTIES)
                     projection_penalties = PROJECTION_PENALTIES
+                elif args.track_distillation_projection_schedule:
+                    projection_penalties = {"project_early": 0., "project_late": 0., "project_all": 0.}
+                    reflection_schedules = {"project_early": range(len(late)), "project_late": late}
+                    variants.extend((method, "head_same_class", source, late) for method in projection_penalties)
                 else:
                     rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                         (len(reflection_sign), len(reflection_sign))))
@@ -1349,9 +1362,19 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 if args.track_distillation_projection_calibrated:
                     probe_pairs = probe[::2]
                     odd_count = int(odd.sum().item())
-                    calibrated = calibrate_track_projection(student, probe_pairs, odd_count, args.batch_size)
-                    raw_actions = {**projection_actions, "calibrated": calibrated}
-                    distance = np.linalg.norm(calibrated - projection_actions["aligned"], "fro")
+                    sparse = None
+                    reference = projection_actions["aligned"]
+                    if args.track_distillation_projection_shrink:
+                        labels_for_pairs = probe_labels[::2].numpy()
+                        selection_rng = np.random.default_rng(seed + 960)
+                        sparse = np.concatenate([
+                            selection_rng.permutation(np.flatnonzero(labels_for_pairs == label))[:2]
+                            for label in np.unique(labels_for_pairs)
+                        ])
+                    calibrated = calibrate_track_projection(student, probe_pairs, odd_count, args.batch_size,
+                                                            sparse=sparse, reference=reference)
+                    raw_actions = {**projection_actions, **calibrated}
+                    distance = np.linalg.norm(calibrated["calibrated"] - reference, "fro")
                     projection_distances["raw"] = float(distance / np.sqrt(len(reflection_sign)))
                 add_projected_track_readouts("raw", support_views, query, query, raw_actions,
                                              projection_prior, distilled_support)
@@ -1371,7 +1394,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       frozen_feature_epochs=frozen_epochs.get(name),
                                       reflection_action=source.new_tensor(projection_actions["aligned"])
                                       if during_training else None,
-                                      reflection_penalty=projection_penalties.get(name, 0.))
+                                      reflection_penalty=projection_penalties.get(name, 0.),
+                                      reflection_epochs=reflection_schedules.get(name))
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
@@ -1387,9 +1411,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 if projection_actions:
                     learned_actions = projection_actions
                     if args.track_distillation_projection_calibrated:
-                        calibrated = calibrate_track_projection(learned, probe_pairs, odd_count, args.batch_size)
-                        learned_actions = {**projection_actions, "calibrated": calibrated}
-                        distance = np.linalg.norm(calibrated - projection_actions["aligned"], "fro")
+                        calibrated = calibrate_track_projection(learned, probe_pairs, odd_count, args.batch_size,
+                                                                sparse=sparse, reference=reference)
+                        learned_actions = {**projection_actions, **calibrated}
+                        distance = np.linalg.norm(calibrated["calibrated"] - reference, "fro")
                         projection_distances[name] = float(distance / np.sqrt(len(reflection_sign)))
                     add_projected_track_readouts(name, features, transformed, query, learned_actions,
                                                  projection_prior, distilled_support)
@@ -1400,6 +1425,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
         if args.track_distillation_projection_calibrated:
             diagnostics["student_reflection_calibration"] = {"pair_count": len(probe_pairs),
                                                               "distance": projection_distances}
+            if args.track_distillation_projection_shrink:
+                diagnostics["student_reflection_calibration"]["sparse_pair_count"] = len(sparse)
         if args.track_consistency:
             diagnostics["mean_track_weight"] = select_track_corrections(query, odd, seed + 500)
         if teacher_rotation is not None:
@@ -1539,11 +1566,15 @@ def main():
     selection.add_argument("--track-distillation-projection-train", action="store_true")
     selection.add_argument("--track-distillation-projection-calibrated", action="store_true")
     selection.add_argument("--track-distillation-projection-penalty", action="store_true")
+    selection.add_argument("--track-distillation-projection-shrink", action="store_true")
+    selection.add_argument("--track-distillation-projection-schedule", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_distillation_projection_shrink:
+        args.track_distillation_projection_calibrated = True
     if (args.track_distillation_projection_train or args.track_distillation_projection_calibrated
-            or args.track_distillation_projection_penalty):
+            or args.track_distillation_projection_penalty or args.track_distillation_projection_schedule):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1580,10 +1611,14 @@ def main():
             name = "track_distillation_late_head"
         elif args.track_distillation_projection_train:
             name = "track_distillation_projection_train"
+        elif args.track_distillation_projection_shrink:
+            name = "track_distillation_projection_shrink"
         elif args.track_distillation_projection_calibrated:
             name = "track_distillation_projection_calibrated"
         elif args.track_distillation_projection_penalty:
             name = "track_distillation_projection_penalty"
+        elif args.track_distillation_projection_schedule:
+            name = "track_distillation_projection_schedule"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:

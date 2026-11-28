@@ -143,7 +143,8 @@ def discover_basis(teacher, probe, args):
 
 
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
-                hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.):
+                hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.,
+                reflection_epochs=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
                             nn.Linear(hidden_width, basis.shape[1])).to(x.device)
@@ -162,12 +163,13 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         if frozen_feature_epochs is not None:
             student[1].requires_grad_(epoch not in frozen_feature_epochs)
         weighted = metric is not None and (metric_epochs is None or epoch in metric_epochs)
+        project = reflection_action is not None and (reflection_epochs is None or epoch in reflection_epochs)
         for ix in batches(len(x), args.batch_size, rng):
             optimizer.zero_grad(set_to_none=True)
             batch = x[ix]
             raw_prediction = student(torch.cat([batch, *(view(batch) for view in views)]))
             prediction = raw_prediction
-            if reflection_action is not None:
+            if project:
                 pair = prediction.reshape(2, len(batch), -1)
                 prediction = ((pair + pair.flip(0) @ reflection_action) / 2).flatten(0, 1)
             expected = torch.cat([target[ix], *(values[ix] for values in targets_by_view)])
@@ -176,7 +178,7 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
             else:
                 residual = prediction - expected
                 loss = ((residual @ metric) * residual).mean()
-            if reflection_penalty:
+            if project and reflection_penalty:
                 complement = raw_prediction - prediction
                 energy = ((complement @ metric) * complement).mean() if weighted else complement.square().mean()
                 loss = loss + reflection_penalty * energy

@@ -143,6 +143,16 @@ TRACK_DISTILLATION_PROJECTION_CALIBRATED_METHODS = {"raw_aligned": "Uniform loss
                                                    "late_track_aligned": "Natural loss · teacher action",
                                                    "late_track_rotated": "Natural loss · rotated action",
                                                    "late_track_calibrated": "Natural loss · student action"}
+TRACK_DISTILLATION_PROJECTION_SHRINK_METHODS = {"raw_aligned": "Uniform loss · teacher action",
+                                               "raw_sparse": "Uniform loss · sparse calibration",
+                                               "raw_shrunk": "Uniform loss · teacher + sparse calibration",
+                                               "late_track_aligned": "Natural loss · teacher action",
+                                               "late_track_sparse": "Natural loss · sparse calibration",
+                                               "late_track_shrunk": "Natural loss · teacher + sparse calibration"}
+TRACK_DISTILLATION_PROJECTION_SCHEDULE_METHODS = {"late_track_aligned": "Prediction only",
+                                                 "project_early_aligned": "Early training",
+                                                 "project_late_aligned": "Late training",
+                                                 "project_all_aligned": "Throughout training"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -186,11 +196,15 @@ def main():
         methods = TRACK_DISTILLATION_LATE_HEAD_METHODS
     elif results["config"].get("track_distillation_projection_train", False):
         methods = TRACK_DISTILLATION_PROJECTION_TRAIN_METHODS
+    elif results["config"].get("track_distillation_projection_shrink", False):
+        methods = TRACK_DISTILLATION_PROJECTION_SHRINK_METHODS
     elif results["config"].get("track_distillation_projection_calibrated", False):
         methods = TRACK_DISTILLATION_PROJECTION_CALIBRATED_METHODS
     elif results["config"].get("track_distillation_projection_penalty", False):
         methods = {f"{name}_aligned": f"Complement penalty {penalty:g}"
                    for name, penalty in sorted(results["projection_penalties"].items(), key=lambda item: item[1])}
+    elif results["config"].get("track_distillation_projection_schedule", False):
+        methods = TRACK_DISTILLATION_PROJECTION_SCHEDULE_METHODS
     elif results["config"].get("track_distillation_projection", False):
         methods = TRACK_DISTILLATION_PROJECTION_METHODS
     elif results["config"].get("track_distillation_schedule", False):
