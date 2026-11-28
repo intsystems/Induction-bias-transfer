@@ -28,6 +28,8 @@ ANGLE_GATE_MODELS = ("gate_fixed", "gate_adaptive", "gate_shuffled")
 TRACK_PAIR_BUDGETS = (2, 8, 32)
 DISTILLATION_TAILS = {"sixth": 6, "third": 3, "half": 2}
 PROJECTION_PENALTIES = {"penalty_zero": 0., "penalty_quarter": .25, "penalty_four": 4.}
+MIRRORED_TARGET_WEIGHTS = {"original_targets": 0., "quarter_mirror_targets": .25,
+                           "majority_mirror_targets": .75, "mirror_targets": 1.}
 
 
 def terminal_projection_schedules(student_epochs):
@@ -849,6 +851,30 @@ def teacher_confidence_priors(energies, odd, seed):
             (("confidence_head", weights), ("shuffled_head", shuffled), ("parity_head", block_means))}
 
 
+def blend_target_pairs(views, partners):
+    return [(values + values[partners]) / 2 for values in views]
+
+
+def weight_reflected_targets(views, signs, weight):
+    original, reflected = views
+    aligned = torch.lerp(original, reflected * signs, weight)
+    return aligned, aligned * signs
+
+
+def class_target_means(views, labels, *, restore_variance):
+    targets = torch.stack(views)
+    prototypes = torch.empty_like(targets)
+    for label in torch.unique(labels):
+        members = labels == label
+        prototypes[:, members] = targets[:, members].mean(dim=1, keepdim=True)
+    if restore_variance:
+        mean = targets.mean(dim=1, keepdim=True)
+        total = (targets - mean).square().mean()
+        between = (prototypes - mean).square().mean()
+        prototypes = mean + (prototypes - mean) * (total / between.clamp_min(1e-12)).sqrt()
+    return prototypes.unbind(0)
+
+
 def average_head_directions(teacher_prior, student_prior, odd):
     average = (teacher_prior + student_prior).sum(axis=0) / 2
     restored = np.zeros_like(teacher_prior)
@@ -1552,7 +1578,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             reflection_penalty_masks = {}
             training_projection_actions = {}
             training_target_indices = {}
-            blended_target_indices = {}
+            target_transforms = {}
             model_factories = {}
             architecture_diagnostics = {}
             projection_strengths = None
@@ -1640,6 +1666,12 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                         for name in ("suppress_residual", "match_residual"):
                             variants.append((name, None, source, None))
                             projection_penalties[name] = .25
+                    elif args.track_distillation_projection_mirrored_targets:
+                        signs = torch.where(odd, -1., 1.)
+                        for name, weight in MIRRORED_TARGET_WEIGHTS.items():
+                            target_transforms[name] = partial(weight_reflected_targets, signs=signs, weight=weight)
+                            variants.append((name, None, source, None))
+                            projection_penalties[name] = 0.
                     elif args.track_distillation_projection_projected_teacher_prior:
                         for name, key in (("raw_teacher_prior", "head_same_class"),
                                           ("projected_teacher_prior", "head_student_class"),
@@ -1656,9 +1688,17 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                             projection_penalties[name] = 0.
                             if args.track_distillation_projection_blended_targets:
                                 blended_name = name + "_blended"
-                                blended_target_indices[blended_name] = training_target_indices[name]
+                                target_transforms[blended_name] = partial(blend_target_pairs,
+                                                                          partners=training_target_indices[name])
                                 variants.append((blended_name, None, source, None))
                                 projection_penalties[blended_name] = 0.
+                        if args.track_distillation_projection_class_targets:
+                            class_labels = labels.to(source.device)
+                            for name, restore in (("class_prototypes", False), ("scaled_class_prototypes", True)):
+                                target_transforms[name] = partial(class_target_means, labels=class_labels,
+                                                                  restore_variance=restore)
+                                variants.append((name, None, source, None))
+                                projection_penalties[name] = 0.
                     elif args.track_distillation_projection_parity_student:
                         folded = partial(ParityStudent, odd)
                         model_factories = {"folded_parameterization": folded}
@@ -1740,7 +1780,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       match_reflection_residual=name == "match_residual",
                                       model_factory=model_factories.get(name),
                                       teacher_reflection_from_action=name == "one_view_dense",
-                                      average_target_partners=blended_target_indices.get(name))
+                                      target_transform=target_transforms.get(name))
                 if args.track_distillation_projection_parity_student:
                     width = len(odd)
                     encoder = SimpleNamespace(encode=learned, view=teacher.view)
@@ -2023,9 +2063,11 @@ def main():
     selection.add_argument("--track-distillation-projection-teacher-confidence-head", action="store_true")
     selection.add_argument("--track-distillation-projection-approx-teacher-track-prior", action="store_true")
     selection.add_argument("--track-distillation-projection-teacher-residual", action="store_true")
+    selection.add_argument("--track-distillation-projection-mirrored-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-projected-teacher-prior", action="store_true")
     selection.add_argument("--track-distillation-projection-track-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-blended-targets", action="store_true")
+    selection.add_argument("--track-distillation-projection-class-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-student", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-supervision", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
@@ -2033,11 +2075,12 @@ def main():
     args = parser.parse_args()
     if args.track_distillation_projection_parity_supervision:
         args.track_distillation_projection_parity_student = True
-    if args.track_distillation_projection_blended_targets:
+    if args.track_distillation_projection_blended_targets or args.track_distillation_projection_class_targets:
         args.track_distillation_projection_track_targets = True
     if (args.track_distillation_projection_confident_teacher or args.track_distillation_projection_teacher_confidence_head
             or args.track_distillation_projection_approx_teacher_track_prior
             or args.track_distillation_projection_teacher_residual
+            or args.track_distillation_projection_mirrored_targets
             or args.track_distillation_projection_projected_teacher_prior
             or args.track_distillation_projection_track_targets
             or args.track_distillation_projection_parity_student):
@@ -2134,10 +2177,14 @@ def main():
             name = "track_distillation_projection_approx_teacher_track_prior"
         elif args.track_distillation_projection_teacher_residual:
             name = "track_distillation_projection_teacher_residual"
+        elif args.track_distillation_projection_mirrored_targets:
+            name = "track_distillation_projection_mirrored_targets"
         elif args.track_distillation_projection_projected_teacher_prior:
             name = "track_distillation_projection_projected_teacher_prior"
         elif args.track_distillation_projection_blended_targets:
             name = "track_distillation_projection_blended_targets"
+        elif args.track_distillation_projection_class_targets:
+            name = "track_distillation_projection_class_targets"
         elif args.track_distillation_projection_track_targets:
             name = "track_distillation_projection_track_targets"
         elif args.track_distillation_projection_parity_supervision:
@@ -2283,6 +2330,8 @@ def main():
                                                for phase, divisor in DISTILLATION_TAILS.items()}
     if args.track_distillation_projection_penalty:
         output["projection_penalties"] = {**PROJECTION_PENALTIES, "late_track": 1.}
+    if args.track_distillation_projection_mirrored_targets:
+        output["mirrored_target_weights"] = {**MIRRORED_TARGET_WEIGHTS, "estimated_training": .5}
     if args.track_distillation_projection_terminal:
         output["projection_epochs"] = terminal_projection_schedules(args.student_epochs)
     if source_partners is not None:

@@ -150,7 +150,7 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
                 reflection_epochs=None, orbit_actions=None, orbit_order=None, invariant_variance_weight=0.,
                 target_inputs=None, variance_projector=None, reflection_penalty_mask=None, reflection_strengths=None,
                 match_reflection_residual=False, model_factory=None, teacher_reflection_from_action=False,
-                average_target_partners=None):
+                target_transform=None):
     torch.manual_seed(seed)
     if model_factory is None:
         student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
@@ -207,9 +207,8 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         else:
             targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
                                          for batch in supervision.split(args.batch_size)]) for view in views]
-        if average_target_partners is not None:
-            target = (target + target[average_target_partners]) / 2
-            targets_by_view = [(value + value[average_target_partners]) / 2 for value in targets_by_view]
+        if target_transform is not None:
+            target, *targets_by_view = target_transform((target, *targets_by_view))
     for epoch in range(args.student_epochs):
         if frozen_feature_epochs is not None:
             student[1].requires_grad_(epoch not in frozen_feature_epochs)

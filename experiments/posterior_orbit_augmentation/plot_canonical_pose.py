@@ -269,6 +269,11 @@ TRACK_DISTILLATION_PROJECTION_BLENDED_TARGETS_METHODS = {
     "same_track_targets_blended_aligned": "Blend with same-track targets",
     "other_track_targets_blended_aligned": "Blend with other-track targets",
 }
+TRACK_DISTILLATION_PROJECTION_CLASS_TARGETS_METHODS = {
+    **TRACK_DISTILLATION_PROJECTION_TRACK_TARGETS_METHODS,
+    "class_prototypes_aligned": "Class mean targets",
+    "scaled_class_prototypes_aligned": "Class mean targets with matched variance",
+}
 TRACK_DISTILLATION_PROJECTION_PARITY_STUDENT_METHODS = {
     "raw_aligned": "Ordinary training · two views",
     "estimated_training_aligned": "Projected training · two views",
@@ -401,10 +406,15 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_APPROX_TEACHER_TRACK_PRIOR_METHODS
     elif results["config"].get("track_distillation_projection_teacher_residual", False):
         methods = TRACK_DISTILLATION_PROJECTION_TEACHER_RESIDUAL_METHODS
+    elif results["config"].get("track_distillation_projection_mirrored_targets", False):
+        methods = {f"{name}_aligned": f"Mirrored target weight {weight:g}"
+                   for name, weight in sorted(results["mirrored_target_weights"].items(), key=lambda item: item[1])}
     elif results["config"].get("track_distillation_projection_projected_teacher_prior", False):
         methods = TRACK_DISTILLATION_PROJECTION_PROJECTED_TEACHER_PRIOR_METHODS
     elif results["config"].get("track_distillation_projection_blended_targets", False):
         methods = TRACK_DISTILLATION_PROJECTION_BLENDED_TARGETS_METHODS
+    elif results["config"].get("track_distillation_projection_class_targets", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CLASS_TARGETS_METHODS
     elif results["config"].get("track_distillation_projection_track_targets", False):
         methods = TRACK_DISTILLATION_PROJECTION_TRACK_TARGETS_METHODS
     elif results["config"].get("track_distillation_projection_parity_supervision", False):
