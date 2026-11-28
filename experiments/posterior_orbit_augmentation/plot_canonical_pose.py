@@ -153,6 +153,10 @@ TRACK_DISTILLATION_PROJECTION_SCHEDULE_METHODS = {"late_track_aligned": "Predict
                                                  "project_early_aligned": "Early training",
                                                  "project_late_aligned": "Late training",
                                                  "project_all_aligned": "Throughout training"}
+TRACK_DISTILLATION_PROJECTION_COMPRESS_METHODS = {"late_track_aligned": "Standard first stage · two views",
+                                                 "late_track_compressed": "Standard first stage · one view",
+                                                 "trained_late_aligned": "Projected first stage · two views",
+                                                 "trained_late_compressed": "Projected first stage · one view"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -205,6 +209,8 @@ def main():
                    for name, penalty in sorted(results["projection_penalties"].items(), key=lambda item: item[1])}
     elif results["config"].get("track_distillation_projection_schedule", False):
         methods = TRACK_DISTILLATION_PROJECTION_SCHEDULE_METHODS
+    elif results["config"].get("track_distillation_projection_compress", False):
+        methods = TRACK_DISTILLATION_PROJECTION_COMPRESS_METHODS
     elif results["config"].get("track_distillation_projection", False):
         methods = TRACK_DISTILLATION_PROJECTION_METHODS
     elif results["config"].get("track_distillation_schedule", False):

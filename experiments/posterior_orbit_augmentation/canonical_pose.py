@@ -8,6 +8,7 @@ from collections import defaultdict
 from copy import deepcopy
 from itertools import combinations
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import torch
@@ -769,6 +770,13 @@ def add_projected_track_readouts(name, support, original, query, actions, prior,
                 query[label][strength][0][key] = reflect_projected_views(values["raw"], action)
 
 
+def add_track_readout(name, support, original, query, prior, distilled_support):
+    distilled_support[name] = support, prior
+    for label, positions in original.items():
+        for strength, (values, _) in positions.items():
+            query[label][strength][0][name] = values["raw"]
+
+
 def select_track_corrections(query, odd, seed):
     steps = np.asarray((0., .5, 1.), dtype=np.float32)
     odd = odd.cpu().numpy()
@@ -1352,6 +1360,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     projection_penalties = {"project_early": 0., "project_late": 0., "project_all": 0.}
                     reflection_schedules = {"project_early": range(len(late)), "project_late": late}
                     variants.extend((method, "head_same_class", source, late) for method in projection_penalties)
+                elif args.track_distillation_projection_compress:
+                    variants.append(("trained_late", "head_same_class", source, late))
+                    projection_penalties = {"trained_late": 0.}
                 else:
                     rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                         (len(reflection_sign), len(reflection_sign))))
@@ -1404,10 +1415,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     evaluators.extend(((name + "_track_head", priors["head_same_class"]),
                                        (name + "_rotated_head", priors["head_rotated"])))
                 for method, prior in evaluators:
-                    distilled_support[method] = variant_support, prior
-                    for label, positions in transformed.items():
-                        for strength, (values, _) in positions.items():
-                            query[label][strength][0][method] = values["raw"]
+                    add_track_readout(method, variant_support, transformed, query, prior, distilled_support)
                 if projection_actions:
                     learned_actions = projection_actions
                     if args.track_distillation_projection_calibrated:
@@ -1418,6 +1426,21 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                         projection_distances[name] = float(distance / np.sqrt(len(reflection_sign)))
                     add_projected_track_readouts(name, features, transformed, query, learned_actions,
                                                  projection_prior, distilled_support)
+                if args.track_distillation_projection_compress:
+                    action = source.new_tensor(projection_actions["aligned"])
+
+                    def encode_projected(batch, model=learned):
+                        return (model(batch) + model(teacher.view(batch)) @ action) / 2
+
+                    projected_teacher = SimpleNamespace(encode=encode_projected, view=teacher.view)
+                    width = len(action)
+                    identity = torch.eye(width, device=device, dtype=source.dtype)
+                    compressed = fit_student(source, projected_teacher, identity, source.new_zeros((width,)),
+                                             args, seed + 700)
+                    compressed_support = {label: views[0] for label, views in embed(compressed, train, args, device).items()}
+                    compressed_query = natural_track_embeddings(compressed, {}, train, natural_queries, args, device)
+                    add_track_readout(f"{name}_compressed", compressed_support, compressed_query, query,
+                                      projection_prior, distilled_support)
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
         if args.track_distillation_budget:
@@ -1568,13 +1591,15 @@ def main():
     selection.add_argument("--track-distillation-projection-penalty", action="store_true")
     selection.add_argument("--track-distillation-projection-shrink", action="store_true")
     selection.add_argument("--track-distillation-projection-schedule", action="store_true")
+    selection.add_argument("--track-distillation-projection-compress", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if args.track_distillation_projection_shrink:
         args.track_distillation_projection_calibrated = True
     if (args.track_distillation_projection_train or args.track_distillation_projection_calibrated
-            or args.track_distillation_projection_penalty or args.track_distillation_projection_schedule):
+            or args.track_distillation_projection_penalty or args.track_distillation_projection_schedule
+            or args.track_distillation_projection_compress):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1619,6 +1644,8 @@ def main():
             name = "track_distillation_projection_penalty"
         elif args.track_distillation_projection_schedule:
             name = "track_distillation_projection_schedule"
+        elif args.track_distillation_projection_compress:
+            name = "track_distillation_projection_compress"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:

@@ -1509,3 +1509,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-projection-schedule --seeds $(seq 825 840) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Дистилляция двухвидовой проекции в студента с одним входом
+
+Обучаем двух первых студентов с поздними естественными весами. Первый использует проекцию на действие отражения только при предсказании, второй применяет её и в функции обучения. Оба затем вычисляют спроецированные признаки для исходных изображений. Для каждого обучаем второго студента, который предсказывает эти признаки по одному виду. Вторые студенты получают одинаковую инициализацию, равномерную ошибку, порядок данных и число шагов. При оценке передаём каждому второму студенту исходное изображение или отражение отдельно, а первые студенты используют оба вида.
+
+Основной парный контраст на seed 841–856 при трёх метках сравнивает двух студентов с одним входом по тому, применял ли их двухвидовой учитель проекцию во время обучения. Сбалансированную точность отражённых кадров GTSRB усредняем по двум семействам задач и трём позициям. Дополнительно измеряем потери относительно соответствующего двухвидового учителя, исходные кадры и меньшие бюджеты меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_projection_compress"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-projection-compress --seeds $(seq 841 856) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```
