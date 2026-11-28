@@ -106,6 +106,9 @@ TRACK_HEAD_CROSS_PARITY_METHODS = {"raw": "Uniform parity blocks", "head_same_cl
                                     "head_cross_reversed": "Positive residual correlation"}
 TRACK_DISTILLATION_METHODS = {"raw": "Uniform distillation loss", "track_distilled": "Natural-pair metric",
                               "rotated_distilled": "Rotated metric"}
+TRACK_DISTILLATION_BUDGET_METHODS = {"raw": "All frames · uniform", "track_distilled": "All frames · natural pairs",
+                                    "rotated_distilled": "All frames · rotated", "budget_uniform": "32 frames · uniform",
+                                    "budget_track": "32 frames · natural pairs", "budget_rotated": "32 frames · rotated"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -136,7 +139,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if results["config"].get("track_distillation", False):
+    if results["config"].get("track_distillation_budget", False):
+        methods = TRACK_DISTILLATION_BUDGET_METHODS
+    elif results["config"].get("track_distillation", False):
         methods = TRACK_DISTILLATION_METHODS
     elif results["config"].get("track_parity_prior_route", False):
         methods = TRACK_PARITY_PRIOR_ROUTE_METHODS
