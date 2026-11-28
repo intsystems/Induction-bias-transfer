@@ -137,6 +137,12 @@ TRACK_DISTILLATION_PROJECTION_TRAIN_METHODS = {"raw_aligned": "Uniform loss · p
                                               "late_track_aligned": "Natural loss · project for prediction",
                                               "trained_uniform_aligned": "Uniform loss · project in training",
                                               "trained_late_aligned": "Natural loss · project in training"}
+TRACK_DISTILLATION_PROJECTION_CALIBRATED_METHODS = {"raw_aligned": "Uniform loss · teacher action",
+                                                   "raw_rotated": "Uniform loss · rotated action",
+                                                   "raw_calibrated": "Uniform loss · student action",
+                                                   "late_track_aligned": "Natural loss · teacher action",
+                                                   "late_track_rotated": "Natural loss · rotated action",
+                                                   "late_track_calibrated": "Natural loss · student action"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -180,6 +186,8 @@ def main():
         methods = TRACK_DISTILLATION_LATE_HEAD_METHODS
     elif results["config"].get("track_distillation_projection_train", False):
         methods = TRACK_DISTILLATION_PROJECTION_TRAIN_METHODS
+    elif results["config"].get("track_distillation_projection_calibrated", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CALIBRATED_METHODS
     elif results["config"].get("track_distillation_projection", False):
         methods = TRACK_DISTILLATION_PROJECTION_METHODS
     elif results["config"].get("track_distillation_schedule", False):

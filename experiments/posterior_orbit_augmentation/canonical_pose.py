@@ -735,6 +735,21 @@ def reflect_projected_views(views, action):
     return (views + views[::-1] @ action) / 2
 
 
+def fit_reflection_involution(clean, reflected, odd_count):
+    cross = clean.T @ reflected
+    _, basis = np.linalg.eigh((cross + cross.T) / 2)
+    negative = basis[:, :odd_count]
+    return np.eye(len(basis)) - 2 * negative @ negative.T
+
+
+@torch.inference_mode()
+def calibrate_track_projection(student, images, odd_count, batch_size):
+    pairs = [student(torch.cat((batch, batch.flip(-1)))).reshape(2, len(batch), -1).cpu().numpy()
+             for batch in images.split(batch_size)]
+    clean, reflected = np.concatenate(pairs, axis=1).astype(np.float64)
+    return fit_reflection_involution(clean, reflected, odd_count)
+
+
 def add_projected_track_readouts(name, support, original, query, actions, prior, distilled_support):
     for variant, action in actions.items():
         key = f"{name}_{variant}"
@@ -1309,6 +1324,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 frozen_epochs = {name: late for name, *_ in head_variants}
             projection_actions = {}
             projection_prior = None
+            projection_distances = {}
             projected_students = set()
             if args.track_distillation_projection:
                 late = range(args.student_epochs - args.student_epochs // 2, args.student_epochs)
@@ -1325,7 +1341,15 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     projection_actions["rotated"] = (rotation * reflection_sign) @ rotation.T
                 projection_prior = np.eye(len(reflection_sign))[None] / len(reflection_sign)
                 distilled_support["raw"] = support, projection_prior
-                add_projected_track_readouts("raw", support_views, query, query, projection_actions,
+                raw_actions = projection_actions
+                if args.track_distillation_projection_calibrated:
+                    probe_pairs = probe[::2]
+                    odd_count = int(odd.sum().item())
+                    calibrated = calibrate_track_projection(student, probe_pairs, odd_count, args.batch_size)
+                    raw_actions = {**projection_actions, "calibrated": calibrated}
+                    distance = np.linalg.norm(calibrated - projection_actions["aligned"], "fro")
+                    projection_distances["raw"] = float(distance / np.sqrt(len(reflection_sign)))
+                add_projected_track_readouts("raw", support_views, query, query, raw_actions,
                                              projection_prior, distilled_support)
             narrow_variants = {}
             if args.track_distillation_width:
@@ -1356,12 +1380,21 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                         for strength, (values, _) in positions.items():
                             query[label][strength][0][method] = values["raw"]
                 if projection_actions:
-                    add_projected_track_readouts(name, features, transformed, query, projection_actions,
+                    learned_actions = projection_actions
+                    if args.track_distillation_projection_calibrated:
+                        calibrated = calibrate_track_projection(learned, probe_pairs, odd_count, args.batch_size)
+                        learned_actions = {**projection_actions, "calibrated": calibrated}
+                        distance = np.linalg.norm(calibrated - projection_actions["aligned"], "fro")
+                        projection_distances[name] = float(distance / np.sqrt(len(reflection_sign)))
+                    add_projected_track_readouts(name, features, transformed, query, learned_actions,
                                                  projection_prior, distilled_support)
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
         if args.track_distillation_budget:
             diagnostics["student_distillation_budget"] = {"full": len(source), "limited": len(np.unique(indices))}
+        if args.track_distillation_projection_calibrated:
+            diagnostics["student_reflection_calibration"] = {"pair_count": len(probe_pairs),
+                                                              "distance": projection_distances}
         if args.track_consistency:
             diagnostics["mean_track_weight"] = select_track_corrections(query, odd, seed + 500)
         if teacher_rotation is not None:
@@ -1499,10 +1532,11 @@ def main():
     selection.add_argument("--track-distillation-late-head", action="store_true")
     selection.add_argument("--track-distillation-projection", action="store_true")
     selection.add_argument("--track-distillation-projection-train", action="store_true")
+    selection.add_argument("--track-distillation-projection-calibrated", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_distillation_projection_train:
+    if args.track_distillation_projection_train or args.track_distillation_projection_calibrated:
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1539,6 +1573,8 @@ def main():
             name = "track_distillation_late_head"
         elif args.track_distillation_projection_train:
             name = "track_distillation_projection_train"
+        elif args.track_distillation_projection_calibrated:
+            name = "track_distillation_projection_calibrated"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:
