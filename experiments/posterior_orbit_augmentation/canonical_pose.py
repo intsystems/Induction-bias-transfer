@@ -1619,6 +1619,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                 variants.append((name, key, source, late))
                                 if phase == "projected":
                                     projection_penalties[name] = 0.
+                    elif args.track_distillation_projection_teacher_residual:
+                        for name in ("suppress_residual", "match_residual"):
+                            variants.append((name, None, source, None))
+                            projection_penalties[name] = .25
                     else:
                         variants.append(("rotated_training", None, source, None))
                         projection_penalties["rotated_training"] = 0.
@@ -1681,7 +1685,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                                                        "relative_shuffled"} else None,
                                       reflection_penalty_mask=reflection_penalty_masks.get(name),
                                       reflection_strengths=source.new_tensor(projection_strengths)
-                                      if name == "confident_training" else None)
+                                      if name == "confident_training" else None,
+                                      match_reflection_residual=name == "match_residual")
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, models, train, natural_queries, args, device,
@@ -1952,11 +1957,13 @@ def main():
     selection.add_argument("--track-distillation-projection-confident-teacher", action="store_true")
     selection.add_argument("--track-distillation-projection-teacher-confidence-head", action="store_true")
     selection.add_argument("--track-distillation-projection-approx-teacher-track-prior", action="store_true")
+    selection.add_argument("--track-distillation-projection-teacher-residual", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_distillation_projection_confident_teacher or args.track_distillation_projection_teacher_confidence_head
-            or args.track_distillation_projection_approx_teacher_track_prior):
+            or args.track_distillation_projection_approx_teacher_track_prior
+            or args.track_distillation_projection_teacher_residual):
         args.track_distillation_projection_approx_teacher = True
     if args.track_distillation_projection_mixed_prior:
         args.track_distillation_projection_student_prior = True
@@ -2048,6 +2055,8 @@ def main():
             name = "track_distillation_projection_teacher_confidence_head"
         elif args.track_distillation_projection_approx_teacher_track_prior:
             name = "track_distillation_projection_approx_teacher_track_prior"
+        elif args.track_distillation_projection_teacher_residual:
+            name = "track_distillation_projection_teacher_residual"
         elif args.track_distillation_projection_approx_teacher:
             name = "track_distillation_projection_approx_teacher"
         elif args.track_distillation_projection_joint_head:

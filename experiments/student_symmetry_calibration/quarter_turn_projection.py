@@ -158,8 +158,9 @@ def run(train, test, args, seed, device):
     source, probe, target, query = data_partitions(train, test, args, seed, device,
                                                    source_classes, target_classes)
     labels = torch.arange(len(source_classes), device=device).repeat_interleave(args.source_examples)
-    teacher = fit_teacher(source, labels, args, seed, len(source_classes))
-    mean, basis, parity = discover_basis(teacher, probe, args)
+    teacher = fit_teacher(source, labels, args, seed, len(source_classes), equivariant=not args.ordinary_teacher)
+    basis_probe = probe[::2] if args.ordinary_teacher else probe
+    mean, basis, parity = discover_basis(teacher, basis_probe, args)
     probe_orbit = teacher_orbit(teacher, probe, basis, mean, args.batch_size)
     if args.dihedral_action:
         odd = parity.cpu().numpy() > .5
@@ -273,6 +274,7 @@ def main():
     comparison.add_argument("--invariant-variance", action="store_true")
     comparison.add_argument("--paired-view-alignment", action="store_true")
     comparison.add_argument("--pair-variance", action="store_true")
+    comparison.add_argument("--ordinary-teacher", action="store_true")
     args = parser.parse_args()
     if args.dihedral_subgroups:
         args.dihedral_action = True
@@ -283,7 +285,9 @@ def main():
     if args.training_view_budget or args.invariant_variance:
         args.view_budget = True
     dataset_name, first_seed = RESULTS.name, 1249
-    if args.approximate_action:
+    if args.ordinary_teacher:
+        dataset_name, first_seed = "quarter_turn_ordinary_teacher", 1393
+    elif args.approximate_action:
         dataset_name, first_seed = "quarter_turn_approximate", 1265
     elif args.pair_variance:
         dataset_name, first_seed = "quarter_turn_pair_variance", 1377

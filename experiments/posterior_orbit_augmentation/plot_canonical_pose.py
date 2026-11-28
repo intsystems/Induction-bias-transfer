@@ -247,6 +247,12 @@ TRACK_DISTILLATION_PROJECTION_APPROX_TEACHER_TRACK_PRIOR_METHODS = {
     "projected_natural_aligned": "Training projection · natural loss",
     "projected_rotated_aligned": "Training projection · rotated loss",
 }
+TRACK_DISTILLATION_PROJECTION_TEACHER_RESIDUAL_METHODS = {
+    "raw_aligned": "Ordinary training",
+    "estimated_training_aligned": "Projected loss",
+    "suppress_residual_aligned": "Projected loss · suppress residual",
+    "match_residual_aligned": "Projected loss · match teacher residual",
+}
 TRACK_DISTILLATION_PROJECTION_MIXED_PRIOR_METHODS = {
     "trained_late_natural_head_aligned": "Training projection · teacher prior",
     "trained_late_student_head_aligned": "Training projection · student prior",
@@ -365,6 +371,8 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_TEACHER_CONFIDENCE_HEAD_METHODS
     elif results["config"].get("track_distillation_projection_approx_teacher_track_prior", False):
         methods = TRACK_DISTILLATION_PROJECTION_APPROX_TEACHER_TRACK_PRIOR_METHODS
+    elif results["config"].get("track_distillation_projection_teacher_residual", False):
+        methods = TRACK_DISTILLATION_PROJECTION_TEACHER_RESIDUAL_METHODS
     elif results["config"].get("track_distillation_projection_approx_teacher", False):
         methods = TRACK_DISTILLATION_PROJECTION_APPROX_TEACHER_METHODS
     elif results["config"].get("track_distillation_projection_joint_head", False):

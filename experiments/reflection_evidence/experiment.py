@@ -148,7 +148,8 @@ def discover_basis(teacher, probe, args):
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
                 hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.,
                 reflection_epochs=None, orbit_actions=None, orbit_order=None, invariant_variance_weight=0.,
-                target_inputs=None, variance_projector=None, reflection_penalty_mask=None, reflection_strengths=None):
+                target_inputs=None, variance_projector=None, reflection_penalty_mask=None, reflection_strengths=None,
+                match_reflection_residual=False):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
                             nn.Linear(hidden_width, basis.shape[1])).to(x.device)
@@ -161,6 +162,8 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         raise ValueError("a reflection penalty requires a projection action")
     if reflection_strengths is not None and reflection_action is None:
         raise ValueError("reflection strengths require a projection action")
+    if match_reflection_residual and (not reflection_penalty or reflection_strengths is not None):
+        raise ValueError("matching reflection residuals requires a penalty with full projection")
     penalty_metric = metric
     if reflection_penalty_mask is not None and metric is not None:
         block = metric[reflection_penalty_mask][:, reflection_penalty_mask]
@@ -231,6 +234,10 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
                 loss = ((residual @ metric) * residual).mean()
             if project and reflection_penalty:
                 complement = raw_prediction - prediction
+                if match_reflection_residual:
+                    expected_pair = expected.reshape(2, len(batch), -1)
+                    expected_complement = (expected_pair - expected_pair.flip(0) @ reflection_action) / 2
+                    complement = complement - expected_complement.flatten(0, 1)
                 if reflection_penalty_mask is not None:
                     complement = complement[:, reflection_penalty_mask]
                 energy = ((complement @ penalty_metric) * complement).mean() if weighted else complement.square().mean()

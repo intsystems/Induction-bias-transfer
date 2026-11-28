@@ -2005,3 +2005,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-projection-approx-teacher-track-prior --seeds $(seq 1129 1144) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Остаток приближённой симметрии как цель дистилляции
+
+Учитель использует обычный свёрточный кодировщик. Оцениваем его действие отражения по отдельной исходной выборке. Для каждой пары видов делим представления учителя и студента на двухвидовую проекцию и остаток. Все варианты с проекцией обучаются по ошибке спроецированного представления. Один вариант дополнительно приближает остаток учителя с весом 0,25, второй с тем же весом приближает остаток к нулю, третий использует вес 0. Четвёртый студент обучается по обычной ошибке. При предсказании все студенты используют одинаковую полную проекцию и изотропную голову.
+
+Основной парный контраст на seed 1145–1160 при трёх метках сравнивает приближение остатка учителя с подавлением остатка при том же весе. Сбалансированную точность отражённых кадров GTSRB усредняем по двум семействам задач и трём позициям. Дополнительно проверяем проекцию с весом 0, обычную ошибку, исходные кадры и меньшие бюджеты меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_projection_teacher_residual"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-projection-teacher-residual --seeds $(seq 1145 1160) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```
