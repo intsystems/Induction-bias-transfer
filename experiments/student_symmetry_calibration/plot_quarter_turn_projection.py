@@ -12,6 +12,8 @@ import numpy as np
 RESULTS = Path(__file__).resolve().parent / "results" / "quarter_turn_projection"
 METHODS = {"inference_only": "Project only for prediction", "learned_training": "Project in training",
            "rotated_training": "Rotated action in training"}
+APPROXIMATE_METHODS = {"inference_only": "Project only for prediction", "learned_training": "Round all angles",
+                       "midpoint_training": "Round angles halfway", "unrounded_training": "Keep fitted angles"}
 
 
 def main():
@@ -21,15 +23,16 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
+    methods = APPROXIMATE_METHODS if data["config"].get("approximate_action", False) else METHODS
     performance = {method: 100 * np.array([
         [run["shots"][str(count)][method]["clean_accuracy"] for count in shots] for run in data["runs"]
-    ]) for method in METHODS}
+    ]) for method in methods}
     figure, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
-    for method, label in METHODS.items():
+    for method, label in methods.items():
         axes[0].plot(shots, performance[method].mean(axis=0), marker="o", label=label)
-    for method in ("learned_training", "rotated_training"):
+    for method in (key for key in methods if key != "inference_only"):
         effect = performance[method] - performance["inference_only"]
-        axes[1].plot(shots, effect.mean(axis=0), marker="o", label=METHODS[method])
+        axes[1].plot(shots, effect.mean(axis=0), marker="o", label=methods[method])
     axes[1].axhline(0, color=".5", linewidth=1)
     axes[0].set_ylabel("Rotation-invariant balanced accuracy (%)")
     axes[1].set_ylabel("Change from prediction-only projection (pp)")

@@ -19,19 +19,28 @@ QUARTER_TURNS = np.array([[[1, 0], [0, 1]], [[0, -1], [1, 0]],
                           [[-1, 0], [0, -1]], [[0, 1], [-1, 0]]])
 
 
-def quarter_turn_from_pairs(orbit):
+def rotation_from_pairs(orbit):
     left = orbit.reshape(-1, orbit.shape[-1])
     right = np.roll(orbit, -1, axis=0).reshape(left.shape)
     u, _, vt = np.linalg.svd(left.T @ right, full_matrices=False)
-    blocks, basis = schur(u @ vt, output="real")
+    return u @ vt
+
+
+def round_quarter_turn(action, fraction=0.):
+    blocks, basis = schur(action, output="real")
     selected = np.zeros_like(blocks)
     offset = 0
     while offset < len(blocks):
         if offset + 1 < len(blocks) and abs(blocks[offset + 1, offset]) > 1e-10:
             subspace = slice(offset, offset + 2)
             angle = np.arctan2(blocks[offset + 1, offset], blocks[offset, offset])
-            quarter = int(np.rint(angle / (np.pi / 2))) % 4
-            selected[subspace, subspace] = QUARTER_TURNS[quarter]
+            quarter = int(np.rint(angle / (np.pi / 2)))
+            if fraction:
+                angle = (1 - fraction) * quarter * (np.pi / 2) + fraction * angle
+                cosine, sine = np.cos(angle), np.sin(angle)
+                selected[subspace, subspace] = ((cosine, -sine), (sine, cosine))
+            else:
+                selected[subspace, subspace] = QUARTER_TURNS[quarter % 4]
             offset += 2
         else:
             selected[offset, offset] = 1 if blocks[offset, offset] >= 0 else -1
@@ -74,11 +83,16 @@ def run(train, test, args, seed, device):
     teacher = fit_teacher(source, labels, args, seed, len(source_classes))
     mean, basis, _ = discover_basis(teacher, probe, args)
     probe_orbit = teacher_orbit(teacher, probe, basis, mean, args.batch_size)
-    action = quarter_turn_from_pairs(probe_orbit[:, ::2])
+    fitted = rotation_from_pairs(probe_orbit[:, ::2])
+    action = round_quarter_turn(fitted)
     powers = rotation_powers(action)
-    generator = np.random.default_rng(seed + 250)
-    rotation, _ = np.linalg.qr(generator.standard_normal(action.shape))
-    rotated_powers = rotation_powers(rotation @ action @ rotation.T)
+    candidates = {"learned": action}
+    if args.approximate_action:
+        candidates.update(midpoint=round_quarter_turn(fitted, .5), unrounded=fitted)
+    else:
+        generator = np.random.default_rng(seed + 250)
+        rotation, _ = np.linalg.qr(generator.standard_normal(action.shape))
+        candidates["rotated"] = rotation @ action @ rotation.T
     projector = powers.mean(axis=0)
     eig, directions = np.linalg.eigh((projector + projector.T) / 2)
     fixed = directions[:, eig > .5]
@@ -88,8 +102,9 @@ def run(train, test, args, seed, device):
     fixed_tensor = source.new_tensor(fixed)
 
     shots = {str(count): {} for count in args.shots}
-    for name, actions in (("inference_only", None), ("learned_training", powers),
-                          ("rotated_training", rotated_powers)):
+    variants = [("inference_only", None)]
+    variants.extend((f"{name}_training", rotation_powers(generator)) for name, generator in candidates.items())
+    for name, actions in variants:
         student = fit_student(source, teacher, basis, mean, args, seed + 100, training_views=VIEWS,
                               orbit_actions=None if actions is None else source.new_tensor(actions))
         support, queries = (invariant_embeddings(student, part, fixed_tensor, args, device)
@@ -101,19 +116,24 @@ def run(train, test, args, seed, device):
     holdout = probe_orbit[:, 1::2]
     energy = max(float(np.square(holdout).mean()), 1e-12)
     diagnostics = {name: float(np.square(np.roll(holdout, -1, axis=0) - holdout @ generator).mean() / energy)
-                   for name, generator in (("learned", action), ("rotated", rotated_powers[1]))}
-    return {"seed": seed, "source_classes": source_classes, "target_classes": target_classes,
-            "latent_width": int(len(action)), "invariant_width": int(fixed.shape[1]),
-            "action_error": diagnostics, "order_four_error": float(np.max(np.abs(
-                np.linalg.matrix_power(action, 4) - np.eye(len(action))))), "shots": shots}
+                   for name, generator in candidates.items()}
+    identity = np.eye(len(action))
+    order_errors = {name: float(np.max(np.abs(np.linalg.matrix_power(generator, 4) - identity)))
+                    for name, generator in candidates.items()}
+    result = {"seed": seed, "source_classes": source_classes, "target_classes": target_classes,
+              "latent_width": int(len(action)), "invariant_width": int(fixed.shape[1]),
+              "action_error": diagnostics, "order_four_error": order_errors["learned"], "shots": shots}
+    if args.approximate_action:
+        result["approximate_order_four_errors"] = {name: order_errors[name] for name in ("midpoint", "unrounded")}
+    return result
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("/tmp/ibt-cifar-data"))
-    parser.add_argument("--output", type=Path, default=RESULTS / "metrics.json")
+    parser.add_argument("--output", type=Path)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
-    parser.add_argument("--seeds", type=int, nargs="+", default=list(range(1249, 1265)))
+    parser.add_argument("--seeds", type=int, nargs="+")
     parser.add_argument("--shots", type=int, nargs="+", default=[5, 20, 60])
     parser.add_argument("--teacher-epochs", type=int, default=26)
     parser.add_argument("--student-epochs", type=int, default=22)
@@ -124,7 +144,13 @@ def main():
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=.45)
+    parser.add_argument("--approximate-action", action="store_true")
     args = parser.parse_args()
+    if args.output is None:
+        folder = RESULTS.with_name("quarter_turn_approximate") if args.approximate_action else RESULTS
+        args.output = folder / "metrics.json"
+    if args.seeds is None:
+        args.seeds = list(range(1265, 1281) if args.approximate_action else range(1249, 1265))
     if not 0 < min(args.shots) <= max(args.shots) <= args.target_pool <= 5000:
         parser.error("shots must fit a nonempty target pool of at most 5000 examples per class")
     if args.probe_examples < 2 or not 0 < args.source_examples <= 5000 - args.probe_examples:
