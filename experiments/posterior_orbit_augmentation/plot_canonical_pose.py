@@ -57,6 +57,9 @@ TRACK_TEACHER_PARITY_METHODS = {"raw": "Uncorrected", "pose_point": "Synthetic p
 TRACK_PARITY_POLICY_METHODS = {"raw": "Uncorrected", "same_track": "Both blocks",
                                "parity_fixed": "Fixed mixture", "parity_soft": "Posterior mixture",
                                "parity_hard": "Posterior hard choice", "parity_oracle": "Known label action"}
+TRACK_PARITY_PRIOR_ROUTE_METHODS = {"raw": "Uncorrected", "same_track": "Both blocks",
+                                    "parity_fixed": "Fixed mixture", "parity_soft": "Uniform-block routing",
+                                    "parity_prior_soft": "Track-prior routing", "parity_oracle": "Known label action"}
 TRACK_HEAD_PRIOR_METHODS = {"raw": "Uniform parity blocks", "head_same_track": "Same-track basis",
                             "head_same_class": "Same-class basis", "head_rotated": "Rotated basis"}
 TRACK_HEAD_BETWEEN_METHODS = {**TRACK_HEAD_PRIOR_METHODS, "head_track_means": "Track centroids",
@@ -121,7 +124,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if results["config"].get("track_head_predicted", False):
+    if results["config"].get("track_parity_prior_route", False):
+        methods = TRACK_PARITY_PRIOR_ROUTE_METHODS
+    elif results["config"].get("track_head_predicted", False):
         methods = TRACK_HEAD_PREDICTED_METHODS
     elif results["config"].get("track_head_spectrum", False):
         methods = TRACK_HEAD_SPECTRUM_METHODS

@@ -1007,6 +1007,7 @@ def select_posterior_logits(choices):
 
 def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, head_kernels=None):
     parity = np.concatenate((kernels["fixed_even"], kernels["fixed_odd"]))
+    prediction_priors = {} if args.track_parity_prior_route else (head_kernels or {})
     if args.track_head_evidence:
         geometry = ("head_same_track", "head_same_class")
         joint = np.concatenate((parity, *(head_kernels[name] for name in geometry)))
@@ -1032,7 +1033,7 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
             weights, probability = predict(parity, f, y, identity, args.noise, center_evidence=True)
             even, _ = predict(kernels["fixed_even"], f, y, identity, args.noise)
             heads = {name: predict(prior, f, y, identity, args.noise, center_evidence=True)[0]
-                     for name, prior in (head_kernels or {}).items()}
+                     for name, prior in prediction_priors.items()}
             values = {"posterior_same": float(probability[0]), "strengths": {}}
             if args.track_head_evidence:
                 adaptive, joint_mass = predict(joint, f, y, identity, args.noise, center_evidence=True)
@@ -1041,6 +1042,11 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
                 values["geometry_mass"] = joint_mass.reshape(3, 2).sum(axis=1)
             if args.track_parity_policy:
                 values["correct_action"] = float((probability[0] >= .5) == (sign == 1))
+            if args.track_parity_prior_route:
+                _, route_probability = predict(head_kernels["head_same_class"], f, y, identity,
+                                               args.noise, center_evidence=True)
+                route_weight = route_probability[0]
+                values["prior_correct_action"] = float((route_weight >= .5) == (sign == 1))
             for strength, (embeddings, truth, n_negative) in batches_by_strength.items():
                 choices = {name: features @ weights for name, features in embeddings.items()}
                 choices.update({name: embeddings["raw"] @ head for name, head in heads.items()})
@@ -1054,6 +1060,8 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
                         "parity_hard": even_logits if p_same >= .5 else odd_logits,
                         "parity_oracle": even_logits if sign == 1 else odd_logits,
                     })
+                    if args.track_parity_prior_route:
+                        choices["parity_prior_soft"] = route_weight * even_logits + (1 - route_weight) * odd_logits
                 steps = select_posterior_logits(choices) if "centers" in choices else {}
                 if "hidden_posterior" in embeddings:
                     choices["hidden_posterior_even"] = embeddings["hidden_posterior"] @ even
@@ -1074,6 +1082,8 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
             "posterior_same": float(np.mean([ep["posterior_same"] for ep in episodes])),
             **({"correct_action": float(np.mean([ep["correct_action"] for ep in episodes]))}
                if args.track_parity_policy else {}),
+            **({"prior_correct_action": float(np.mean([ep["prior_correct_action"] for ep in episodes]))}
+               if args.track_parity_prior_route else {}),
             **({"geometry_mass": np.mean([ep["geometry_mass"] for ep in episodes], axis=0).tolist()}
                if args.track_head_evidence else {}),
             "strengths": {strength: {key: {metric: float(np.mean([
@@ -1116,9 +1126,11 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
         else:
+            model_partners = source_partners
             if args.track_consistency or args.track_pooling or args.track_teacher_basis or args.track_teacher_parity:
-                source_partners = {"same_track": source_partners["same_track"]}
-            model_partners = source_partners if args.track_pooling else {"pose_point": None, **source_partners}
+                model_partners = {"same_track": source_partners["same_track"]}
+            if not (args.track_pooling or args.track_parity_prior_route):
+                model_partners = {"pose_point": None, **model_partners}
             models = {name: fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.,
                                              partners=partners)
                       for name, partners in model_partners.items()}
@@ -1135,6 +1147,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
                     models[name] = fit_canonicalizer(
                         source, teacher, basis, odd, args, seed + 200, 0.,
                         partners=partners, pair_weights=pair_weights)
+            if args.track_parity_prior_route:
+                routing_priors, _ = natural_track_head_priors(
+                    teacher, basis, odd, source, source_partners, args, seed + 250)
+                head_kernels = {"head_same_class": routing_priors["head_same_class"]}
         if args.track_pooling:
             query = pooled_track_embeddings(student, models["same_track"], train, natural_queries, args, device, seed + 500)
         else:
@@ -1247,6 +1263,7 @@ def main():
     selection.add_argument("--track-teacher-basis", action="store_true")
     selection.add_argument("--track-teacher-parity", action="store_true")
     selection.add_argument("--track-parity-policy", action="store_true")
+    selection.add_argument("--track-parity-prior-route", action="store_true")
     selection.add_argument("--track-head-prior", action="store_true")
     selection.add_argument("--track-head-between", action="store_true")
     selection.add_argument("--track-head-student", action="store_true")
@@ -1261,6 +1278,8 @@ def main():
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_parity_prior_route:
+        args.track_parity_policy = True
     if (args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget
             or args.track_head_blocks or args.track_head_pair_control or args.track_head_distance
             or args.track_head_neighbors or args.track_head_spectrum or args.track_head_predicted):
@@ -1279,7 +1298,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_predicted:
+        if args.track_parity_prior_route:
+            name = "track_parity_prior_route"
+        elif args.track_head_predicted:
             name = "track_head_predicted"
         elif args.track_head_spectrum:
             name = "track_head_spectrum"
