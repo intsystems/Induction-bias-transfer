@@ -1309,14 +1309,20 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 frozen_epochs = {name: late for name, *_ in head_variants}
             projection_actions = {}
             projection_prior = None
+            projected_students = set()
             if args.track_distillation_projection:
                 late = range(args.student_epochs - args.student_epochs // 2, args.student_epochs)
                 variants = [("late_track", "head_same_class", source, late)]
                 reflection_sign = np.where(odd.cpu().numpy(), -1., 1.)
-                rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
-                    (len(reflection_sign), len(reflection_sign))))
-                projection_actions = {"aligned": np.diag(reflection_sign),
-                                      "rotated": (rotation * reflection_sign) @ rotation.T}
+                projection_actions = {"aligned": np.diag(reflection_sign)}
+                if args.track_distillation_projection_train:
+                    variants.extend((("trained_uniform", None, source, None),
+                                     ("trained_late", "head_same_class", source, late)))
+                    projected_students = {"trained_uniform", "trained_late"}
+                else:
+                    rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
+                        (len(reflection_sign), len(reflection_sign))))
+                    projection_actions["rotated"] = (rotation * reflection_sign) @ rotation.T
                 projection_prior = np.eye(len(reflection_sign))[None] / len(reflection_sign)
                 distilled_support["raw"] = support, projection_prior
                 add_projected_track_readouts("raw", support_views, query, query, projection_actions,
@@ -1330,14 +1336,17 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 if key is not None:
                     matrix = priors[key].sum(axis=0)
                     metric = source.new_tensor(matrix / np.diag(matrix).mean())
+                during_training = name in projected_students
                 learned = fit_student(training_source, teacher, basis, mean, args, seed + 100,
                                       metric=metric, metric_epochs=metric_epochs,
                                       hidden_width=48 if name in narrow_variants else 192,
-                                      frozen_feature_epochs=frozen_epochs.get(name))
+                                      frozen_feature_epochs=frozen_epochs.get(name),
+                                      reflection_action=source.new_tensor(projection_actions["aligned"])
+                                      if during_training else None)
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
-                evaluators = [(name, projection_prior)]
+                evaluators = [] if during_training else [(name, projection_prior)]
                 if args.track_distillation_joint:
                     evaluators.extend(((name + "_track_head", priors["head_same_class"]),
                                        (name + "_rotated_head", priors["head_rotated"])))
@@ -1489,9 +1498,12 @@ def main():
     selection.add_argument("--track-distillation-tail", action="store_true")
     selection.add_argument("--track-distillation-late-head", action="store_true")
     selection.add_argument("--track-distillation-projection", action="store_true")
+    selection.add_argument("--track-distillation-projection-train", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_distillation_projection_train:
+        args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
             or args.track_distillation_tail or args.track_distillation_late_head or args.track_distillation_projection):
@@ -1525,6 +1537,8 @@ def main():
             name = "track_distillation_tail"
         elif args.track_distillation_late_head:
             name = "track_distillation_late_head"
+        elif args.track_distillation_projection_train:
+            name = "track_distillation_projection_train"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:

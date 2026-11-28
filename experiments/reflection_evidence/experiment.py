@@ -143,13 +143,15 @@ def discover_basis(teacher, probe, args):
 
 
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
-                hidden_width=192, frozen_feature_epochs=None):
+                hidden_width=192, frozen_feature_epochs=None, reflection_action=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
                             nn.Linear(hidden_width, basis.shape[1])).to(x.device)
     optimizer = torch.optim.AdamW(student.parameters(), lr=0.002)
     rng = torch.Generator().manual_seed(seed)
     views = (teacher.view,) if training_views is None else training_views
+    if reflection_action is not None and training_views is not None:
+        raise ValueError("reflection projection requires the teacher's default training view")
     with torch.no_grad():
         target = torch.cat([(teacher.encode(batch) - mean) @ basis for batch in x.split(args.batch_size)])
         targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
@@ -162,6 +164,9 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
             optimizer.zero_grad(set_to_none=True)
             batch = x[ix]
             prediction = student(torch.cat([batch, *(view(batch) for view in views)]))
+            if reflection_action is not None:
+                pair = prediction.reshape(2, len(batch), -1)
+                prediction = ((pair + pair.flip(0) @ reflection_action) / 2).flatten(0, 1)
             expected = torch.cat([target[ix], *(values[ix] for values in targets_by_view)])
             if not weighted:
                 loss = F.mse_loss(prediction, expected)
