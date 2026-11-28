@@ -207,6 +207,19 @@ TRACK_DISTILLATION_PROJECTION_HEAD_POLICY_METHODS = {
     "trained_late_rotated_head_aligned_equal": "Rotated prior · equal mixture",
     "trained_late_rotated_head_aligned_hard": "Rotated prior · hard choice",
 }
+TRACK_DISTILLATION_PROJECTION_RELATIVE_AUGMENTATION_METHODS = {
+    "trained_late_aligned": "No pose augmentation",
+    "relative_augmented_aligned": "Relative pose from paired frame",
+    "relative_shuffled_aligned": "Same relative poses shuffled within class",
+}
+TRACK_DISTILLATION_PROJECTION_MIXED_PRIOR_METHODS = {
+    "trained_late_natural_head_aligned": "Training projection · teacher prior",
+    "trained_late_student_head_aligned": "Training projection · student prior",
+    "trained_late_mean_head_aligned": "Training projection · average with fixed spectrum",
+    "trained_late_evidence_head_aligned": "Training projection · evidence mixture",
+    "late_track_natural_head_aligned": "Prediction-only projection · teacher prior",
+    "late_track_evidence_head_aligned": "Prediction-only projection · evidence mixture",
+}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -301,10 +314,14 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_TERMINAL_METHODS
     elif results["config"].get("track_distillation_projection_canonical", False):
         methods = TRACK_DISTILLATION_PROJECTION_CANONICAL_METHODS
+    elif results["config"].get("track_distillation_projection_mixed_prior", False):
+        methods = TRACK_DISTILLATION_PROJECTION_MIXED_PRIOR_METHODS
     elif results["config"].get("track_distillation_projection_student_prior", False):
         methods = TRACK_DISTILLATION_PROJECTION_STUDENT_PRIOR_METHODS
     elif results["config"].get("track_distillation_projection_head_policy", False):
         methods = TRACK_DISTILLATION_PROJECTION_HEAD_POLICY_METHODS
+    elif results["config"].get("track_distillation_projection_relative_augmentation", False):
+        methods = TRACK_DISTILLATION_PROJECTION_RELATIVE_AUGMENTATION_METHODS
     elif results["config"].get("track_distillation_projection_joint_head", False):
         methods = TRACK_DISTILLATION_PROJECTION_JOINT_HEAD_METHODS
     elif results["config"].get("track_distillation_projection_canonical_train", False):

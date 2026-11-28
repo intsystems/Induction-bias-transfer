@@ -751,10 +751,40 @@ def reflect_projected_views(views, action):
 
 
 @torch.no_grad()
-def canonicalize_track_view(batch, model):
+def reflection_consistent_center(batch, model):
     first, second = parameters(model, torch.cat((batch, batch.flip(-1))))[0].chunk(2)
-    center = (first + reflect_pose(second)) / 2
-    return pose_warp(batch, center.clamp(-2, 2))
+    return (first + reflect_pose(second)) / 2
+
+
+@torch.no_grad()
+def canonicalize_track_view(batch, model):
+    return pose_warp(batch, reflection_consistent_center(batch, model).clamp(-2, 2))
+
+
+@torch.no_grad()
+def relative_track_augmentations(source, model, labels, partners, args, seed):
+    rng = np.random.default_rng(seed)
+    indices = partners.numpy()
+    classes = labels.numpy()
+    selected_groups = []
+    for label in np.unique(classes):
+        eligible = np.flatnonzero((classes == label) & (indices >= 0))
+        selected_groups.append(rng.permutation(eligible)[:len(eligible) // 2])
+    chosen = np.concatenate(selected_groups)
+    if not len(chosen):
+        raise ValueError("relative augmentation requires paired source frames")
+    centers = torch.cat([reflection_consistent_center(batch, model) for batch in source.split(args.batch_size)])
+    offsets = compose_pose(centers[chosen], inverse_pose(centers[indices[chosen]])).clamp(-1, 1)
+    shuffled = np.arange(len(chosen))
+    for label in np.unique(classes[chosen]):
+        group = rng.permutation(np.flatnonzero(classes[chosen] == label))
+        shuffled[group] = np.roll(group, 1)
+    attached, control = source.clone(), source.clone()
+    for subset in np.array_split(np.arange(len(chosen)), math.ceil(len(chosen) / args.batch_size)):
+        selected = chosen[subset]
+        attached[selected] = pose_warp(source[selected], offsets[subset])
+        control[selected] = pose_warp(source[selected], offsets[shuffled[subset]])
+    return attached, control, len(chosen)
 
 
 def fit_reflection_involution(clean, reflected, odd_count, reference=None):
@@ -788,6 +818,18 @@ def add_projected_track_readouts(name, support, original, query, actions, prior,
         for label, positions in original.items():
             for strength, (values, _) in positions.items():
                 query[label][strength][0][key] = reflect_projected_views(values[feature], action)
+
+
+def average_head_directions(teacher_prior, student_prior, odd):
+    average = (teacher_prior + student_prior).sum(axis=0) / 2
+    restored = np.zeros_like(teacher_prior)
+    for mask in (~odd, odd):
+        block = np.ix_(mask, mask)
+        _, vectors = np.linalg.eigh(average[block])
+        for index, covariance in enumerate(teacher_prior):
+            energies = np.linalg.eigvalsh(covariance[block])
+            restored[index][block] = (vectors * energies) @ vectors.T
+    return restored
 
 
 def add_track_readout(name, support, original, query, prior, distilled_support):
@@ -1351,6 +1393,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
         teacher_parity = None
         pair_diagnostics = None
         folding = None
+        augmentation_count = None
         if args.track_distillation:
             models = {}
         elif args.track_head_prior:
@@ -1496,6 +1539,15 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     projection_penalties = {"penalty_free": 0., "even_penalty": 1., "odd_penalty": 1.}
                     reflection_penalty_masks = {"even_penalty": ~odd, "odd_penalty": odd}
                     variants.extend((method, "head_same_class", source, late) for method in projection_penalties)
+                elif args.track_distillation_projection_relative_augmentation:
+                    pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200,
+                                                   0., partners=source_partners["same_track"])
+                    natural, shuffled, augmentation_count = relative_track_augmentations(
+                        source, pose_model, labels, source_partners["same_track"], args, seed + 850)
+                    variants = [("trained_late", "head_same_class", source, late),
+                                ("relative_augmented", "head_same_class", natural, late),
+                                ("relative_shuffled", "head_same_class", shuffled, late)]
+                    projection_penalties = dict.fromkeys((name for name, *_ in variants), 0.)
                 else:
                     rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                         (len(reflection_sign), len(reflection_sign))))
@@ -1540,7 +1592,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       if during_training else None,
                                       reflection_penalty=projection_penalties.get(name, 0.),
                                       reflection_epochs=reflection_schedules.get(name),
-                                      target_inputs=source if name == "canonical_trained" else None,
+                                      target_inputs=source if name in {"canonical_trained", "relative_augmented",
+                                                                       "relative_shuffled"} else None,
                                       reflection_penalty_mask=reflection_penalty_masks.get(name))
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
@@ -1579,8 +1632,18 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
 
                     fitted_priors, _ = natural_track_head_priors(teacher, basis, odd, source, source_partners,
                                                                 args, seed + 250, student=student_source_features)
+                    student_prior = fitted_priors["head_student_class"]
                     add_projected_track_readouts(f"{name}_student_head", features, transformed, query,
-                                                 projection_actions, fitted_priors["head_student_class"], distilled_support)
+                                                 projection_actions, student_prior, distilled_support)
+                    if args.track_distillation_projection_mixed_prior:
+                        teacher_prior = priors["head_same_class"]
+                        mixed_priors = {
+                            "mean_head": average_head_directions(teacher_prior, student_prior, odd.cpu().numpy()),
+                            "evidence_head": np.concatenate((teacher_prior, student_prior)),
+                        }
+                        for method, head_prior in mixed_priors.items():
+                            add_projected_track_readouts(f"{name}_{method}", features, transformed, query,
+                                                         projection_actions, head_prior, distilled_support)
                 if args.track_distillation_projection_canonical_train:
                     def canonical_encoder(batch, encoder=learned):
                         return encoder(canonicalize_track_view(batch, pose_model))
@@ -1628,6 +1691,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 diagnostics["student_reflection_calibration"]["sparse_pair_count"] = len(sparse)
         if folding is not None:
             diagnostics["folded_projection"] = folding
+        if augmentation_count is not None:
+            diagnostics["augmented_source_count"] = augmentation_count
         if args.track_consistency:
             diagnostics["mean_track_weight"] = select_track_corrections(query, odd, seed + 500)
         if teacher_rotation is not None:
@@ -1781,9 +1846,13 @@ def main():
     selection.add_argument("--track-distillation-projection-student-prior", action="store_true")
     selection.add_argument("--track-distillation-projection-head-routing", action="store_true")
     selection.add_argument("--track-distillation-projection-head-policy", action="store_true")
+    selection.add_argument("--track-distillation-projection-relative-augmentation", action="store_true")
+    selection.add_argument("--track-distillation-projection-mixed-prior", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_distillation_projection_mixed_prior:
+        args.track_distillation_projection_student_prior = True
     if (args.track_distillation_projection_student_prior or args.track_distillation_projection_head_routing
             or args.track_distillation_projection_head_policy):
         args.track_distillation_projection_joint_head = True
@@ -1796,7 +1865,8 @@ def main():
             or args.track_distillation_projection_compress or args.track_distillation_projection_timing_weights
             or args.track_distillation_projection_folded or args.track_distillation_projection_terminal
             or args.track_distillation_projection_canonical or args.track_distillation_projection_joint_head
-            or args.track_distillation_projection_canonical_train or args.track_distillation_projection_single_view_penalty):
+            or args.track_distillation_projection_canonical_train or args.track_distillation_projection_single_view_penalty
+            or args.track_distillation_projection_relative_augmentation):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1853,12 +1923,16 @@ def main():
             name = "track_distillation_projection_terminal"
         elif args.track_distillation_projection_canonical:
             name = "track_distillation_projection_canonical"
+        elif args.track_distillation_projection_mixed_prior:
+            name = "track_distillation_projection_mixed_prior"
         elif args.track_distillation_projection_student_prior:
             name = "track_distillation_projection_student_prior"
         elif args.track_distillation_projection_head_routing:
             name = "track_distillation_projection_head_routing"
         elif args.track_distillation_projection_head_policy:
             name = "track_distillation_projection_head_policy"
+        elif args.track_distillation_projection_relative_augmentation:
+            name = "track_distillation_projection_relative_augmentation"
         elif args.track_distillation_projection_joint_head:
             name = "track_distillation_projection_joint_head"
         elif args.track_distillation_projection_canonical_train:
