@@ -20,10 +20,22 @@ QUARTER_TURNS = np.array([[[1, 0], [0, 1]], [[0, -1], [1, 0]],
 VIEW_BUDGETS = {"one": (0,), "opposite": (0, 2), "adjacent": (0, 1), "four": (0, 1, 2, 3)}
 
 
-def rotation_from_pairs(orbit):
+def dihedral_view(images, rotation, mirrored):
+    rotated = torch.rot90(images, rotation, (-2, -1))
+    return rotated.flip(-1) if mirrored else rotated
+
+
+DIHEDRAL_VIEWS = tuple(partial(dihedral_view, rotation=turn, mirrored=mirror)
+                       for turn in range(4) for mirror in (False, True) if turn or mirror)
+
+
+def rotation_cross_moment(orbit):
     left = orbit.reshape(-1, orbit.shape[-1])
-    right = np.roll(orbit, -1, axis=0).reshape(left.shape)
-    u, _, vt = np.linalg.svd(left.T @ right, full_matrices=False)
+    return left.T @ np.roll(orbit, -1, axis=0).reshape(left.shape)
+
+
+def rotation_from_pairs(orbit):
+    u, _, vt = np.linalg.svd(rotation_cross_moment(orbit), full_matrices=False)
     return u @ vt
 
 
@@ -53,6 +65,30 @@ def rotation_powers(action):
     return np.stack([np.linalg.matrix_power(action, turns) for turns in range(4)])
 
 
+def dihedral_rotation(orbit, odd):
+    cross = rotation_cross_moment(orbit)
+    between = (cross - cross.T)[np.ix_(~odd, odd)]
+    even_axes, _, odd_axes_t = np.linalg.svd(between, full_matrices=True)
+    frame = np.zeros_like(cross)
+    even_count = int((~odd).sum())
+    frame[np.ix_(~odd, np.arange(even_count))] = even_axes
+    frame[np.ix_(odd, np.arange(even_count, len(odd)))] = odd_axes_t.T
+    scores = frame.T @ cross @ frame
+    selected = np.diag(np.where(np.diag(scores) < 0, -1., 1.))
+    for even_index in range(min(even_count, len(odd) - even_count)):
+        pair = np.ix_([even_index, even_count + even_index], [even_index, even_count + even_index])
+        block = scores[pair]
+        best = int(np.argmax([np.sum(block * candidate) for candidate in (selected[pair], QUARTER_TURNS[1], QUARTER_TURNS[3])]))
+        if best:
+            selected[pair] = QUARTER_TURNS[1 if best == 1 else 3]
+    return frame @ selected @ frame.T
+
+
+def dihedral_actions(rotation, reflection):
+    powers = rotation_powers(rotation)
+    return np.stack((powers, powers @ reflection), axis=1).reshape(8, len(rotation), len(rotation))
+
+
 @torch.inference_mode()
 def teacher_orbit(teacher, images, basis, mean, batch_size):
     parts = []
@@ -63,14 +99,14 @@ def teacher_orbit(teacher, images, basis, mean, batch_size):
 
 
 @torch.inference_mode()
-def invariant_embeddings(student, dataset, fixed, args, device, *, return_orbit=False):
+def invariant_embeddings(student, dataset, fixed, args, device, *, views=VIEWS, return_orbit=False):
     result = {}
     for label, images in dataset.items():
         parts = []
         for batch in images.split(args.batch_size):
             batch = batch.to(device, dtype=torch.float32) / 255
-            views = torch.cat((batch, *(view(batch) for view in VIEWS)))
-            orbit = student(views).reshape(4, len(batch), -1)
+            image_views = torch.cat((batch, *(view(batch) for view in views)))
+            orbit = student(image_views).reshape(len(views) + 1, len(batch), -1)
             embedding = orbit if return_orbit else orbit.mean(dim=0)
             parts.append((embedding @ fixed).cpu().numpy())
         result[label] = np.concatenate(parts, axis=1) if return_orbit else np.stack([np.concatenate(parts)] * 2)
@@ -111,11 +147,19 @@ def run(train, test, args, seed, device):
                                                    source_classes, target_classes)
     labels = torch.arange(len(source_classes), device=device).repeat_interleave(args.source_examples)
     teacher = fit_teacher(source, labels, args, seed, len(source_classes))
-    mean, basis, _ = discover_basis(teacher, probe, args)
+    mean, basis, parity = discover_basis(teacher, probe, args)
     probe_orbit = teacher_orbit(teacher, probe, basis, mean, args.batch_size)
-    fitted = rotation_from_pairs(probe_orbit[:, ::2])
-    action = round_quarter_turn(fitted)
-    powers = rotation_powers(action)
+    if args.dihedral_action:
+        odd = parity.cpu().numpy() > .5
+        reflection = np.diag(np.where(odd, -1., 1.))
+        action = dihedral_rotation(probe_orbit[:, ::2], odd)
+        orbit_views = DIHEDRAL_VIEWS
+        powers = dihedral_actions(action, reflection)
+    else:
+        fitted = rotation_from_pairs(probe_orbit[:, ::2])
+        action = round_quarter_turn(fitted)
+        orbit_views = VIEWS
+        powers = rotation_powers(action)
     candidates = {"learned": action}
     if args.approximate_action:
         candidates.update(midpoint=round_quarter_turn(fitted, .5), unrounded=fitted)
@@ -133,11 +177,17 @@ def run(train, test, args, seed, device):
 
     shots = {str(count): {} for count in args.shots}
     variants = [("inference_only", None)]
-    variants.extend((f"{name}_training", rotation_powers(generator)) for name, generator in candidates.items())
+    for name, action_option in candidates.items():
+        if args.dihedral_action:
+            reflection_option = reflection if name == "learned" else rotation @ reflection @ rotation.T
+            actions = dihedral_actions(action_option, reflection_option)
+        else:
+            actions = rotation_powers(action_option)
+        variants.append((f"{name}_training", actions))
     for name, actions in variants:
-        student = fit_student(source, teacher, basis, mean, args, seed + 100, training_views=VIEWS,
+        student = fit_student(source, teacher, basis, mean, args, seed + 100, training_views=orbit_views,
                               orbit_actions=None if actions is None else source.new_tensor(actions))
-        support, queries = (invariant_embeddings(student, part, fixed_tensor, args, device,
+        support, queries = (invariant_embeddings(student, part, fixed_tensor, args, device, views=orbit_views,
                                                  return_orbit=args.view_budget)
                             for part in (target, query))
         if args.view_budget:
@@ -161,6 +211,8 @@ def run(train, test, args, seed, device):
               "action_error": diagnostics, "order_four_error": order_errors["learned"], "shots": shots}
     if args.approximate_action:
         result["approximate_order_four_errors"] = {name: order_errors[name] for name in ("midpoint", "unrounded")}
+    if args.dihedral_action:
+        result["reflection_rotation_error"] = float(np.max(np.abs(reflection @ action @ reflection - action.T)))
     return result
 
 
@@ -183,14 +235,18 @@ def main():
     comparison = parser.add_mutually_exclusive_group()
     comparison.add_argument("--approximate-action", action="store_true")
     comparison.add_argument("--view-budget", action="store_true")
+    comparison.add_argument("--dihedral-action", action="store_true")
     args = parser.parse_args()
+    dataset_name, first_seed = RESULTS.name, 1249
+    if args.approximate_action:
+        dataset_name, first_seed = "quarter_turn_approximate", 1265
+    elif args.view_budget:
+        dataset_name, first_seed = "quarter_turn_view_budget", 1281
+    elif args.dihedral_action:
+        dataset_name, first_seed = "dihedral_projection", 1297
     if args.output is None:
-        folder = RESULTS.with_name("quarter_turn_approximate") if args.approximate_action else RESULTS
-        if args.view_budget:
-            folder = RESULTS.with_name("quarter_turn_view_budget")
-        args.output = folder / "metrics.json"
+        args.output = RESULTS.with_name(dataset_name) / "metrics.json"
     if args.seeds is None:
-        first_seed = 1281 if args.view_budget else (1265 if args.approximate_action else 1249)
         args.seeds = list(range(first_seed, first_seed + 16))
     if not 0 < min(args.shots) <= max(args.shots) <= args.target_pool <= 5000:
         parser.error("shots must fit a nonempty target pool of at most 5000 examples per class")

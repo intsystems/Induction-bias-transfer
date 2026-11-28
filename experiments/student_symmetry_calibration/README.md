@@ -2590,3 +2590,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/quarter_turn_projection.py" \
   --view-budget --seeds $(seq 1281 1296) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_quarter_turn_projection.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Совместное действие поворота и отражения
+
+Проверяем перенос симметрии диэдральной группы квадрата на отложенных классах CIFAR-10. Действие отражения задаётся выученным чётным и нечётным разбиением учителя. Для поворота строим двумерные плоскости из сингулярных векторов межблочной кососимметричной части перекрёстной матрицы. Для каждой выбираем четверть оборота или раздельные знаки по согласованию с парами признаков учителя. Поворот удовлетворяет \(R^4=I\), а отражение меняет направление поворота, \(FRF=R^{-1}\). Для контроля одновременно сопрягаем оба оператора случайной ортогональной матрицей.
+
+Используем восемь видов у всех студентов и один инвариантный классификатор по выученному действию при предсказании. Основной парный контраст на seed 1297–1312 при пяти метках сравнивает проекцию в обучении с выученным совместным действием и проекцию только при предсказании. Дополнительно проверяем повёрнутый контроль, бюджеты 20 и 60 меток и ошибки групповых соотношений.
+
+```bash
+dir=experiments/student_symmetry_calibration
+run="$dir/results/dihedral_projection"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/quarter_turn_projection.py" \
+  --dihedral-action --seeds $(seq 1297 1312) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_quarter_turn_projection.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```
