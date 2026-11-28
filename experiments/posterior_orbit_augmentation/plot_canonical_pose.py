@@ -199,6 +199,14 @@ TRACK_DISTILLATION_PROJECTION_STUDENT_PRIOR_METHODS = {
     "trained_late_student_head_aligned": "Training projection · student prior",
     "trained_late_rotated_head_aligned": "Training projection · rotated prior",
 }
+TRACK_DISTILLATION_PROJECTION_HEAD_POLICY_METHODS = {
+    "trained_late_natural_head_aligned": "Natural prior · evidence weights",
+    "trained_late_natural_head_aligned_equal": "Natural prior · equal mixture",
+    "trained_late_natural_head_aligned_hard": "Natural prior · hard choice",
+    "trained_late_rotated_head_aligned": "Rotated prior · evidence weights",
+    "trained_late_rotated_head_aligned_equal": "Rotated prior · equal mixture",
+    "trained_late_rotated_head_aligned_hard": "Rotated prior · hard choice",
+}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -295,6 +303,8 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_CANONICAL_METHODS
     elif results["config"].get("track_distillation_projection_student_prior", False):
         methods = TRACK_DISTILLATION_PROJECTION_STUDENT_PRIOR_METHODS
+    elif results["config"].get("track_distillation_projection_head_policy", False):
+        methods = TRACK_DISTILLATION_PROJECTION_HEAD_POLICY_METHODS
     elif results["config"].get("track_distillation_projection_joint_head", False):
         methods = TRACK_DISTILLATION_PROJECTION_JOINT_HEAD_METHODS
     elif results["config"].get("track_distillation_projection_canonical_train", False):

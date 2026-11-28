@@ -1243,16 +1243,23 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
                      for name, prior in prediction_priors.items()}
             distilled_heads = {}
             routing = {}
+            policy_heads = {}
             for name, (features, prior) in (distilled_support or {}).items():
                 design = np.concatenate([features[label][j[:count]] for label, j in zip(pair, ids, strict=True)])
                 selected_prior = parity if prior is None else prior
                 head, posterior = predict(selected_prior, design, y, identity, args.noise, center_evidence=True)
                 distilled_heads[name] = head
-                if args.track_distillation_projection_head_routing and name.endswith(("natural_head_aligned",
-                                                                                       "rotated_head_aligned")):
+                parity_head = name.endswith(("natural_head_aligned", "rotated_head_aligned"))
+                if args.track_distillation_projection_head_routing and parity_head:
                     probability_same = float(posterior[0])
                     correct = (probability_same >= .5) == (sign == 1)
                     routing[name] = {"accuracy": float(correct), "brier": (probability_same - (sign == 1))**2}
+                if args.track_distillation_projection_head_policy and parity_head:
+                    components = np.stack([predict(selected_prior[i:i+1], design, y, identity,
+                                                   args.noise, center_evidence=True)[0]
+                                           for i in range(len(selected_prior))])
+                    policy_heads[name] = {"equal": components.mean(axis=0),
+                                          "hard": components[int(np.argmax(posterior))]}
             values = {"posterior_same": float(probability[0]), "strengths": {}}
             if routing:
                 values["routing"] = routing
@@ -1270,6 +1277,8 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
                 values["prior_correct_action"] = float((route_weight >= .5) == (sign == 1))
             for strength, (embeddings, truth, n_negative) in batches_by_strength.items():
                 choices = {name: features @ distilled_heads.get(name, weights) for name, features in embeddings.items()}
+                choices.update({f"{name}_{policy}": embeddings[name] @ head
+                                for name, variants in policy_heads.items() for policy, head in variants.items()})
                 choices.update({name: embeddings["raw"] @ head for name, head in heads.items()})
                 if args.track_parity_policy:
                     p_same = probability[0]
@@ -1771,10 +1780,12 @@ def main():
     selection.add_argument("--track-distillation-projection-single-view-penalty", action="store_true")
     selection.add_argument("--track-distillation-projection-student-prior", action="store_true")
     selection.add_argument("--track-distillation-projection-head-routing", action="store_true")
+    selection.add_argument("--track-distillation-projection-head-policy", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_distillation_projection_student_prior or args.track_distillation_projection_head_routing:
+    if (args.track_distillation_projection_student_prior or args.track_distillation_projection_head_routing
+            or args.track_distillation_projection_head_policy):
         args.track_distillation_projection_joint_head = True
     if args.track_distillation_projection_folded_batched:
         args.track_distillation_projection_folded = True
@@ -1846,6 +1857,8 @@ def main():
             name = "track_distillation_projection_student_prior"
         elif args.track_distillation_projection_head_routing:
             name = "track_distillation_projection_head_routing"
+        elif args.track_distillation_projection_head_policy:
+            name = "track_distillation_projection_head_policy"
         elif args.track_distillation_projection_joint_head:
             name = "track_distillation_projection_joint_head"
         elif args.track_distillation_projection_canonical_train:
