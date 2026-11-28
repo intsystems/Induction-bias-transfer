@@ -513,8 +513,12 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             random_half = np.concatenate([group[:len(group)//2] for group in order])
             additional_residuals.update(head_near=residuals[1][near], head_far=residuals[1][far],
                                         head_random_half=residuals[1][random_half])
-    if args.track_head_neighbors:
-        neighbor_residuals, neighbor_diagnostics = natural_track_neighbor_residuals(latent, source_paths, eligible, odd)
+    if args.track_head_neighbors or args.track_head_predicted:
+        logits = None
+        if args.track_head_predicted:
+            logits = torch.cat([teacher(batch) for batch in source.split(args.batch_size)]).cpu().numpy()
+        neighbor_residuals, neighbor_diagnostics = natural_track_neighbor_residuals(
+            latent, source_paths, eligible, odd, logits=logits)
         additional_residuals.update(neighbor_residuals)
     names.extend(additional_residuals)
     if args.track_head_spectrum:
@@ -569,7 +573,7 @@ def natural_centroid_differences(latent, paths, eligible):
     return tuple(np.concatenate(parts) for parts in zip(*centered, strict=True))
 
 
-def natural_track_neighbor_residuals(latent, paths, eligible, odd):
+def natural_track_neighbor_residuals(latent, paths, eligible, odd, *, logits=None):
     frames = defaultdict(list)
     for index in eligible:
         path = paths[index]
@@ -579,10 +583,23 @@ def natural_track_neighbor_residuals(latent, paths, eligible, odd):
     centroids = np.stack([latent[group].mean(axis=0) for group in groups])
     labels = np.array([key[0].name for key in frames])
     residuals, diagnostics = {}, {}
-    for name, features in (("head_neighbor_even", centroids[:, ~odd]), ("head_neighbor_full", centroids)):
+    even = centroids[:, ~odd]
+    methods = [("head_neighbor_even", even, None)]
+    if logits is None:
+        methods.append(("head_neighbor_full", centroids, None))
+    else:
+        predicted = np.array([logits[group].mean(axis=0).argmax() for group in groups])
+        methods.extend((("head_predicted_class", even, predicted), ("head_known_class_nearest", even, labels)))
+    for name, features, classes in methods:
         normalized = features / np.maximum(np.linalg.norm(features, axis=1, keepdims=True), 1e-8)
         similarities = normalized @ normalized.T
         np.fill_diagonal(similarities, -np.inf)
+        fallback = np.zeros(len(groups), dtype=bool)
+        if classes is not None:
+            permitted = classes[:, None] == classes[None, :]
+            np.fill_diagonal(permitted, False)
+            fallback = ~permitted.any(axis=1)
+            similarities = np.where(permitted | fallback[:, None], similarities, -np.inf)
         neighbors = similarities.argmax(axis=1)
         differences = []
         for group, partner in zip(groups, neighbors, strict=True):
@@ -593,6 +610,7 @@ def natural_track_neighbor_residuals(latent, paths, eligible, odd):
         diagnostics[name] = {
             "same_class_fraction": float(np.average(labels == labels[neighbors], weights=list(map(len, groups)))),
             "unique_partner_tracks": len(np.unique(neighbors)),
+            "fallback_fraction": float(np.average(fallback, weights=list(map(len, groups)))),
         }
     return residuals, diagnostics
 
@@ -1089,7 +1107,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
         if args.track_head_prior:
             models = {}
             head_kernels, neighbor_diagnostics = natural_track_head_priors(
-                teacher, basis, odd, source, source_partners, args, seed + 250, source_paths=source_paths,
+                teacher, basis, odd, probe if args.track_head_predicted else source, source_partners,
+                args, seed + 250, source_paths=source_paths,
                 student=student if args.track_head_student else None,
                 source_labels=labels if (args.track_head_budget or args.track_head_pair_control
                                          or args.track_head_distance) else None)
@@ -1238,12 +1257,13 @@ def main():
     selection.add_argument("--track-head-distance", action="store_true")
     selection.add_argument("--track-head-neighbors", action="store_true")
     selection.add_argument("--track-head-spectrum", action="store_true")
+    selection.add_argument("--track-head-predicted", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget
             or args.track_head_blocks or args.track_head_pair_control or args.track_head_distance
-            or args.track_head_neighbors or args.track_head_spectrum):
+            or args.track_head_neighbors or args.track_head_spectrum or args.track_head_predicted):
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1259,7 +1279,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_spectrum:
+        if args.track_head_predicted:
+            name = "track_head_predicted"
+        elif args.track_head_spectrum:
             name = "track_head_spectrum"
         elif args.track_head_neighbors:
             name = "track_head_neighbors"
@@ -1331,7 +1353,8 @@ def main():
     train_dataset = GTSRB(args.data, split="train", download=True)
     use_source_paths = args.train_track_canonicalizer or args.track_head_prior
     data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args,
-                      include_source_paths=use_source_paths)
+                      include_source_paths=use_source_paths and not args.track_head_predicted,
+                      include_probe_paths=args.track_head_predicted)
     source_partners = None
     source_paths = None
     if use_source_paths:
@@ -1357,7 +1380,7 @@ def main():
             output["source_budget_counts"] = {
                 str(budget): int(np.minimum(counts, budget).sum()) for budget in TRACK_PAIR_BUDGETS
             }
-    retained_paths = source_paths if args.track_head_between or args.track_head_neighbors else None
+    retained_paths = source_paths if args.track_head_between or args.track_head_neighbors or args.track_head_predicted else None
     start = time.monotonic()
     for seed in args.seeds:
         output["runs"].append(run(data, args, device, seed, source_partners=source_partners,

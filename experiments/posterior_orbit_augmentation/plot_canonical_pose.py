@@ -87,6 +87,10 @@ TRACK_HEAD_SPECTRUM_METHODS = {"raw": "Uniform parity blocks",
                                "head_track_cross_spectrum": "Same-track basis · cross-track spectrum",
                                "head_class_cross_spectrum": "Same-class basis and spectrum",
                                "head_rotated_cross_spectrum": "Rotated basis · cross-track spectrum"}
+TRACK_HEAD_PREDICTED_METHODS = {"raw": "Uniform parity blocks", "head_same_class": "Known-class pairs",
+                                "head_neighbor_even": "Unrestricted nearest tracks",
+                                "head_predicted_class": "Nearest · predicted class",
+                                "head_known_class_nearest": "Nearest · known class"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -117,7 +121,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if results["config"].get("track_head_spectrum", False):
+    if results["config"].get("track_head_predicted", False):
+        methods = TRACK_HEAD_PREDICTED_METHODS
+    elif results["config"].get("track_head_spectrum", False):
         methods = TRACK_HEAD_SPECTRUM_METHODS
     elif results["config"].get("track_head_neighbors", False):
         methods = TRACK_HEAD_NEIGHBOR_METHODS

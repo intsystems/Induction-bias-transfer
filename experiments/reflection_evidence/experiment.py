@@ -74,7 +74,7 @@ def images(paths):
     return torch.stack(samples)
 
 
-def preprocess(train, test, args, *, target_ids=None, include_source_paths=False):
+def preprocess(train, test, args, *, target_ids=None, include_source_paths=False, include_probe_paths=False):
     rng = np.random.default_rng(2025)
     train_paths = paths_by_class(train)
     test_paths = paths_by_class(test)
@@ -104,7 +104,11 @@ def preprocess(train, test, args, *, target_ids=None, include_source_paths=False
         (images(source), torch.tensor(labels)), (images(probe), torch.tensor(probe_labels)),
         target_train, target_test, target_tracks,
     )
-    return (*data, source) if include_source_paths else data
+    if include_source_paths:
+        data = (*data, source)
+    if include_probe_paths:
+        data = (*data, probe)
+    return data
 
 
 def fit_teacher(x, y, args, seed, classes=len(SOURCE_IDS), *, view=reflect):
