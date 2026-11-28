@@ -24,6 +24,7 @@ MIXED_LEVELS = (0., .5, 1.)
 ANGLE_GATE_MODELS = ("gate_fixed", "gate_adaptive", "gate_shuffled")
 TRACK_PAIR_BUDGETS = (2, 8, 32)
 DISTILLATION_TAILS = {"sixth": 6, "third": 3, "half": 2}
+PROJECTION_PENALTIES = {"penalty_zero": 0., "penalty_quarter": .25, "penalty_four": 4.}
 
 
 def pose_warp(images, pose):
@@ -1325,7 +1326,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             projection_actions = {}
             projection_prior = None
             projection_distances = {}
-            projected_students = set()
+            projection_penalties = {}
             if args.track_distillation_projection:
                 late = range(args.student_epochs - args.student_epochs // 2, args.student_epochs)
                 variants = [("late_track", "head_same_class", source, late)]
@@ -1334,7 +1335,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 if args.track_distillation_projection_train:
                     variants.extend((("trained_uniform", None, source, None),
                                      ("trained_late", "head_same_class", source, late)))
-                    projected_students = {"trained_uniform", "trained_late"}
+                    projection_penalties = {"trained_uniform": 0., "trained_late": 0.}
+                elif args.track_distillation_projection_penalty:
+                    variants.extend((method, "head_same_class", source, late) for method in PROJECTION_PENALTIES)
+                    projection_penalties = PROJECTION_PENALTIES
                 else:
                     rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                         (len(reflection_sign), len(reflection_sign))))
@@ -1360,13 +1364,14 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 if key is not None:
                     matrix = priors[key].sum(axis=0)
                     metric = source.new_tensor(matrix / np.diag(matrix).mean())
-                during_training = name in projected_students
+                during_training = name in projection_penalties
                 learned = fit_student(training_source, teacher, basis, mean, args, seed + 100,
                                       metric=metric, metric_epochs=metric_epochs,
                                       hidden_width=48 if name in narrow_variants else 192,
                                       frozen_feature_epochs=frozen_epochs.get(name),
                                       reflection_action=source.new_tensor(projection_actions["aligned"])
-                                      if during_training else None)
+                                      if during_training else None,
+                                      reflection_penalty=projection_penalties.get(name, 0.))
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
@@ -1533,10 +1538,12 @@ def main():
     selection.add_argument("--track-distillation-projection", action="store_true")
     selection.add_argument("--track-distillation-projection-train", action="store_true")
     selection.add_argument("--track-distillation-projection-calibrated", action="store_true")
+    selection.add_argument("--track-distillation-projection-penalty", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_distillation_projection_train or args.track_distillation_projection_calibrated:
+    if (args.track_distillation_projection_train or args.track_distillation_projection_calibrated
+            or args.track_distillation_projection_penalty):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1575,6 +1582,8 @@ def main():
             name = "track_distillation_projection_train"
         elif args.track_distillation_projection_calibrated:
             name = "track_distillation_projection_calibrated"
+        elif args.track_distillation_projection_penalty:
+            name = "track_distillation_projection_penalty"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:
@@ -1698,6 +1707,8 @@ def main():
     if args.track_distillation_tail:
         output["distillation_tail_epochs"] = {phase: args.student_epochs // divisor
                                                for phase, divisor in DISTILLATION_TAILS.items()}
+    if args.track_distillation_projection_penalty:
+        output["projection_penalties"] = {**PROJECTION_PENALTIES, "late_track": 1.}
     if source_partners is not None:
         count = int((source_partners["same_track"] >= 0).sum())
         if not count:

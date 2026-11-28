@@ -143,7 +143,7 @@ def discover_basis(teacher, probe, args):
 
 
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
-                hidden_width=192, frozen_feature_epochs=None, reflection_action=None):
+                hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
                             nn.Linear(hidden_width, basis.shape[1])).to(x.device)
@@ -152,6 +152,8 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
     views = (teacher.view,) if training_views is None else training_views
     if reflection_action is not None and training_views is not None:
         raise ValueError("reflection projection requires the teacher's default training view")
+    if reflection_penalty and reflection_action is None:
+        raise ValueError("a reflection penalty requires a projection action")
     with torch.no_grad():
         target = torch.cat([(teacher.encode(batch) - mean) @ basis for batch in x.split(args.batch_size)])
         targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
@@ -163,7 +165,8 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         for ix in batches(len(x), args.batch_size, rng):
             optimizer.zero_grad(set_to_none=True)
             batch = x[ix]
-            prediction = student(torch.cat([batch, *(view(batch) for view in views)]))
+            raw_prediction = student(torch.cat([batch, *(view(batch) for view in views)]))
+            prediction = raw_prediction
             if reflection_action is not None:
                 pair = prediction.reshape(2, len(batch), -1)
                 prediction = ((pair + pair.flip(0) @ reflection_action) / 2).flatten(0, 1)
@@ -173,6 +176,10 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
             else:
                 residual = prediction - expected
                 loss = ((residual @ metric) * residual).mean()
+            if reflection_penalty:
+                complement = raw_prediction - prediction
+                energy = ((complement @ metric) * complement).mean() if weighted else complement.square().mean()
+                loss = loss + reflection_penalty * energy
             loss.backward()
             optimizer.step()
     if frozen_feature_epochs is not None:

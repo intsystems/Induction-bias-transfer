@@ -1441,3 +1441,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-projection-calibrated --seeds $(seq 777 792) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Штраф за компоненту, которую отбрасывает проекция
+
+В функции дистилляции отдельно взвешиваем ошибку спроецированного представления и энергию компоненты ответа студента, которую отбрасывает проекция. Вес ошибки в спроецированном представлении равен единице. Для отброшенной компоненты сравниваем веса 0, 0,25, 1 и 4. Вес 1 соответствует обычной ошибке дистилляции для целевых признаков учителя, подчиняющихся действию отражения. Во всех условиях в последние девять эпох применяются естественные блочно-диагональные веса. Целевая голова использует одно и то же действие учителя при предсказании.
+
+Основной парный контраст на seed 793–808 при трёх метках сравнивает вес 0,25 с нулевым весом. Сбалансированную точность отражённых кадров GTSRB усредняем по двум семействам задач и трём позициям. Дополнительно сравниваем веса 1 и 4, отдельные семейства задач, исходные кадры и меньшие бюджеты меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_projection_penalty"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-projection-penalty --seeds $(seq 793 808) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```

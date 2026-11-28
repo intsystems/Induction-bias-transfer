@@ -188,6 +188,9 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_TRAIN_METHODS
     elif results["config"].get("track_distillation_projection_calibrated", False):
         methods = TRACK_DISTILLATION_PROJECTION_CALIBRATED_METHODS
+    elif results["config"].get("track_distillation_projection_penalty", False):
+        methods = {f"{name}_aligned": f"Complement penalty {penalty:g}"
+                   for name, penalty in sorted(results["projection_penalties"].items(), key=lambda item: item[1])}
     elif results["config"].get("track_distillation_projection", False):
         methods = TRACK_DISTILLATION_PROJECTION_METHODS
     elif results["config"].get("track_distillation_schedule", False):
