@@ -458,11 +458,18 @@ def calibrate_teacher_parity(teacher, basis, odd, source, partners, args):
     return {"even_teacher": (matched[0], 0.), "odd_teacher": (0., matched[1])}, energy.tolist()
 
 
+def track_prior_spectrum(energies):
+    scale = max(float(energies.mean()), 1e-12)
+    values = 1 / (.25 + np.maximum(energies, 0) / scale)
+    return values / values.sum()
+
+
 @torch.no_grad()
 def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed, *,
                               source_paths=None, student=None, source_labels=None):
     rng = np.random.default_rng(seed)
     names = ["head_same_track", "head_same_class", "head_rotated"]
+    spectrum_names = ("head_track_cross_spectrum", "head_class_cross_spectrum", "head_rotated_cross_spectrum")
     width = basis.shape[1]
     odd = odd.cpu().numpy()
     eligible = np.flatnonzero(partners["same_track"].numpy() >= 0)
@@ -510,6 +517,8 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
         neighbor_residuals, neighbor_diagnostics = natural_track_neighbor_residuals(latent, source_paths, eligible, odd)
         additional_residuals.update(neighbor_residuals)
     names.extend(additional_residuals)
+    if args.track_head_spectrum:
+        names.extend(spectrum_names)
     priors = {name: np.zeros((2, width, width)) for name in names}
     for block, proportions in ((~odd, (1-MIXTURE[0], 1-MIXTURE[-1])), (odd, (MIXTURE[0], MIXTURE[-1]))):
         moments = []
@@ -517,7 +526,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             part = residual[:, block].astype(np.float64)
             moments.append(part.T @ part / len(part))
         energies, same = np.linalg.eigh(moments[0])
-        _, other = np.linalg.eigh(moments[1])
+        cross_energies, other = np.linalg.eigh(moments[1])
         rotated, _ = np.linalg.qr(rng.normal(size=same.shape))
         bases = [same, other, rotated]
         if centroids is not None:
@@ -527,11 +536,15 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
         for residual in (*student_residuals, *additional_residuals.values()):
             part = residual[:, block].astype(np.float64)
             bases.append(np.linalg.eigh(part.T @ part)[1])
-        spectrum = 1 / (.25 + np.maximum(energies, 0) / max(float(energies.mean()), 1e-12))
-        spectrum /= spectrum.sum()
+        spectrum = track_prior_spectrum(energies)
+        spectra = {name: spectrum for name in names}
+        if args.track_head_spectrum:
+            bases.extend((same, other, rotated))
+            cross_spectrum = track_prior_spectrum(cross_energies)
+            spectra.update({name: cross_spectrum for name in spectrum_names})
         index = np.ix_(block, block)
         for name, axes in zip(names, bases, strict=True):
-            block_covariance = (axes * spectrum) @ axes.T
+            block_covariance = (axes * spectra[name]) @ axes.T
             for mode, proportion in enumerate(proportions):
                 priors[name][mode][index] = proportion * block_covariance
     if args.track_head_blocks:
@@ -1224,12 +1237,13 @@ def main():
     selection.add_argument("--track-head-pair-control", action="store_true")
     selection.add_argument("--track-head-distance", action="store_true")
     selection.add_argument("--track-head-neighbors", action="store_true")
+    selection.add_argument("--track-head-spectrum", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget
             or args.track_head_blocks or args.track_head_pair_control or args.track_head_distance
-            or args.track_head_neighbors):
+            or args.track_head_neighbors or args.track_head_spectrum):
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1245,7 +1259,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_head_neighbors:
+        if args.track_head_spectrum:
+            name = "track_head_spectrum"
+        elif args.track_head_neighbors:
             name = "track_head_neighbors"
         elif args.track_head_distance:
             name = "track_head_distance"

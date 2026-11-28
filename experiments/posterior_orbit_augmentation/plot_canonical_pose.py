@@ -81,6 +81,12 @@ TRACK_HEAD_DISTANCE_METHODS = {"raw": "Uniform parity blocks", "head_same_class"
 TRACK_HEAD_NEIGHBOR_METHODS = {"raw": "Uniform parity blocks", "head_same_class": "Source class labels",
                                "head_neighbor_even": "Nearest track · even features",
                                "head_neighbor_full": "Nearest track · all features", "head_rotated": "Rotated basis"}
+TRACK_HEAD_SPECTRUM_METHODS = {"raw": "Uniform parity blocks",
+                               "head_same_track": "Same-track basis and spectrum",
+                               "head_same_class": "Same-class basis · within-track spectrum",
+                               "head_track_cross_spectrum": "Same-track basis · cross-track spectrum",
+                               "head_class_cross_spectrum": "Same-class basis and spectrum",
+                               "head_rotated_cross_spectrum": "Rotated basis · cross-track spectrum"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -111,7 +117,9 @@ def main():
     paired_angle_bias = results["config"].get("paired_angle_bias", False)
     angle_gate = results["config"].get("angle_gate", False)
     methods = METHODS
-    if results["config"].get("track_head_neighbors", False):
+    if results["config"].get("track_head_spectrum", False):
+        methods = TRACK_HEAD_SPECTRUM_METHODS
+    elif results["config"].get("track_head_neighbors", False):
         methods = TRACK_HEAD_NEIGHBOR_METHODS
     elif results["config"].get("track_head_distance", False):
         methods = TRACK_HEAD_DISTANCE_METHODS
