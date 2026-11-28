@@ -1254,6 +1254,21 @@ def select_posterior_logits(choices):
     return steps
 
 
+def paired_validation_weights(priors, support, labels, noise):
+    per_class = len(labels) // 2
+    if per_class == 1:
+        return np.full(len(priors), 1 / len(priors))
+    log_scores = np.zeros(len(priors))
+    positions = np.arange(len(labels))
+    for index in range(per_class):
+        retained = (positions != index) & (positions != index + per_class)
+        for mode in range(len(priors)):
+            prediction, _ = predict(priors[mode:mode+1], support[retained], labels[retained], support[~retained], noise)
+            log_scores[mode] -= np.logaddexp(0, -labels[~retained] * prediction).sum()
+    weights = np.exp(log_scores - log_scores.max())
+    return weights / weights.sum()
+
+
 def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, head_kernels=None, distilled_support=None):
     parity = np.concatenate((kernels["fixed_even"], kernels["fixed_odd"]))
     prediction_priors = {} if args.track_parity_prior_route else (head_kernels or {})
@@ -1268,6 +1283,7 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
         truth = np.r_[np.full(first_count, -1), np.full(last_count, 1)]
         batches_by_strength[strength] = (embeddings, truth, first_count)
     rows = {str(n): [] for n in args.shots}
+    policy_comparison = args.track_distillation_projection_head_policy or args.track_distillation_projection_head_validation
     for _ in range(args.episodes):
         ids = []
         for label in pair:
@@ -1296,12 +1312,15 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
                     probability_same = float(posterior[0])
                     correct = (probability_same >= .5) == (sign == 1)
                     routing[name] = {"accuracy": float(correct), "brier": (probability_same - (sign == 1))**2}
-                if args.track_distillation_projection_head_policy and parity_head:
+                if policy_comparison and parity_head:
                     components = np.stack([predict(selected_prior[i:i+1], design, y, identity,
                                                    args.noise, center_evidence=True)[0]
                                            for i in range(len(selected_prior))])
                     policy_heads[name] = {"equal": components.mean(axis=0),
                                           "hard": components[int(np.argmax(posterior))]}
+                    if args.track_distillation_projection_head_validation:
+                        validation = paired_validation_weights(selected_prior, design, y, args.noise)
+                        policy_heads[name]["validation"] = validation @ components
             values = {"posterior_same": float(probability[0]), "strengths": {}}
             if routing:
                 values["routing"] = routing
@@ -1848,13 +1867,14 @@ def main():
     selection.add_argument("--track-distillation-projection-head-policy", action="store_true")
     selection.add_argument("--track-distillation-projection-relative-augmentation", action="store_true")
     selection.add_argument("--track-distillation-projection-mixed-prior", action="store_true")
+    selection.add_argument("--track-distillation-projection-head-validation", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if args.track_distillation_projection_mixed_prior:
         args.track_distillation_projection_student_prior = True
     if (args.track_distillation_projection_student_prior or args.track_distillation_projection_head_routing
-            or args.track_distillation_projection_head_policy):
+            or args.track_distillation_projection_head_policy or args.track_distillation_projection_head_validation):
         args.track_distillation_projection_joint_head = True
     if args.track_distillation_projection_folded_batched:
         args.track_distillation_projection_folded = True
@@ -1931,6 +1951,8 @@ def main():
             name = "track_distillation_projection_head_routing"
         elif args.track_distillation_projection_head_policy:
             name = "track_distillation_projection_head_policy"
+        elif args.track_distillation_projection_head_validation:
+            name = "track_distillation_projection_head_validation"
         elif args.track_distillation_projection_relative_augmentation:
             name = "track_distillation_projection_relative_augmentation"
         elif args.track_distillation_projection_joint_head:

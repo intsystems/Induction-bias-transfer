@@ -1894,3 +1894,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-projection-mixed-prior --seeds $(seq 1049 1064) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Валидация веса априора на оставленных парах меток
+
+Для каждого из двух компонентов головы по очереди откладываем один размеченный кадр из каждого класса. На оставшихся кадрах обучаем голову, а на отложенных суммируем логистическую оценку ответа. Нормируем суммы через softmax и используем их как веса двух компонентов после обучения на полной поддержке. При одной метке на класс используем равные веса. Сравниваем с центрированной оценкой на полной поддержке и с равными весами. Все варианты используют те же признаки и те же естественные или повёрнутые матрицы.
+
+Основной парный контраст на seed 1065–1080 при трёх метках сравнивает веса по отложенным кадрам с весами по центрированной оценке для естественного априора и проекции в обучении. Сбалансированную точность отражённых кадров GTSRB усредняем по двум семействам задач и трём позициям. Дополнительно проверяем повёрнутый априор, исходные кадры и меньшие бюджеты меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_projection_head_validation"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-projection-head-validation --seeds $(seq 1065 1080) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```

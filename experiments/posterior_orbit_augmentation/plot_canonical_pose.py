@@ -207,6 +207,14 @@ TRACK_DISTILLATION_PROJECTION_HEAD_POLICY_METHODS = {
     "trained_late_rotated_head_aligned_equal": "Rotated prior · equal mixture",
     "trained_late_rotated_head_aligned_hard": "Rotated prior · hard choice",
 }
+TRACK_DISTILLATION_PROJECTION_HEAD_VALIDATION_METHODS = {
+    "trained_late_natural_head_aligned": "Natural prior · centered evidence",
+    "trained_late_natural_head_aligned_equal": "Natural prior · equal weights",
+    "trained_late_natural_head_aligned_validation": "Natural prior · paired validation",
+    "trained_late_rotated_head_aligned": "Rotated prior · centered evidence",
+    "trained_late_rotated_head_aligned_equal": "Rotated prior · equal weights",
+    "trained_late_rotated_head_aligned_validation": "Rotated prior · paired validation",
+}
 TRACK_DISTILLATION_PROJECTION_RELATIVE_AUGMENTATION_METHODS = {
     "trained_late_aligned": "No pose augmentation",
     "relative_augmented_aligned": "Relative pose from paired frame",
@@ -318,6 +326,8 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_MIXED_PRIOR_METHODS
     elif results["config"].get("track_distillation_projection_student_prior", False):
         methods = TRACK_DISTILLATION_PROJECTION_STUDENT_PRIOR_METHODS
+    elif results["config"].get("track_distillation_projection_head_validation", False):
+        methods = TRACK_DISTILLATION_PROJECTION_HEAD_VALIDATION_METHODS
     elif results["config"].get("track_distillation_projection_head_policy", False):
         methods = TRACK_DISTILLATION_PROJECTION_HEAD_POLICY_METHODS
     elif results["config"].get("track_distillation_projection_relative_augmentation", False):
