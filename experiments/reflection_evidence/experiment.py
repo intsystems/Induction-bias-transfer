@@ -142,7 +142,7 @@ def discover_basis(teacher, probe, args):
     return mean.float(), (stencil @ directions).float(), energies.clamp(0, 1).float()
 
 
-def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None):
+def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, 192), nn.GELU(),
                             nn.Linear(192, basis.shape[1])).to(x.device)
@@ -153,13 +153,14 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         target = torch.cat([(teacher.encode(batch) - mean) @ basis for batch in x.split(args.batch_size)])
         targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
                                      for batch in x.split(args.batch_size)]) for view in views]
-    for _ in range(args.student_epochs):
+    for epoch in range(args.student_epochs):
+        weighted = metric is not None and (metric_epochs is None or epoch in metric_epochs)
         for ix in batches(len(x), args.batch_size, rng):
             optimizer.zero_grad(set_to_none=True)
             batch = x[ix]
             prediction = student(torch.cat([batch, *(view(batch) for view in views)]))
             expected = torch.cat([target[ix], *(values[ix] for values in targets_by_view)])
-            if metric is None:
+            if not weighted:
                 loss = F.mse_loss(prediction, expected)
             else:
                 residual = prediction - expected

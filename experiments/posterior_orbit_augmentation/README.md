@@ -1206,3 +1206,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-blocks --seeds $(seq 649 664) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Время применения геометрии при дистилляции
+
+Сравниваем взвешенную ошибку только в первой или только во второй половине обучения студента. В остальных эпохах применяется равномерная ошибка. Для каждого расписания используем геометрию естественных пар и повёрнутый контроль с тем же спектром. Инициализация, порядок изображений, число взвешенных и общее число эпох совпадают. При нечётном числе эпох средняя эпоха остаётся равномерной в обоих расписаниях. Базовый студент использует равномерную дистилляцию на всём протяжении обучения.
+
+Основной парный контраст на seed 665–680 при трёх метках измеряет разность выигрышей естественной геометрии над повёрнутой для раннего и позднего расписаний. Метрика — средняя сбалансированная точность отражённых кадров с одинаковым весом двух семейств задач и позиций кадра. Дополнительно проверяем равномерную дистилляцию, исходные кадры и меньшие бюджеты целевых меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_schedule"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-schedule --seeds $(seq 665 680) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```

@@ -1255,21 +1255,30 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             distilled_support = {}
             if args.track_distillation_joint:
                 head_kernels = {key: priors[key] for key in ("head_same_class", "head_rotated")}
-            variants = [("track_distilled", "head_same_class", source), ("rotated_distilled", "head_rotated", source)]
+            variants = [("track_distilled", "head_same_class", source, None),
+                        ("rotated_distilled", "head_rotated", source, None)]
             if args.track_distillation_blocks:
-                variants.extend((("even_distilled", "head_learned_even", source),
-                                 ("odd_distilled", "head_learned_odd", source)))
+                variants.extend((("even_distilled", "head_learned_even", source, None),
+                                 ("odd_distilled", "head_learned_odd", source, None)))
             if args.track_distillation_budget:
                 indices = repeated_source_indices(labels.numpy(), 32, seed + 600)
                 limited = source[torch.from_numpy(indices)]
-                variants.extend((("budget_uniform", None, limited), ("budget_track", "head_same_class", limited),
-                                 ("budget_rotated", "head_rotated", limited)))
-            for name, key, training_source in variants:
+                variants.extend((("budget_uniform", None, limited, None),
+                                 ("budget_track", "head_same_class", limited, None),
+                                 ("budget_rotated", "head_rotated", limited, None)))
+            if args.track_distillation_schedule:
+                half = args.student_epochs // 2
+                early, late = range(half), range(args.student_epochs - half, args.student_epochs)
+                variants = [(f"{phase}_{name}", key, source, epochs)
+                            for phase, epochs in (("early", early), ("late", late))
+                            for name, key in (("track", "head_same_class"), ("rotated", "head_rotated"))]
+            for name, key, training_source, metric_epochs in variants:
                 metric = None
                 if key is not None:
                     matrix = priors[key].sum(axis=0)
                     metric = source.new_tensor(matrix / np.diag(matrix).mean())
-                learned = fit_student(training_source, teacher, basis, mean, args, seed + 100, metric=metric)
+                learned = fit_student(training_source, teacher, basis, mean, args, seed + 100,
+                                      metric=metric, metric_epochs=metric_epochs)
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
@@ -1416,10 +1425,12 @@ def main():
     selection.add_argument("--track-distillation-budget", action="store_true")
     selection.add_argument("--track-distillation-joint", action="store_true")
     selection.add_argument("--track-distillation-blocks", action="store_true")
+    selection.add_argument("--track-distillation-schedule", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks:
+    if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
+            or args.track_distillation_schedule):
         args.track_distillation = True
     if args.track_parity_prior_route:
         args.track_parity_policy = True
@@ -1442,7 +1453,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_distillation_blocks:
+        if args.track_distillation_schedule:
+            name = "track_distillation_schedule"
+        elif args.track_distillation_blocks:
             name = "track_distillation_blocks"
         elif args.track_distillation_joint:
             name = "track_distillation_joint"
@@ -1523,6 +1536,8 @@ def main():
         parser.error("natural track frame fractions must be in [0, 1]")
     if args.track_consistency and len(set(args.strengths)) < 2:
         parser.error("track consistency requires at least two frame positions")
+    if args.track_distillation_schedule and args.student_epochs < 2:
+        parser.error("the weighted schedule requires at least two student epochs")
     if not math.isfinite(args.selector_ridge) or args.selector_ridge <= 0:
         parser.error("selector ridge must be finite and positive")
     if args.refiner_epochs < 1:
