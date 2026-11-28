@@ -1549,6 +1549,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             reflection_schedules = {}
             reflection_penalty_masks = {}
             training_projection_actions = {}
+            training_target_indices = {}
             projection_strengths = None
             confidence_priors = {}
             if args.track_distillation_projection:
@@ -1640,6 +1641,14 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                           ("rotated_teacher_prior", "head_rotated")):
                             variants.append((name, key, source, late))
                             projection_penalties[name] = 0.
+                    elif args.track_distillation_projection_track_targets:
+                        source_indices = torch.arange(len(source))
+                        for name, pairing in (("same_track_targets", "same_track"),
+                                              ("other_track_targets", "same_class")):
+                            partners = source_partners[pairing]
+                            training_target_indices[name] = torch.where(partners >= 0, partners, source_indices)
+                            variants.append((name, None, source, None))
+                            projection_penalties[name] = 0.
                     else:
                         variants.append(("rotated_training", None, source, None))
                         projection_penalties["rotated_training"] = 0.
@@ -1691,6 +1700,11 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 during_training = name in projection_penalties
                 action = (source.new_tensor(training_projection_actions.get(name, projection_actions["aligned"]))
                           if during_training else None)
+                target_inputs = None
+                if name in training_target_indices:
+                    target_inputs = source[training_target_indices[name]]
+                elif name in {"canonical_trained", "relative_augmented", "relative_shuffled"}:
+                    target_inputs = source
                 learned = fit_student(training_source, teacher, basis, mean, args, seed + 100,
                                       metric=metric, metric_epochs=metric_epochs,
                                       hidden_width=48 if name in narrow_variants else 192,
@@ -1698,8 +1712,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       reflection_action=action,
                                       reflection_penalty=projection_penalties.get(name, 0.),
                                       reflection_epochs=reflection_schedules.get(name),
-                                      target_inputs=source if name in {"canonical_trained", "relative_augmented",
-                                                                       "relative_shuffled"} else None,
+                                      target_inputs=target_inputs,
                                       reflection_penalty_mask=reflection_penalty_masks.get(name),
                                       reflection_strengths=source.new_tensor(projection_strengths)
                                       if name == "confident_training" else None,
@@ -1976,13 +1989,15 @@ def main():
     selection.add_argument("--track-distillation-projection-approx-teacher-track-prior", action="store_true")
     selection.add_argument("--track-distillation-projection-teacher-residual", action="store_true")
     selection.add_argument("--track-distillation-projection-projected-teacher-prior", action="store_true")
+    selection.add_argument("--track-distillation-projection-track-targets", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_distillation_projection_confident_teacher or args.track_distillation_projection_teacher_confidence_head
             or args.track_distillation_projection_approx_teacher_track_prior
             or args.track_distillation_projection_teacher_residual
-            or args.track_distillation_projection_projected_teacher_prior):
+            or args.track_distillation_projection_projected_teacher_prior
+            or args.track_distillation_projection_track_targets):
         args.track_distillation_projection_approx_teacher = True
     if args.track_distillation_projection_mixed_prior:
         args.track_distillation_projection_student_prior = True
@@ -2078,6 +2093,8 @@ def main():
             name = "track_distillation_projection_teacher_residual"
         elif args.track_distillation_projection_projected_teacher_prior:
             name = "track_distillation_projection_projected_teacher_prior"
+        elif args.track_distillation_projection_track_targets:
+            name = "track_distillation_projection_track_targets"
         elif args.track_distillation_projection_approx_teacher:
             name = "track_distillation_projection_approx_teacher"
         elif args.track_distillation_projection_joint_head:
@@ -2188,6 +2205,7 @@ def main():
     use_source_paths = (args.train_track_canonicalizer or args.track_head_prior
                         or args.track_distillation_projection_approx_teacher_track_prior
                         or args.track_distillation_projection_projected_teacher_prior
+                        or args.track_distillation_projection_track_targets
                         or (args.track_distillation and not args.track_distillation_projection_approx_teacher))
     data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args,
                       include_source_paths=use_source_paths and not args.track_head_predicted,

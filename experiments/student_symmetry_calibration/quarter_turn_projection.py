@@ -275,7 +275,10 @@ def main():
     comparison.add_argument("--paired-view-alignment", action="store_true")
     comparison.add_argument("--pair-variance", action="store_true")
     comparison.add_argument("--ordinary-teacher", action="store_true")
+    comparison.add_argument("--ordinary-teacher-action-rounding", action="store_true")
     args = parser.parse_args()
+    if args.ordinary_teacher_action_rounding:
+        args.ordinary_teacher = args.approximate_action = True
     if args.dihedral_subgroups:
         args.dihedral_action = True
     if args.pair_variance:
@@ -285,7 +288,9 @@ def main():
     if args.training_view_budget or args.invariant_variance:
         args.view_budget = True
     dataset_name, first_seed = RESULTS.name, 1249
-    if args.ordinary_teacher:
+    if args.ordinary_teacher_action_rounding:
+        dataset_name, first_seed = "quarter_turn_ordinary_teacher_rounding", 1409
+    elif args.ordinary_teacher:
         dataset_name, first_seed = "quarter_turn_ordinary_teacher", 1393
     elif args.approximate_action:
         dataset_name, first_seed = "quarter_turn_approximate", 1265
