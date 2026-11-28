@@ -38,15 +38,22 @@ def class_split(seed, vary_classes):
     return source, tuple(i for i in range(10) if i not in source)
 
 
-def data_partitions(train, test, args, seed, device, source_classes, target_classes):
+def data_partitions(train, test, args, seed, device, source_classes, target_classes, *, nested_source_limit=None):
     rng = torch.Generator().manual_seed(seed)
     train_images = torch.from_numpy(train.data).permute(0, 3, 1, 2)
     test_images = torch.from_numpy(test.data).permute(0, 3, 1, 2)
     train_labels = torch.tensor(train.targets)
     test_labels = torch.tensor(test.targets)
-    idx = balanced_indices(train_labels, source_classes, args.source_examples + args.probe_examples, rng)
+    if nested_source_limit is None:
+        idx = balanced_indices(train_labels, source_classes, args.source_examples + args.probe_examples, rng)
+        probe_start = args.source_examples
+    else:
+        probe_start, probe_limit = nested_source_limit
+        idx = torch.cat([balanced_indices(train_labels, (label,), probe_start + probe_limit,
+                                          torch.Generator().manual_seed(seed + 100 * (label + 1)))
+                         for label in source_classes])
     source = as_float(train_images[idx[:, :args.source_examples].reshape(-1)], device)
-    probe = as_float(train_images[idx[:, args.source_examples:].reshape(-1)], device)
+    probe = as_float(train_images[idx[:, probe_start:probe_start + args.probe_examples].reshape(-1)], device)
     target_idx = balanced_indices(train_labels, target_classes, args.target_pool, rng)
     test_idx = balanced_indices(test_labels, target_classes, args.test_per_class, rng)
     target_pool = {label: train_images[row] for label, row in zip(target_classes, target_idx, strict=True)}

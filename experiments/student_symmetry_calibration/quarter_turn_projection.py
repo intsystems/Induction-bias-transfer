@@ -1,6 +1,7 @@
 """Compare a learned quarter-turn projection in distillation and inference."""
 
 import argparse
+import hashlib
 import json
 import time
 from functools import partial
@@ -22,6 +23,7 @@ VIEW_BUDGETS = {"one": (0,), "opposite": (0, 2), "adjacent": (0, 1), "four": (0,
 VARIANCE_WEIGHTS = {"variance_quarter_training": .25, "variance_unit_training": 1.}
 PAIR_VARIANCE_WEIGHTS = {"opposite_variance_training": 1., "adjacent_variance_training": 1.}
 CLASS_RESIDUAL_WEIGHTS = {"quarter_class_residual": .25, "half_class_residual": .5}
+SOURCE_CLASS_COUNTS = (2, 4, 6)
 
 
 def dihedral_view(images, rotation, mirrored):
@@ -155,10 +157,23 @@ def evaluate_view_budgets(prior, support, queries, target_classes, args, seed):
                     for name, rows in measurements.items()} for count, measurements in observations.items()}
 
 
-def run(train, test, args, seed, device):
-    source_classes, target_classes = class_split(seed, vary_classes=True)
+def nested_source_classes(seed):
+    base, remaining = class_split(seed, vary_classes=True)
+    vehicles = {0, 1, 8, 9}
+    rng = np.random.default_rng(seed + 450)
+    small, additional = [], []
+    for group in (vehicles, set(range(10)) - vehicles):
+        small.append(int(rng.choice(sorted(set(base) & group))))
+        additional.append(int(rng.choice(sorted(set(remaining) & group))))
+    wide = tuple(sorted((*base, *additional)))
+    targets = tuple(label for label in remaining if label not in additional)
+    return {2: tuple(sorted(small)), 4: base, 6: wide}, targets
+
+
+def run(train, test, args, seed, device, *, partition=None, nested_source_limit=None):
+    source_classes, target_classes = class_split(seed, vary_classes=True) if partition is None else partition
     source, probe, target, query = data_partitions(train, test, args, seed, device,
-                                                   source_classes, target_classes)
+                                                   source_classes, target_classes, nested_source_limit=nested_source_limit)
     labels = torch.arange(len(source_classes), device=device).repeat_interleave(args.source_examples)
     teacher = fit_teacher(source, labels, args, seed, len(source_classes), equivariant=not args.ordinary_teacher)
     basis_probe = probe[::2] if args.ordinary_teacher else probe
@@ -191,7 +206,7 @@ def run(train, test, args, seed, device):
     fixed_tensor = source.new_tensor(fixed)
 
     shots = {str(count): {} for count in args.shots}
-    variants = [("inference_only", None, None)]
+    variants = [] if args.ordinary_teacher_source_class_budget else [("inference_only", None, None)]
     for name, action_option in candidates.items():
         if args.dihedral_action:
             reflection_option = reflection if name == "learned" else rotation @ reflection @ rotation.T
@@ -223,8 +238,9 @@ def run(train, test, args, seed, device):
         target_transforms = {"class_inference_only": class_targets, "class_learned_training": class_targets,
                              "scaled_class_learned_training": partial(class_target_means, labels=labels,
                                                                       restore_variance=True)}
-        variants.extend((("class_inference_only", None, None), ("class_learned_training", powers, None),
-                         ("scaled_class_learned_training", powers, None)))
+        if not args.ordinary_teacher_source_class_budget:
+            variants.append(("class_inference_only", None, None))
+        variants.extend((("class_learned_training", powers, None), ("scaled_class_learned_training", powers, None)))
         if args.ordinary_teacher_class_residuals:
             for name, weight in CLASS_RESIDUAL_WEIGHTS.items():
                 target_transforms[name] = partial(class_target_means, labels=labels, restore_variance=True,
@@ -261,6 +277,13 @@ def run(train, test, args, seed, device):
         result["approximate_order_four_errors"] = {name: order_errors[name] for name in ("midpoint", "unrounded")}
     if args.dihedral_action:
         result["reflection_rotation_error"] = float(np.max(np.abs(reflection @ action @ reflection - action.T)))
+    if args.ordinary_teacher_source_class_budget:
+        result["source_count"] = len(source)
+        result["probe_count"] = len(probe)
+        result["target_partition"] = {
+            name: hashlib.sha256(b"".join(images.numpy().tobytes() for images in part.values())).hexdigest()
+            for name, part in (("support", target), ("query", query))
+        }
     return result
 
 
@@ -275,6 +298,8 @@ def main():
     parser.add_argument("--student-epochs", type=int, default=22)
     parser.add_argument("--source-examples", type=int, default=1400)
     parser.add_argument("--probe-examples", type=int, default=320)
+    parser.add_argument("--total-source-examples", type=int, default=3600)
+    parser.add_argument("--total-probe-examples", type=int, default=960)
     parser.add_argument("--target-pool", type=int, default=600)
     parser.add_argument("--test-per-class", type=int, default=600)
     parser.add_argument("--batch-size", type=int, default=128)
@@ -293,10 +318,11 @@ def main():
     comparison.add_argument("--ordinary-teacher-action-rounding", action="store_true")
     comparison.add_argument("--ordinary-teacher-class-targets", action="store_true")
     comparison.add_argument("--ordinary-teacher-class-residuals", action="store_true")
+    comparison.add_argument("--ordinary-teacher-source-class-budget", action="store_true")
     args = parser.parse_args()
     if args.ordinary_teacher_action_rounding:
         args.ordinary_teacher = args.approximate_action = True
-    if args.ordinary_teacher_class_residuals:
+    if args.ordinary_teacher_class_residuals or args.ordinary_teacher_source_class_budget:
         args.ordinary_teacher_class_targets = True
     if args.ordinary_teacher_class_targets:
         args.ordinary_teacher = True
@@ -309,7 +335,9 @@ def main():
     if args.training_view_budget or args.invariant_variance:
         args.view_budget = True
     dataset_name, first_seed = RESULTS.name, 1249
-    if args.ordinary_teacher_class_residuals:
+    if args.ordinary_teacher_source_class_budget:
+        dataset_name, first_seed = "quarter_turn_ordinary_teacher_source_class_budget", 1457
+    elif args.ordinary_teacher_class_residuals:
         dataset_name, first_seed = "quarter_turn_ordinary_teacher_class_residuals", 1441
     elif args.ordinary_teacher_class_targets:
         dataset_name, first_seed = "quarter_turn_ordinary_teacher_class_targets", 1425
@@ -341,6 +369,10 @@ def main():
         parser.error("shots must fit a nonempty target pool of at most 5000 examples per class")
     if args.probe_examples < 2 or not 0 < args.source_examples <= 5000 - args.probe_examples:
         parser.error("need distinct source and probe samples with at least two probe examples per class")
+    if args.ordinary_teacher_source_class_budget:
+        totals = args.total_source_examples, args.total_probe_examples
+        if any(total < 12 or total % 12 for total in totals) or sum(totals) > 10000:
+            parser.error("total source and probe budgets must be positive multiples of 12 summing to at most 10000")
     if not 0 < args.test_per_class <= 1000 or min(args.batch_size, args.teacher_epochs, args.student_epochs,
                                                    args.episodes) < 1 or not 0 < args.noise < float("inf"):
         parser.error("invalid test count, batch size, training steps, target episodes or head noise")
@@ -358,9 +390,23 @@ def main():
     if args.ordinary_teacher_class_residuals:
         data["class_residual_weights"] = {"scaled_class_learned_training": 0., **CLASS_RESIDUAL_WEIGHTS,
                                           "learned_training": 1.}
+    if args.ordinary_teacher_source_class_budget:
+        data["source_class_counts"] = SOURCE_CLASS_COUNTS
     start = time.monotonic()
     for seed in args.seeds:
-        data["runs"].append(run(train, test, args, seed, device))
+        if args.ordinary_teacher_source_class_budget:
+            groups, target_classes = nested_source_classes(seed)
+            limits = args.total_source_examples // 2, args.total_probe_examples // 2
+            conditions = {}
+            for count, source_classes in groups.items():
+                local_args = argparse.Namespace(**vars(args))
+                local_args.source_examples = args.total_source_examples // count
+                local_args.probe_examples = args.total_probe_examples // count
+                conditions[count] = run(train, test, local_args, seed, device,
+                                        partition=(source_classes, target_classes), nested_source_limit=limits)
+            data["runs"].append({"seed": seed, "conditions": conditions})
+        else:
+            data["runs"].append(run(train, test, args, seed, device))
         data["elapsed_seconds"] = time.monotonic() - start
         temporary = args.output.with_suffix(".tmp")
         temporary.write_text(json.dumps(data, indent=2, allow_nan=False) + "\n")

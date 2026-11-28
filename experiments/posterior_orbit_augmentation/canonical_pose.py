@@ -1744,6 +1744,12 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                 folded = partial(ParityStudent, odd)
                                 model_factories = dict.fromkeys(("folded_frame_targets", "folded_class_targets"), folded)
                                 target_transforms["folded_class_targets"] = target_transforms["scaled_class_prototypes"]
+                                if args.track_distillation_projection_class_parity_supervision:
+                                    model_factories["folded_class_single_teacher"] = folded
+                                    for name in ("folded_class_single_teacher", "dense_class_single_teacher"):
+                                        target_transforms[name] = target_transforms["scaled_class_prototypes"]
+                                    variants.append(("dense_class_single_teacher", None, source, None))
+                                    projection_penalties["dense_class_single_teacher"] = 0.
                                 variants.extend((name, None, source, None) for name in model_factories)
                         if args.track_distillation_projection_gaussian_targets:
                             class_labels = labels.to(source.device)
@@ -1832,8 +1838,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     target_inputs = source[training_target_indices[name]]
                 elif name in {"canonical_trained", "relative_augmented", "relative_shuffled"}:
                     target_inputs = source
+                single_view_training = name in {"one_view_folded", "folded_class_single_teacher"}
+                synthetic_teacher_view = name in {"one_view_dense", "dense_class_single_teacher"}
                 learned = fit_student(training_source, teacher, basis, mean, args, seed + 100,
-                                      training_views=() if name == "one_view_folded" else None,
+                                      training_views=() if single_view_training else None,
                                       metric=metric, metric_epochs=metric_epochs,
                                       hidden_width=48 if name in narrow_variants else 192,
                                       frozen_feature_epochs=frozen_epochs.get(name),
@@ -1846,7 +1854,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       if name == "confident_training" else None,
                                       match_reflection_residual=name == "match_residual",
                                       model_factory=model_factories.get(name),
-                                      teacher_reflection_from_action=name == "one_view_dense",
+                                      teacher_reflection_from_action=synthetic_teacher_view,
                                       target_transform=target_transforms.get(name))
                 if measure_student_parity:
                     width = len(odd)
@@ -2145,6 +2153,7 @@ def main():
     selection.add_argument("--track-distillation-projection-class-scale", action="store_true")
     selection.add_argument("--track-distillation-projection-class-projection", action="store_true")
     selection.add_argument("--track-distillation-projection-class-parity", action="store_true")
+    selection.add_argument("--track-distillation-projection-class-parity-supervision", action="store_true")
     selection.add_argument("--track-distillation-projection-gaussian-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-gaussian-parity", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-student", action="store_true")
@@ -2154,6 +2163,8 @@ def main():
     args = parser.parse_args()
     if args.track_distillation_projection_parity_supervision:
         args.track_distillation_projection_parity_student = True
+    if args.track_distillation_projection_class_parity_supervision:
+        args.track_distillation_projection_class_parity = True
     if (args.track_distillation_projection_class_geometry or args.track_distillation_projection_class_scale
             or args.track_distillation_projection_class_projection or args.track_distillation_projection_class_parity):
         args.track_distillation_projection_class_targets = True
@@ -2274,6 +2285,8 @@ def main():
             name = "track_distillation_projection_class_scale"
         elif args.track_distillation_projection_class_projection:
             name = "track_distillation_projection_class_projection"
+        elif args.track_distillation_projection_class_parity_supervision:
+            name = "track_distillation_projection_class_parity_supervision"
         elif args.track_distillation_projection_class_parity:
             name = "track_distillation_projection_class_parity"
         elif args.track_distillation_projection_class_targets:

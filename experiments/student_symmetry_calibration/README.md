@@ -2851,3 +2851,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/quarter_turn_projection.py" \
   --ordinary-teacher-class-residuals --seeds $(seq 1441 1456) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_quarter_turn_projection.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Число исходных классов при фиксированном объёме данных
+
+На каждом разбиении CIFAR-10 берём вложенные наборы из двух, четырёх и шести исходных классов. В каждом поровну категорий транспорта и животных. Четыре целевых класса остаются общими. Во всех трёх условиях учитель получает 3600 обучающих и 960 отдельных зондирующих изображений. Для общих исходных классов меньшие подвыборки вложены в большие. Обучающие и зондирующие изображения разделены для всех условий. Целевая поддержка, эпизоды и тестовые изображения совпадают. Хеши поддержек и теста записываются в метрики.
+
+Для каждого исходного бюджета сравниваем признаки отдельных изображений, средние класса и средние с восстановленной дисперсией. Все варианты проектируют оценённое действие поворота внутри дистилляции и используют четыре вида при предсказании. Основной парный контраст на seed 1457–1472 при пяти метках измеряет разность эффектов масштабированных средних относительно отдельных изображений между шестью и двумя исходными классами. Дополнительно проверяем четыре класса, исходный масштаб средних и бюджеты 20 и 60 меток.
+
+```bash
+dir=experiments/student_symmetry_calibration
+run="$dir/results/quarter_turn_ordinary_teacher_source_class_budget"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/quarter_turn_projection.py" \
+  --ordinary-teacher-source-class-budget --seeds $(seq 1457 1472) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_quarter_turn_projection.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```

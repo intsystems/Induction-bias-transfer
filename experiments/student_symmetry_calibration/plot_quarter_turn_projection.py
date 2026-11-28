@@ -30,6 +30,9 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
+    if data["config"].get("ordinary_teacher_source_class_budget", False):
+        plot_source_class_budget(data, args.output)
+        return
     if data["config"].get("view_budget", False):
         plot_view_budget(data["runs"], shots, args.output, data.get("invariant_variance_weights", {}))
         return
@@ -61,6 +64,33 @@ def main():
         axis.grid(alpha=.2)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(args.output, dpi=170)
+
+
+def plot_source_class_budget(data, output):
+    shots = data["config"]["shots"]
+    counts = data["source_class_counts"]
+    models = {"learned_training": "Image targets", "class_learned_training": "Class mean targets",
+              "scaled_class_learned_training": "Scaled class mean targets"}
+    accuracy = {model: 100 * np.array([[
+        [run["conditions"][str(count)]["shots"][str(shot)][model]["clean_accuracy"] for count in counts]
+        for run in data["runs"]] for shot in shots]) for model in models}
+    figure, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
+    minimum = int(np.argmin(shots))
+    for model, label in models.items():
+        axes[0].plot(counts, accuracy[model][minimum].mean(axis=0), marker="o", label=label)
+    gaps = accuracy["scaled_class_learned_training"] - accuracy["learned_training"]
+    for shot, gap in zip(shots, gaps, strict=True):
+        axes[1].plot(counts, gap.mean(axis=0), marker="o", label=f"{shot} labels/class")
+    axes[1].axhline(0, color=".5", linewidth=1)
+    axes[0].set_ylabel(f"Balanced accuracy ({min(shots)} labels/class, %)")
+    axes[1].set_ylabel("Scaled class targets minus image targets (pp)")
+    for axis in axes:
+        axis.set_xlabel("Source classes at fixed sample count")
+        axis.set_xticks(counts)
+        axis.grid(alpha=.2)
+        axis.legend(fontsize=8)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=170)
 
 
 def plot_view_budget(runs, shots, output, variance_weights):

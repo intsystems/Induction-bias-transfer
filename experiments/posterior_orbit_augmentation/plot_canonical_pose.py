@@ -297,6 +297,12 @@ TRACK_DISTILLATION_PROJECTION_CLASS_PARITY_METHODS = {
     "folded_frame_targets": "Frame targets · one view",
     "folded_class_targets": "Class targets · one view",
 }
+TRACK_DISTILLATION_PROJECTION_CLASS_PARITY_SUPERVISION_METHODS = {
+    "scaled_class_prototypes_aligned": "Dense · both teacher views",
+    "dense_class_single_teacher_aligned": "Dense · one teacher view",
+    "folded_class_targets": "Folded · both teacher views",
+    "folded_class_single_teacher": "Folded · one teacher view",
+}
 TRACK_DISTILLATION_PROJECTION_GAUSSIAN_TARGETS_METHODS = {
     **TRACK_DISTILLATION_PROJECTION_TRACK_TARGETS_METHODS,
     "class_prototypes_aligned": "Class mean targets",
@@ -454,6 +460,8 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_SCALE_METHODS
     elif results["config"].get("track_distillation_projection_class_projection", False):
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_PROJECTION_METHODS
+    elif results["config"].get("track_distillation_projection_class_parity_supervision", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CLASS_PARITY_SUPERVISION_METHODS
     elif results["config"].get("track_distillation_projection_class_parity", False):
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_PARITY_METHODS
     elif results["config"].get("track_distillation_projection_class_targets", False):
