@@ -731,6 +731,20 @@ def natural_track_embeddings(student, models, images, tracks, args, device, *, a
     return output
 
 
+def reflect_projected_views(views, action):
+    return (views + views[::-1] @ action) / 2
+
+
+def add_projected_track_readouts(name, support, original, query, actions, prior, distilled_support):
+    for variant, action in actions.items():
+        key = f"{name}_{variant}"
+        distilled_support[key] = ({label: reflect_projected_views(views, action)[0]
+                                   for label, views in support.items()}, prior)
+        for label, positions in original.items():
+            for strength, (values, _) in positions.items():
+                query[label][strength][0][key] = reflect_projected_views(values["raw"], action)
+
+
 def select_track_corrections(query, odd, seed):
     steps = np.asarray((0., .5, 1.), dtype=np.float32)
     odd = odd.cpu().numpy()
@@ -1198,7 +1212,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
     if not (args.identity_mixture or args.relative_pose or args.paired_angle_bias or args.angle_gate
             or args.natural_track_pose):
         pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
-    support = {label: features[0] for label, features in embed(student, train, args, device).items()}
+    support_views = embed(student, train, args, device)
+    support = {label: views[0] for label, views in support_views.items()}
     head_kernels = None
     distilled_support = None
     if args.natural_track_pose:
@@ -1292,6 +1307,20 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                  for name, key in (*metric_keys, ("uniform", None))]
                 variants.extend(head_variants)
                 frozen_epochs = {name: late for name, *_ in head_variants}
+            projection_actions = {}
+            projection_prior = None
+            if args.track_distillation_projection:
+                late = range(args.student_epochs - args.student_epochs // 2, args.student_epochs)
+                variants = [("late_track", "head_same_class", source, late)]
+                reflection_sign = np.where(odd.cpu().numpy(), -1., 1.)
+                rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
+                    (len(reflection_sign), len(reflection_sign))))
+                projection_actions = {"aligned": np.diag(reflection_sign),
+                                      "rotated": (rotation * reflection_sign) @ rotation.T}
+                projection_prior = np.eye(len(reflection_sign))[None] / len(reflection_sign)
+                distilled_support["raw"] = support, projection_prior
+                add_projected_track_readouts("raw", support_views, query, query, projection_actions,
+                                             projection_prior, distilled_support)
             narrow_variants = {}
             if args.track_distillation_width:
                 narrow_variants = {"narrow_uniform": None, "narrow_track": "head_same_class", "narrow_rotated": "head_rotated"}
@@ -1308,7 +1337,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
-                evaluators = [(name, None)]
+                evaluators = [(name, projection_prior)]
                 if args.track_distillation_joint:
                     evaluators.extend(((name + "_track_head", priors["head_same_class"]),
                                        (name + "_rotated_head", priors["head_rotated"])))
@@ -1317,6 +1346,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     for label, positions in transformed.items():
                         for strength, (values, _) in positions.items():
                             query[label][strength][0][method] = values["raw"]
+                if projection_actions:
+                    add_projected_track_readouts(name, features, transformed, query, projection_actions,
+                                                 projection_prior, distilled_support)
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
         if args.track_distillation_budget:
@@ -1456,12 +1488,13 @@ def main():
     selection.add_argument("--track-distillation-synthetic", action="store_true")
     selection.add_argument("--track-distillation-tail", action="store_true")
     selection.add_argument("--track-distillation-late-head", action="store_true")
+    selection.add_argument("--track-distillation-projection", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
-            or args.track_distillation_tail or args.track_distillation_late_head):
+            or args.track_distillation_tail or args.track_distillation_late_head or args.track_distillation_projection):
         args.track_distillation = True
     if args.track_parity_prior_route:
         args.track_parity_policy = True
@@ -1492,6 +1525,8 @@ def main():
             name = "track_distillation_tail"
         elif args.track_distillation_late_head:
             name = "track_distillation_late_head"
+        elif args.track_distillation_projection:
+            name = "track_distillation_projection"
         elif args.track_distillation_schedule:
             name = "track_distillation_schedule"
         elif args.track_distillation_blocks:
@@ -1575,7 +1610,8 @@ def main():
         parser.error("natural track frame fractions must be in [0, 1]")
     if args.track_consistency and len(set(args.strengths)) < 2:
         parser.error("track consistency requires at least two frame positions")
-    if (args.track_distillation_schedule or args.track_distillation_late_head) and args.student_epochs < 2:
+    if (args.track_distillation_schedule or args.track_distillation_late_head
+            or args.track_distillation_projection) and args.student_epochs < 2:
         parser.error("the weighted schedule requires at least two student epochs")
     if args.track_distillation_tail and args.student_epochs < max(DISTILLATION_TAILS.values()):
         parser.error("the weighted tail comparison requires at least six student epochs")
