@@ -162,6 +162,16 @@ TRACK_DISTILLATION_PROJECTION_TIMING_WEIGHTS_METHODS = {
     "uniform_late_aligned": "Uniform loss · late", "late_track_aligned": "Natural loss · prediction only",
     "natural_early_aligned": "Natural loss · early", "natural_late_aligned": "Natural loss · late",
 }
+TRACK_DISTILLATION_PROJECTION_TERMINAL_METHODS = {
+    "late_track_aligned": "Prediction only", "terminal_none_aligned": "Early block only",
+    "terminal_one_aligned": "Early block + final epoch", "terminal_part_aligned": "Early and late blocks",
+    "terminal_all_aligned": "Late block only",
+}
+TRACK_DISTILLATION_PROJECTION_CANONICAL_METHODS = {
+    "trained_late_aligned": "No pose correction",
+    "canonical_aligned": "Independent pose correction",
+    "canonical_symmetric_aligned": "Reflection-consistent pose correction",
+}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -218,6 +228,10 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_COMPRESS_METHODS
     elif results["config"].get("track_distillation_projection_timing_weights", False):
         methods = TRACK_DISTILLATION_PROJECTION_TIMING_WEIGHTS_METHODS
+    elif results["config"].get("track_distillation_projection_terminal", False):
+        methods = TRACK_DISTILLATION_PROJECTION_TERMINAL_METHODS
+    elif results["config"].get("track_distillation_projection_canonical", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CANONICAL_METHODS
     elif results["config"].get("track_distillation_projection", False):
         methods = TRACK_DISTILLATION_PROJECTION_METHODS
     elif results["config"].get("track_distillation_schedule", False):

@@ -28,6 +28,13 @@ DISTILLATION_TAILS = {"sixth": 6, "third": 3, "half": 2}
 PROJECTION_PENALTIES = {"penalty_zero": 0., "penalty_quarter": .25, "penalty_four": 4.}
 
 
+def terminal_projection_schedules(student_epochs):
+    half = student_epochs // 2
+    terminal_counts = {"terminal_none": 0, "terminal_one": 1, "terminal_part": half // 2, "terminal_all": half}
+    return {name: (*range(half - count), *range(student_epochs - count, student_epochs))
+            for name, count in terminal_counts.items()}
+
+
 def pose_warp(images, pose):
     angle, dx, dy = pose.unbind(dim=-1)
     cosine, sine = (angle * ANGLE).cos(), (angle * ANGLE).sin()
@@ -704,7 +711,8 @@ def repeated_source_indices(labels, per_class, seed):
 
 
 @torch.inference_mode()
-def natural_track_embeddings(student, models, images, tracks, args, device, *, angle_control=False):
+def natural_track_embeddings(student, models, images, tracks, args, device, *, angle_control=False,
+                             symmetric_pose=False):
     output = {}
     for label, groups in tracks.items():
         output[label] = {}
@@ -715,6 +723,11 @@ def natural_track_embeddings(student, models, images, tracks, args, device, *, a
                 batch = batch.to(device, dtype=torch.float32) / 255
                 clean = torch.cat((batch, batch.flip(-1)))
                 predictions = {name: parameters(model, clean)[0] for name, model in models.items()}
+                if symmetric_pose:
+                    for name, center in tuple(predictions.items()):
+                        first, second = center.chunk(2)
+                        mean = (first + reflect_pose(second)) / 2
+                        predictions[f"{name}_symmetric"] = torch.cat((mean, reflect_pose(mean)))
                 if angle_control:
                     shifts = predictions["pose_point"][:, 1:]
                     angle = predictions["paired_full"][:, :1]
@@ -760,14 +773,14 @@ def calibrate_track_projection(student, images, odd_count, batch_size, *, sparse
     return actions
 
 
-def add_projected_track_readouts(name, support, original, query, actions, prior, distilled_support):
+def add_projected_track_readouts(name, support, original, query, actions, prior, distilled_support, *, feature="raw"):
     for variant, action in actions.items():
         key = f"{name}_{variant}"
         distilled_support[key] = ({label: reflect_projected_views(views, action)[0]
                                    for label, views in support.items()}, prior)
         for label, positions in original.items():
             for strength, (values, _) in positions.items():
-                query[label][strength][0][key] = reflect_projected_views(values["raw"], action)
+                query[label][strength][0][key] = reflect_projected_views(values[feature], action)
 
 
 def add_track_readout(name, support, original, query, prior, distilled_support):
@@ -1423,12 +1436,21 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                             variants.append((method, key, source, late))
                             projection_penalties[method] = 0.
                             reflection_schedules[method] = epochs
+                elif args.track_distillation_projection_terminal:
+                    reflection_schedules = terminal_projection_schedules(args.student_epochs)
+                    projection_penalties = dict.fromkeys(reflection_schedules, 0.)
+                    variants.extend((method, "head_same_class", source, late) for method in reflection_schedules)
                 elif args.track_distillation_projection_compress:
                     variants.append(("trained_late", "head_same_class", source, late))
                     projection_penalties = {"trained_late": 0.}
                 elif args.track_distillation_projection_folded:
                     variants = [("trained_late", "head_same_class", source, late)]
                     projection_penalties = {"trained_late": 0.}
+                elif args.track_distillation_projection_canonical:
+                    variants = [("trained_late", "head_same_class", source, late)]
+                    projection_penalties = {"trained_late": 0.}
+                    models = {"canonical": fit_canonicalizer(source, teacher, basis, odd, args, seed + 200,
+                                                              0., partners=source_partners["same_track"])}
                 else:
                     rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                         (len(reflection_sign), len(reflection_sign))))
@@ -1475,7 +1497,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       reflection_epochs=reflection_schedules.get(name))
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
-                transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
+                transformed = natural_track_embeddings(learned, models, train, natural_queries, args, device,
+                                                       symmetric_pose=args.track_distillation_projection_canonical)
                 evaluators = [] if during_training else [(name, projection_prior)]
                 if args.track_distillation_joint:
                     evaluators.extend(((name + "_track_head", priors["head_same_class"]),
@@ -1492,6 +1515,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                         projection_distances[name] = float(distance / np.sqrt(len(reflection_sign)))
                     add_projected_track_readouts(name, features, transformed, query, learned_actions,
                                                  projection_prior, distilled_support)
+                if args.track_distillation_projection_canonical:
+                    for method in ("canonical", "canonical_symmetric"):
+                        add_projected_track_readouts(method, features, transformed, query, projection_actions,
+                                                     projection_prior, distilled_support, feature=method)
                 if args.track_distillation_projection_compress:
                     action = source.new_tensor(projection_actions["aligned"])
 
@@ -1676,6 +1703,8 @@ def main():
     selection.add_argument("--track-distillation-projection-timing-weights", action="store_true")
     selection.add_argument("--track-distillation-projection-folded", action="store_true")
     selection.add_argument("--track-distillation-projection-folded-batched", action="store_true")
+    selection.add_argument("--track-distillation-projection-terminal", action="store_true")
+    selection.add_argument("--track-distillation-projection-canonical", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1686,7 +1715,8 @@ def main():
     if (args.track_distillation_projection_train or args.track_distillation_projection_calibrated
             or args.track_distillation_projection_penalty or args.track_distillation_projection_schedule
             or args.track_distillation_projection_compress or args.track_distillation_projection_timing_weights
-            or args.track_distillation_projection_folded):
+            or args.track_distillation_projection_folded or args.track_distillation_projection_terminal
+            or args.track_distillation_projection_canonical):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1739,6 +1769,10 @@ def main():
             name = "track_distillation_projection_folded_batched"
         elif args.track_distillation_projection_folded:
             name = "track_distillation_projection_folded"
+        elif args.track_distillation_projection_terminal:
+            name = "track_distillation_projection_terminal"
+        elif args.track_distillation_projection_canonical:
+            name = "track_distillation_projection_canonical"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:
@@ -1829,6 +1863,8 @@ def main():
         parser.error("the weighted schedule requires at least two student epochs")
     if args.track_distillation_tail and args.student_epochs < max(DISTILLATION_TAILS.values()):
         parser.error("the weighted tail comparison requires at least six student epochs")
+    if args.track_distillation_projection_terminal and args.student_epochs < 8:
+        parser.error("the terminal projection comparison requires at least eight student epochs")
     if not math.isfinite(args.selector_ridge) or args.selector_ridge <= 0:
         parser.error("selector ridge must be finite and positive")
     if args.refiner_epochs < 1:
@@ -1864,6 +1900,8 @@ def main():
                                                for phase, divisor in DISTILLATION_TAILS.items()}
     if args.track_distillation_projection_penalty:
         output["projection_penalties"] = {**PROJECTION_PENALTIES, "late_track": 1.}
+    if args.track_distillation_projection_terminal:
+        output["projection_epochs"] = terminal_projection_schedules(args.student_epochs)
     if source_partners is not None:
         count = int((source_partners["same_track"] >= 0).sum())
         if not count:
