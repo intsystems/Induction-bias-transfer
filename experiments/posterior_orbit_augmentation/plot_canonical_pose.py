@@ -207,12 +207,46 @@ TRACK_POOLING_METHODS = {"raw": "Raw feature mean", "feature_corrected": "Correc
                          "pixel_shuffled": "Pixel mean · shuffled poses"}
 
 
+def plot_head_routing(results, output):
+    shots = results["config"]["shots"]
+    families = ("invariant", "antisymmetric")
+    methods = {
+        "late_track_natural_head_aligned": "Prediction-only projection · natural prior",
+        "late_track_rotated_head_aligned": "Prediction-only projection · rotated prior",
+        "trained_late_natural_head_aligned": "Training projection · natural prior",
+        "trained_late_rotated_head_aligned": "Training projection · rotated prior",
+    }
+    figure, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
+    for method, label in methods.items():
+        route, accuracy = [], []
+        for count in map(str, shots):
+            episodes = [task[count] for run in results["runs"]
+                        for family in families for task in run["tasks"][family].values()]
+            route.append(np.mean([episode["routing"][method]["accuracy"] for episode in episodes]))
+            accuracy.append(np.mean([prediction[method]["reflected"] for episode in episodes
+                                     for prediction in episode["strengths"].values()]))
+        axes[0].plot(shots, 100 * np.array(route), marker="o", label=label)
+        axes[1].plot(shots, 100 * np.array(accuracy), marker="o", label=label)
+    axes[0].set_ylabel("Correct reflection action (%)")
+    axes[1].set_ylabel("Reflected balanced accuracy (%)")
+    for axis in axes:
+        axis.set_xlabel("Labels per class")
+        axis.set_xticks(shots)
+        axis.grid(alpha=.2)
+    axes[0].legend(fontsize=7)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=170)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--metrics", type=Path, default=RESULTS / "metrics.json")
     parser.add_argument("--output", type=Path, default=RESULTS / "curves.png")
     args = parser.parse_args()
     results = json.loads(args.metrics.read_text())
+    if results["config"].get("track_distillation_projection_head_routing", False):
+        plot_head_routing(results, args.output)
+        return
     runs = results["runs"]
     levels = results["config"]["strengths"]
     available_shots = results["config"]["shots"]

@@ -1767,3 +1767,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-projection-student-prior --seeds $(seq 985 1000) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Восстановление действия отражения по размеченной поддержке
+
+Оба студента используют поздние естественные веса и двухвидовую проекцию при предсказании. Один также включает проекцию в функцию дистилляции. Оцениваем, как естественный и повёрнутый априоры с одним спектром помогают определить действие отражения. Классификатор по размеченной поддержке вычисляет апостериорные вероятности двух вариантов: отражение сохраняет или меняет класс. Выбор проверяем по известному семейству задачи, которое не используется для обучения классификатора.
+
+Основной парный контраст на seed 1001–1016 при трёх метках сравнивает преимущество естественного априора над повёрнутым по доле правильных решений о действии отражения между режимами дистилляции. Два семейства задач имеют одинаковый вес. Дополнительно измеряем ошибку вероятностной оценки, точность классификации отражённых кадров, отдельные семейства и меньшие бюджеты меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_projection_head_routing"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-projection-head-routing --seeds $(seq 1001 1016) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```

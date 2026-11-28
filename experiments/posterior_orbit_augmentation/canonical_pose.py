@@ -1242,11 +1242,20 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
             heads = {name: predict(prior, f, y, identity, args.noise, center_evidence=True)[0]
                      for name, prior in prediction_priors.items()}
             distilled_heads = {}
+            routing = {}
             for name, (features, prior) in (distilled_support or {}).items():
                 design = np.concatenate([features[label][j[:count]] for label, j in zip(pair, ids, strict=True)])
                 selected_prior = parity if prior is None else prior
-                distilled_heads[name] = predict(selected_prior, design, y, identity, args.noise, center_evidence=True)[0]
+                head, posterior = predict(selected_prior, design, y, identity, args.noise, center_evidence=True)
+                distilled_heads[name] = head
+                if args.track_distillation_projection_head_routing and name.endswith(("natural_head_aligned",
+                                                                                       "rotated_head_aligned")):
+                    probability_same = float(posterior[0])
+                    correct = (probability_same >= .5) == (sign == 1)
+                    routing[name] = {"accuracy": float(correct), "brier": (probability_same - (sign == 1))**2}
             values = {"posterior_same": float(probability[0]), "strengths": {}}
+            if routing:
+                values["routing"] = routing
             if args.track_head_evidence:
                 adaptive, joint_mass = predict(joint, f, y, identity, args.noise, center_evidence=True)
                 heads["head_evidence"] = adaptive
@@ -1298,6 +1307,10 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
                if args.track_parity_prior_route else {}),
             **({"geometry_mass": np.mean([ep["geometry_mass"] for ep in episodes], axis=0).tolist()}
                if args.track_head_evidence else {}),
+            **({"routing": {name: {metric: float(np.mean([ep["routing"][name][metric] for ep in episodes]))
+                                  for metric in measurements}
+                            for name, measurements in episodes[0]["routing"].items()}}
+               if args.track_distillation_projection_head_routing else {}),
             "strengths": {strength: {key: {metric: float(np.mean([
                 ep["strengths"][strength][key][metric] for ep in episodes]))
                 for metric in measures} for key, measures in methods.items()}
@@ -1757,10 +1770,11 @@ def main():
     selection.add_argument("--track-distillation-projection-canonical-train", action="store_true")
     selection.add_argument("--track-distillation-projection-single-view-penalty", action="store_true")
     selection.add_argument("--track-distillation-projection-student-prior", action="store_true")
+    selection.add_argument("--track-distillation-projection-head-routing", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_distillation_projection_student_prior:
+    if args.track_distillation_projection_student_prior or args.track_distillation_projection_head_routing:
         args.track_distillation_projection_joint_head = True
     if args.track_distillation_projection_folded_batched:
         args.track_distillation_projection_folded = True
@@ -1830,6 +1844,8 @@ def main():
             name = "track_distillation_projection_canonical"
         elif args.track_distillation_projection_student_prior:
             name = "track_distillation_projection_student_prior"
+        elif args.track_distillation_projection_head_routing:
+            name = "track_distillation_projection_head_routing"
         elif args.track_distillation_projection_joint_head:
             name = "track_distillation_projection_joint_head"
         elif args.track_distillation_projection_canonical_train:
