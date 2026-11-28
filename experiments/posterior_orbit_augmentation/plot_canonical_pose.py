@@ -233,6 +233,20 @@ TRACK_DISTILLATION_PROJECTION_CONFIDENT_TEACHER_METHODS = {
     "estimated_training_confident": "Full training projection · weighted projection",
     "confident_training_confident": "Weighted training and prediction projection",
 }
+TRACK_DISTILLATION_PROJECTION_TEACHER_CONFIDENCE_HEAD_METHODS = {
+    f"{stage}{head}_aligned": f"{training} · {prior}"
+    for stage, training in (("raw", "Ordinary training"), ("estimated_training", "Projected training"))
+    for head, prior in (("", "Isotropic"), ("_confidence_head", "Teacher confidence"),
+                        ("_shuffled_head", "Shuffled confidence"), ("_parity_head", "Parity means"))
+}
+TRACK_DISTILLATION_PROJECTION_APPROX_TEACHER_TRACK_PRIOR_METHODS = {
+    "raw_aligned": "Prediction only · uniform loss",
+    "prediction_natural_aligned": "Prediction only · natural loss",
+    "prediction_rotated_aligned": "Prediction only · rotated loss",
+    "estimated_training_aligned": "Training projection · uniform loss",
+    "projected_natural_aligned": "Training projection · natural loss",
+    "projected_rotated_aligned": "Training projection · rotated loss",
+}
 TRACK_DISTILLATION_PROJECTION_MIXED_PRIOR_METHODS = {
     "trained_late_natural_head_aligned": "Training projection · teacher prior",
     "trained_late_student_head_aligned": "Training projection · student prior",
@@ -347,6 +361,10 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_RELATIVE_AUGMENTATION_METHODS
     elif results["config"].get("track_distillation_projection_confident_teacher", False):
         methods = TRACK_DISTILLATION_PROJECTION_CONFIDENT_TEACHER_METHODS
+    elif results["config"].get("track_distillation_projection_teacher_confidence_head", False):
+        methods = TRACK_DISTILLATION_PROJECTION_TEACHER_CONFIDENCE_HEAD_METHODS
+    elif results["config"].get("track_distillation_projection_approx_teacher_track_prior", False):
+        methods = TRACK_DISTILLATION_PROJECTION_APPROX_TEACHER_TRACK_PRIOR_METHODS
     elif results["config"].get("track_distillation_projection_approx_teacher", False):
         methods = TRACK_DISTILLATION_PROJECTION_APPROX_TEACHER_METHODS
     elif results["config"].get("track_distillation_projection_joint_head", False):

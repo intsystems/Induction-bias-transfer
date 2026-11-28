@@ -834,6 +834,19 @@ def add_projected_track_readouts(name, support, original, query, actions, prior,
                 query[label][strength][0][key] = reflect_projected_views(values[feature], action, strengths)
 
 
+def teacher_confidence_priors(energies, odd, seed):
+    strengths = np.abs(2 * energies - 1)
+    weights = .5 / len(strengths) + .5 * strengths / strengths.sum()
+    shuffled = weights.copy()
+    block_means = weights.copy()
+    rng = np.random.default_rng(seed)
+    for mask in (~odd, odd):
+        shuffled[mask] = rng.permutation(weights[mask])
+        block_means[mask] = weights[mask].mean()
+    return {name: np.diag(values)[None] for name, values in
+            (("confidence_head", weights), ("shuffled_head", shuffled), ("parity_head", block_means))}
+
+
 def average_head_directions(teacher_prior, student_prior, odd):
     average = (teacher_prior + student_prior).sum(axis=0) / 2
     restored = np.zeros_like(teacher_prior)
@@ -1477,7 +1490,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                              and not args.track_distillation)
         if args.track_distillation:
             priors = {}
-            if not args.track_distillation_projection_approx_teacher:
+            if (not args.track_distillation_projection_approx_teacher
+                    or args.track_distillation_projection_approx_teacher_track_prior):
                 priors, _ = natural_track_head_priors(teacher, basis, odd, source, source_partners, args, seed + 250)
             distilled_support = {}
             if args.track_distillation_joint:
@@ -1525,6 +1539,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             reflection_penalty_masks = {}
             training_projection_actions = {}
             projection_strengths = None
+            confidence_priors = {}
             if args.track_distillation_projection:
                 late = range(args.student_epochs - args.student_epochs // 2, args.student_epochs)
                 variants = [("late_track", "head_same_class", source, late)]
@@ -1589,15 +1604,27 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     projection_penalties = dict.fromkeys((name for name, *_ in variants), 0.)
                 elif args.track_distillation_projection_approx_teacher:
                     variants = [("estimated_training", None, source, None)]
+                    projection_penalties = {"estimated_training": 0.}
                     if args.track_distillation_projection_confident_teacher:
                         variants.append(("confident_training", None, source, None))
+                        projection_penalties["confident_training"] = 0.
                         projection_strengths = (2 * energies - 1).abs().cpu().numpy()
+                    elif args.track_distillation_projection_teacher_confidence_head:
+                        confidence_priors = teacher_confidence_priors(energies.cpu().numpy(), odd.cpu().numpy(),
+                                                                    seed + 970)
+                    elif args.track_distillation_projection_approx_teacher_track_prior:
+                        for phase in ("prediction", "projected"):
+                            for geometry, key in (("natural", "head_same_class"), ("rotated", "head_rotated")):
+                                name = f"{phase}_{geometry}"
+                                variants.append((name, key, source, late))
+                                if phase == "projected":
+                                    projection_penalties[name] = 0.
                     else:
                         variants.append(("rotated_training", None, source, None))
+                        projection_penalties["rotated_training"] = 0.
                         rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                             (len(reflection_sign), len(reflection_sign))))
                         training_projection_actions["rotated_training"] = (rotation * reflection_sign) @ rotation.T
-                    projection_penalties = dict.fromkeys((name for name, *_ in variants), 0.)
                 else:
                     rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                         (len(reflection_sign), len(reflection_sign))))
@@ -1624,6 +1651,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     projection_distances["raw"] = float(distance / np.sqrt(len(reflection_sign)))
                 add_projected_track_readouts("raw", support_views, query, query, raw_actions,
                                              projection_prior, distilled_support)
+                for name, head_prior in confidence_priors.items():
+                    add_projected_track_readouts(f"raw_{name}", support_views, query, query,
+                                                 projection_actions, head_prior, distilled_support)
                 if projection_strengths is not None:
                     add_projected_track_readouts("raw", support_views, query, query,
                                                  {"confident": projection_actions["aligned"]}, projection_prior,
@@ -1673,6 +1703,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                         projection_distances[name] = float(distance / np.sqrt(len(reflection_sign)))
                     add_projected_track_readouts(name, features, transformed, query, learned_actions,
                                                  projection_prior, distilled_support)
+                    for head_name, head_prior in confidence_priors.items():
+                        add_projected_track_readouts(f"{name}_{head_name}", features, transformed, query,
+                                                     projection_actions, head_prior, distilled_support)
                     if projection_strengths is not None:
                         add_projected_track_readouts(name, features, transformed, query,
                                                      {"confident": projection_actions["aligned"]}, projection_prior,
@@ -1917,10 +1950,13 @@ def main():
     selection.add_argument("--track-distillation-projection-head-validation", action="store_true")
     selection.add_argument("--track-distillation-projection-approx-teacher", action="store_true")
     selection.add_argument("--track-distillation-projection-confident-teacher", action="store_true")
+    selection.add_argument("--track-distillation-projection-teacher-confidence-head", action="store_true")
+    selection.add_argument("--track-distillation-projection-approx-teacher-track-prior", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_distillation_projection_confident_teacher:
+    if (args.track_distillation_projection_confident_teacher or args.track_distillation_projection_teacher_confidence_head
+            or args.track_distillation_projection_approx_teacher_track_prior):
         args.track_distillation_projection_approx_teacher = True
     if args.track_distillation_projection_mixed_prior:
         args.track_distillation_projection_student_prior = True
@@ -2008,6 +2044,10 @@ def main():
             name = "track_distillation_projection_relative_augmentation"
         elif args.track_distillation_projection_confident_teacher:
             name = "track_distillation_projection_confident_teacher"
+        elif args.track_distillation_projection_teacher_confidence_head:
+            name = "track_distillation_projection_teacher_confidence_head"
+        elif args.track_distillation_projection_approx_teacher_track_prior:
+            name = "track_distillation_projection_approx_teacher_track_prior"
         elif args.track_distillation_projection_approx_teacher:
             name = "track_distillation_projection_approx_teacher"
         elif args.track_distillation_projection_joint_head:
@@ -2116,6 +2156,7 @@ def main():
     device = torch.device(args.device)
     train_dataset = GTSRB(args.data, split="train", download=True)
     use_source_paths = (args.train_track_canonicalizer or args.track_head_prior
+                        or args.track_distillation_projection_approx_teacher_track_prior
                         or (args.track_distillation and not args.track_distillation_projection_approx_teacher))
     data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args,
                       include_source_paths=use_source_paths and not args.track_head_predicted,
