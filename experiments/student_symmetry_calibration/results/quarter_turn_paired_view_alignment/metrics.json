@@ -1,0 +1,4771 @@
+{
+  "config": {
+    "data": "/tmp/ibt-cifar-data",
+    "output": "experiments/student_symmetry_calibration/results/quarter_turn_paired_view_alignment/metrics.json",
+    "device": "cuda",
+    "seeds": [
+      1361,
+      1362,
+      1363,
+      1364,
+      1365,
+      1366,
+      1367,
+      1368,
+      1369,
+      1370,
+      1371,
+      1372,
+      1373,
+      1374,
+      1375,
+      1376
+    ],
+    "shots": [
+      5,
+      20,
+      60
+    ],
+    "teacher_epochs": 26,
+    "student_epochs": 22,
+    "source_examples": 1400,
+    "probe_examples": 320,
+    "target_pool": 600,
+    "test_per_class": 600,
+    "batch_size": 128,
+    "episodes": 8,
+    "noise": 0.45,
+    "approximate_action": false,
+    "view_budget": true,
+    "dihedral_action": false,
+    "dihedral_subgroups": false,
+    "training_view_budget": true,
+    "invariant_variance": false,
+    "paired_view_alignment": true
+  },
+  "device_name": "NVIDIA GeForce RTX 3070 Laptop GPU",
+  "torch_version": "2.14.0+cu130",
+  "runs": [
+    {
+      "seed": 1361,
+      "source_classes": [
+        5,
+        6,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        7
+      ],
+      "latent_width": 88,
+      "invariant_width": 28,
+      "action_error": {
+        "learned": 0.6469936704746339
+      },
+      "order_four_error": 8.43769498715119e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.22296006944444444,
+              "all_rotations_accuracy": 0.06788194444444445,
+              "rotation_agreement": 0.24256944444444442
+            },
+            "opposite": {
+              "mean_accuracy": 0.2486111111111111,
+              "all_rotations_accuracy": 0.15892361111111108,
+              "rotation_agreement": 0.5675694444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2500347222222222,
+              "all_rotations_accuracy": 0.13597222222222222,
+              "rotation_agreement": 0.4584027777777778
+            },
+            "four": {
+              "mean_accuracy": 0.2671875,
+              "all_rotations_accuracy": 0.2671875,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.24814236111111113,
+              "all_rotations_accuracy": 0.04479166666666666,
+              "rotation_agreement": 0.109375
+            },
+            "opposite": {
+              "mean_accuracy": 0.27602430555555557,
+              "all_rotations_accuracy": 0.14711805555555554,
+              "rotation_agreement": 0.43069444444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.26210069444444445,
+              "all_rotations_accuracy": 0.0873263888888889,
+              "rotation_agreement": 0.24531250000000002
+            },
+            "four": {
+              "mean_accuracy": 0.2934375,
+              "all_rotations_accuracy": 0.2934375,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.224375,
+              "all_rotations_accuracy": 0.04586805555555556,
+              "rotation_agreement": 0.15041666666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.2836805555555555,
+              "all_rotations_accuracy": 0.2159722222222222,
+              "rotation_agreement": 0.696388888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2552864583333333,
+              "all_rotations_accuracy": 0.09170138888888889,
+              "rotation_agreement": 0.2722222222222222
+            },
+            "four": {
+              "mean_accuracy": 0.2906944444444444,
+              "all_rotations_accuracy": 0.2906944444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.26115451388888894,
+              "all_rotations_accuracy": 0.09652777777777777,
+              "rotation_agreement": 0.29559027777777774
+            },
+            "opposite": {
+              "mean_accuracy": 0.2675694444444444,
+              "all_rotations_accuracy": 0.14072916666666666,
+              "rotation_agreement": 0.4407986111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2753125,
+              "all_rotations_accuracy": 0.20850694444444448,
+              "rotation_agreement": 0.709513888888889
+            },
+            "four": {
+              "mean_accuracy": 0.28402777777777777,
+              "all_rotations_accuracy": 0.28402777777777777,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.26904513888888887,
+              "all_rotations_accuracy": 0.08756944444444445,
+              "rotation_agreement": 0.20190972222222225
+            },
+            "opposite": {
+              "mean_accuracy": 0.2966493055555556,
+              "all_rotations_accuracy": 0.19381944444444443,
+              "rotation_agreement": 0.5353125
+            },
+            "adjacent": {
+              "mean_accuracy": 0.29453125,
+              "all_rotations_accuracy": 0.15336805555555555,
+              "rotation_agreement": 0.39652777777777776
+            },
+            "four": {
+              "mean_accuracy": 0.3176736111111111,
+              "all_rotations_accuracy": 0.3176736111111111,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2975347222222222,
+              "all_rotations_accuracy": 0.07288194444444444,
+              "rotation_agreement": 0.14128472222222221
+            },
+            "opposite": {
+              "mean_accuracy": 0.32871527777777776,
+              "all_rotations_accuracy": 0.1840625,
+              "rotation_agreement": 0.4314583333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3172829861111111,
+              "all_rotations_accuracy": 0.12302083333333334,
+              "rotation_agreement": 0.26381944444444444
+            },
+            "four": {
+              "mean_accuracy": 0.36822916666666666,
+              "all_rotations_accuracy": 0.36822916666666666,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.29083333333333333,
+              "all_rotations_accuracy": 0.08489583333333332,
+              "rotation_agreement": 0.17812499999999998
+            },
+            "opposite": {
+              "mean_accuracy": 0.3456770833333333,
+              "all_rotations_accuracy": 0.25461805555555556,
+              "rotation_agreement": 0.6349305555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3184809027777778,
+              "all_rotations_accuracy": 0.13170138888888888,
+              "rotation_agreement": 0.28975694444444444
+            },
+            "four": {
+              "mean_accuracy": 0.36374999999999996,
+              "all_rotations_accuracy": 0.36374999999999996,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.32588541666666665,
+              "all_rotations_accuracy": 0.13663194444444446,
+              "rotation_agreement": 0.2927777777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.32967013888888885,
+              "all_rotations_accuracy": 0.19666666666666666,
+              "rotation_agreement": 0.4763194444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3489496527777778,
+              "all_rotations_accuracy": 0.25385416666666666,
+              "rotation_agreement": 0.6436458333333334
+            },
+            "four": {
+              "mean_accuracy": 0.3509375,
+              "all_rotations_accuracy": 0.3509375,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2810243055555556,
+              "all_rotations_accuracy": 0.09944444444444445,
+              "rotation_agreement": 0.21503472222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.3132465277777778,
+              "all_rotations_accuracy": 0.21086805555555557,
+              "rotation_agreement": 0.5553125
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3106423611111111,
+              "all_rotations_accuracy": 0.1463888888888889,
+              "rotation_agreement": 0.33861111111111114
+            },
+            "four": {
+              "mean_accuracy": 0.341875,
+              "all_rotations_accuracy": 0.341875,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.32584201388888884,
+              "all_rotations_accuracy": 0.09611111111111112,
+              "rotation_agreement": 0.175
+            },
+            "opposite": {
+              "mean_accuracy": 0.35930555555555554,
+              "all_rotations_accuracy": 0.21211805555555555,
+              "rotation_agreement": 0.4603125
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3501388888888889,
+              "all_rotations_accuracy": 0.15354166666666666,
+              "rotation_agreement": 0.3020833333333333
+            },
+            "four": {
+              "mean_accuracy": 0.4055902777777778,
+              "all_rotations_accuracy": 0.4055902777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3155642361111111,
+              "all_rotations_accuracy": 0.1004513888888889,
+              "rotation_agreement": 0.20020833333333332
+            },
+            "opposite": {
+              "mean_accuracy": 0.3736631944444444,
+              "all_rotations_accuracy": 0.2738541666666667,
+              "rotation_agreement": 0.6225694444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34921006944444444,
+              "all_rotations_accuracy": 0.15694444444444447,
+              "rotation_agreement": 0.31590277777777775
+            },
+            "four": {
+              "mean_accuracy": 0.39513888888888893,
+              "all_rotations_accuracy": 0.39513888888888893,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.33993923611111115,
+              "all_rotations_accuracy": 0.1354861111111111,
+              "rotation_agreement": 0.2653125
+            },
+            "opposite": {
+              "mean_accuracy": 0.34923611111111114,
+              "all_rotations_accuracy": 0.21385416666666668,
+              "rotation_agreement": 0.49024305555555553
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3661545138888889,
+              "all_rotations_accuracy": 0.24333333333333332,
+              "rotation_agreement": 0.5577430555555556
+            },
+            "four": {
+              "mean_accuracy": 0.3775,
+              "all_rotations_accuracy": 0.3775,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1362,
+      "source_classes": [
+        0,
+        1,
+        4,
+        5
+      ],
+      "target_classes": [
+        2,
+        3,
+        6,
+        7,
+        8,
+        9
+      ],
+      "latent_width": 96,
+      "invariant_width": 31,
+      "action_error": {
+        "learned": 0.6972322165723787
+      },
+      "order_four_error": 5.773159728050814e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.25390625,
+              "all_rotations_accuracy": 0.14506944444444445,
+              "rotation_agreement": 0.4182291666666666
+            },
+            "opposite": {
+              "mean_accuracy": 0.27423611111111107,
+              "all_rotations_accuracy": 0.21666666666666667,
+              "rotation_agreement": 0.6970833333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2953125,
+              "all_rotations_accuracy": 0.22559027777777776,
+              "rotation_agreement": 0.6679166666666666
+            },
+            "four": {
+              "mean_accuracy": 0.3053472222222222,
+              "all_rotations_accuracy": 0.3053472222222222,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.23747395833333332,
+              "all_rotations_accuracy": 0.031006944444444445,
+              "rotation_agreement": 0.08302083333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.280625,
+              "all_rotations_accuracy": 0.14854166666666666,
+              "rotation_agreement": 0.4295486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.258046875,
+              "all_rotations_accuracy": 0.08024305555555555,
+              "rotation_agreement": 0.22670138888888888
+            },
+            "four": {
+              "mean_accuracy": 0.3091666666666666,
+              "all_rotations_accuracy": 0.3091666666666666,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2569444444444444,
+              "all_rotations_accuracy": 0.06524305555555555,
+              "rotation_agreement": 0.15361111111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.29704861111111114,
+              "all_rotations_accuracy": 0.2161111111111111,
+              "rotation_agreement": 0.6417708333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2666666666666667,
+              "all_rotations_accuracy": 0.09562499999999999,
+              "rotation_agreement": 0.26197916666666665
+            },
+            "four": {
+              "mean_accuracy": 0.30895833333333333,
+              "all_rotations_accuracy": 0.30895833333333333,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2623784722222222,
+              "all_rotations_accuracy": 0.08885416666666668,
+              "rotation_agreement": 0.22121527777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.2702951388888889,
+              "all_rotations_accuracy": 0.14489583333333333,
+              "rotation_agreement": 0.4060416666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2988628472222222,
+              "all_rotations_accuracy": 0.19677083333333334,
+              "rotation_agreement": 0.5619791666666666
+            },
+            "four": {
+              "mean_accuracy": 0.31354166666666666,
+              "all_rotations_accuracy": 0.31354166666666666,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.29140625,
+              "all_rotations_accuracy": 0.16243055555555558,
+              "rotation_agreement": 0.4032638888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.31083333333333335,
+              "all_rotations_accuracy": 0.2433333333333333,
+              "rotation_agreement": 0.6707986111111112
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3240277777777778,
+              "all_rotations_accuracy": 0.2404861111111111,
+              "rotation_agreement": 0.6320486111111111
+            },
+            "four": {
+              "mean_accuracy": 0.34319444444444447,
+              "all_rotations_accuracy": 0.34319444444444447,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2982986111111111,
+              "all_rotations_accuracy": 0.06652777777777777,
+              "rotation_agreement": 0.13187500000000002
+            },
+            "opposite": {
+              "mean_accuracy": 0.33875,
+              "all_rotations_accuracy": 0.2070138888888889,
+              "rotation_agreement": 0.4906597222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32467013888888885,
+              "all_rotations_accuracy": 0.1296875,
+              "rotation_agreement": 0.2720486111111111
+            },
+            "four": {
+              "mean_accuracy": 0.3787152777777778,
+              "all_rotations_accuracy": 0.3787152777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3021354166666667,
+              "all_rotations_accuracy": 0.08940972222222221,
+              "rotation_agreement": 0.1828125
+            },
+            "opposite": {
+              "mean_accuracy": 0.3446354166666667,
+              "all_rotations_accuracy": 0.24378472222222222,
+              "rotation_agreement": 0.6068749999999999
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31460069444444444,
+              "all_rotations_accuracy": 0.1221875,
+              "rotation_agreement": 0.27350694444444446
+            },
+            "four": {
+              "mean_accuracy": 0.37041666666666667,
+              "all_rotations_accuracy": 0.37041666666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.3093576388888889,
+              "all_rotations_accuracy": 0.11944444444444444,
+              "rotation_agreement": 0.235
+            },
+            "opposite": {
+              "mean_accuracy": 0.32491319444444444,
+              "all_rotations_accuracy": 0.19836805555555556,
+              "rotation_agreement": 0.45559027777777783
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3547222222222222,
+              "all_rotations_accuracy": 0.22545138888888888,
+              "rotation_agreement": 0.5192708333333333
+            },
+            "four": {
+              "mean_accuracy": 0.37947916666666665,
+              "all_rotations_accuracy": 0.37947916666666665,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3009548611111111,
+              "all_rotations_accuracy": 0.17111111111111107,
+              "rotation_agreement": 0.3978125
+            },
+            "opposite": {
+              "mean_accuracy": 0.31293402777777773,
+              "all_rotations_accuracy": 0.25711805555555556,
+              "rotation_agreement": 0.7375694444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3294878472222222,
+              "all_rotations_accuracy": 0.22475694444444447,
+              "rotation_agreement": 0.5603472222222222
+            },
+            "four": {
+              "mean_accuracy": 0.34687500000000004,
+              "all_rotations_accuracy": 0.34687500000000004,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3337847222222222,
+              "all_rotations_accuracy": 0.09899305555555554,
+              "rotation_agreement": 0.1815277777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.38012152777777775,
+              "all_rotations_accuracy": 0.2511111111111111,
+              "rotation_agreement": 0.5335763888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3601909722222223,
+              "all_rotations_accuracy": 0.15527777777777776,
+              "rotation_agreement": 0.2992708333333333
+            },
+            "four": {
+              "mean_accuracy": 0.4197569444444444,
+              "all_rotations_accuracy": 0.4197569444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.32980034722222223,
+              "all_rotations_accuracy": 0.10986111111111112,
+              "rotation_agreement": 0.20409722222222224
+            },
+            "opposite": {
+              "mean_accuracy": 0.371875,
+              "all_rotations_accuracy": 0.26479166666666665,
+              "rotation_agreement": 0.6036805555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34027777777777773,
+              "all_rotations_accuracy": 0.13944444444444445,
+              "rotation_agreement": 0.2884027777777778
+            },
+            "four": {
+              "mean_accuracy": 0.4031944444444444,
+              "all_rotations_accuracy": 0.4031944444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.3307291666666667,
+              "all_rotations_accuracy": 0.13850694444444445,
+              "rotation_agreement": 0.2541666666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.3516319444444445,
+              "all_rotations_accuracy": 0.22493055555555552,
+              "rotation_agreement": 0.4759027777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3776215277777778,
+              "all_rotations_accuracy": 0.23927083333333335,
+              "rotation_agreement": 0.5016666666666667
+            },
+            "four": {
+              "mean_accuracy": 0.403125,
+              "all_rotations_accuracy": 0.403125,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1363,
+      "source_classes": [
+        0,
+        3,
+        7,
+        8
+      ],
+      "target_classes": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        9
+      ],
+      "latent_width": 99,
+      "invariant_width": 29,
+      "action_error": {
+        "learned": 0.727224715209048
+      },
+      "order_four_error": 4.218847493575595e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.22787326388888887,
+              "all_rotations_accuracy": 0.07850694444444445,
+              "rotation_agreement": 0.28968750000000004
+            },
+            "opposite": {
+              "mean_accuracy": 0.24479166666666669,
+              "all_rotations_accuracy": 0.15354166666666666,
+              "rotation_agreement": 0.5717361111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.24842013888888892,
+              "all_rotations_accuracy": 0.14475694444444445,
+              "rotation_agreement": 0.534513888888889
+            },
+            "four": {
+              "mean_accuracy": 0.26131944444444444,
+              "all_rotations_accuracy": 0.26131944444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2325954861111111,
+              "all_rotations_accuracy": 0.03291666666666667,
+              "rotation_agreement": 0.09774305555555556
+            },
+            "opposite": {
+              "mean_accuracy": 0.2683159722222222,
+              "all_rotations_accuracy": 0.1432986111111111,
+              "rotation_agreement": 0.4544097222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.24642361111111108,
+              "all_rotations_accuracy": 0.07552083333333334,
+              "rotation_agreement": 0.2501388888888889
+            },
+            "four": {
+              "mean_accuracy": 0.28326388888888887,
+              "all_rotations_accuracy": 0.28326388888888887,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2436892361111111,
+              "all_rotations_accuracy": 0.055624999999999994,
+              "rotation_agreement": 0.17468750000000002
+            },
+            "opposite": {
+              "mean_accuracy": 0.27352430555555557,
+              "all_rotations_accuracy": 0.19614583333333332,
+              "rotation_agreement": 0.6624652777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.25752604166666665,
+              "all_rotations_accuracy": 0.09701388888888889,
+              "rotation_agreement": 0.30378472222222225
+            },
+            "four": {
+              "mean_accuracy": 0.28763888888888894,
+              "all_rotations_accuracy": 0.28763888888888894,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2471875,
+              "all_rotations_accuracy": 0.0757638888888889,
+              "rotation_agreement": 0.23284722222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.2547743055555555,
+              "all_rotations_accuracy": 0.1412152777777778,
+              "rotation_agreement": 0.46621527777777777
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27413194444444444,
+              "all_rotations_accuracy": 0.17881944444444445,
+              "rotation_agreement": 0.593125
+            },
+            "four": {
+              "mean_accuracy": 0.28680555555555554,
+              "all_rotations_accuracy": 0.28680555555555554,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2566666666666667,
+              "all_rotations_accuracy": 0.09121527777777778,
+              "rotation_agreement": 0.2657291666666666
+            },
+            "opposite": {
+              "mean_accuracy": 0.2823784722222222,
+              "all_rotations_accuracy": 0.18020833333333336,
+              "rotation_agreement": 0.5638888888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28136284722222227,
+              "all_rotations_accuracy": 0.16826388888888888,
+              "rotation_agreement": 0.5267013888888888
+            },
+            "four": {
+              "mean_accuracy": 0.3005555555555555,
+              "all_rotations_accuracy": 0.3005555555555555,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2674479166666667,
+              "all_rotations_accuracy": 0.045138888888888895,
+              "rotation_agreement": 0.11475694444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.31269097222222225,
+              "all_rotations_accuracy": 0.1809027777777778,
+              "rotation_agreement": 0.4873263888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.29125,
+              "all_rotations_accuracy": 0.09430555555555556,
+              "rotation_agreement": 0.2604513888888889
+            },
+            "four": {
+              "mean_accuracy": 0.3389236111111111,
+              "all_rotations_accuracy": 0.3389236111111111,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2755902777777777,
+              "all_rotations_accuracy": 0.07527777777777778,
+              "rotation_agreement": 0.19670138888888888
+            },
+            "opposite": {
+              "mean_accuracy": 0.31335069444444447,
+              "all_rotations_accuracy": 0.2284027777777778,
+              "rotation_agreement": 0.6626041666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.29122395833333337,
+              "all_rotations_accuracy": 0.11385416666666669,
+              "rotation_agreement": 0.31427083333333333
+            },
+            "four": {
+              "mean_accuracy": 0.3293055555555555,
+              "all_rotations_accuracy": 0.3293055555555555,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2835763888888889,
+              "all_rotations_accuracy": 0.09229166666666666,
+              "rotation_agreement": 0.2379513888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.29401041666666666,
+              "all_rotations_accuracy": 0.17232638888888888,
+              "rotation_agreement": 0.4845486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3102170138888889,
+              "all_rotations_accuracy": 0.1892361111111111,
+              "rotation_agreement": 0.5392708333333334
+            },
+            "four": {
+              "mean_accuracy": 0.32663194444444443,
+              "all_rotations_accuracy": 0.32663194444444443,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.27124131944444446,
+              "all_rotations_accuracy": 0.09468750000000001,
+              "rotation_agreement": 0.2531597222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.2987152777777778,
+              "all_rotations_accuracy": 0.18163194444444442,
+              "rotation_agreement": 0.5197569444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.30039930555555555,
+              "all_rotations_accuracy": 0.16871527777777778,
+              "rotation_agreement": 0.4729166666666667
+            },
+            "four": {
+              "mean_accuracy": 0.32295138888888886,
+              "all_rotations_accuracy": 0.32295138888888886,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.30014756944444443,
+              "all_rotations_accuracy": 0.06368055555555556,
+              "rotation_agreement": 0.13354166666666664
+            },
+            "opposite": {
+              "mean_accuracy": 0.3434375,
+              "all_rotations_accuracy": 0.19725694444444447,
+              "rotation_agreement": 0.47833333333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32873263888888893,
+              "all_rotations_accuracy": 0.11913194444444444,
+              "rotation_agreement": 0.2790277777777778
+            },
+            "four": {
+              "mean_accuracy": 0.3817013888888888,
+              "all_rotations_accuracy": 0.3817013888888888,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2953298611111111,
+              "all_rotations_accuracy": 0.08024305555555555,
+              "rotation_agreement": 0.19309027777777776
+            },
+            "opposite": {
+              "mean_accuracy": 0.3452430555555555,
+              "all_rotations_accuracy": 0.24479166666666666,
+              "rotation_agreement": 0.6327777777777777
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3208333333333333,
+              "all_rotations_accuracy": 0.135,
+              "rotation_agreement": 0.3232291666666667
+            },
+            "four": {
+              "mean_accuracy": 0.36135416666666675,
+              "all_rotations_accuracy": 0.36135416666666675,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.30388020833333335,
+              "all_rotations_accuracy": 0.09118055555555556,
+              "rotation_agreement": 0.2175
+            },
+            "opposite": {
+              "mean_accuracy": 0.3209548611111111,
+              "all_rotations_accuracy": 0.18989583333333335,
+              "rotation_agreement": 0.49659722222222225
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33771701388888886,
+              "all_rotations_accuracy": 0.19552083333333337,
+              "rotation_agreement": 0.5014930555555556
+            },
+            "four": {
+              "mean_accuracy": 0.36072916666666666,
+              "all_rotations_accuracy": 0.36072916666666666,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1364,
+      "source_classes": [
+        1,
+        3,
+        7,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        4,
+        5,
+        6,
+        9
+      ],
+      "latent_width": 93,
+      "invariant_width": 28,
+      "action_error": {
+        "learned": 0.7960600808591689
+      },
+      "order_four_error": 9.325873406851315e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.25458333333333333,
+              "all_rotations_accuracy": 0.12416666666666666,
+              "rotation_agreement": 0.32479166666666665
+            },
+            "opposite": {
+              "mean_accuracy": 0.27878472222222217,
+              "all_rotations_accuracy": 0.2275694444444445,
+              "rotation_agreement": 0.7450347222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.26995659722222226,
+              "all_rotations_accuracy": 0.1594791666666667,
+              "rotation_agreement": 0.44937499999999997
+            },
+            "four": {
+              "mean_accuracy": 0.27774305555555556,
+              "all_rotations_accuracy": 0.27774305555555556,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.24625868055555555,
+              "all_rotations_accuracy": 0.050138888888888886,
+              "rotation_agreement": 0.13854166666666665
+            },
+            "opposite": {
+              "mean_accuracy": 0.29151041666666666,
+              "all_rotations_accuracy": 0.16545138888888888,
+              "rotation_agreement": 0.4748611111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2928472222222222,
+              "all_rotations_accuracy": 0.12104166666666666,
+              "rotation_agreement": 0.3171875
+            },
+            "four": {
+              "mean_accuracy": 0.3320486111111111,
+              "all_rotations_accuracy": 0.3320486111111111,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2916753472222222,
+              "all_rotations_accuracy": 0.09086805555555556,
+              "rotation_agreement": 0.209375
+            },
+            "opposite": {
+              "mean_accuracy": 0.3228125,
+              "all_rotations_accuracy": 0.24378472222222222,
+              "rotation_agreement": 0.6814583333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2897395833333334,
+              "all_rotations_accuracy": 0.11958333333333333,
+              "rotation_agreement": 0.3155555555555556
+            },
+            "four": {
+              "mean_accuracy": 0.3307291666666667,
+              "all_rotations_accuracy": 0.3307291666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2782986111111111,
+              "all_rotations_accuracy": 0.11777777777777779,
+              "rotation_agreement": 0.3087847222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.29409722222222223,
+              "all_rotations_accuracy": 0.18309027777777775,
+              "rotation_agreement": 0.5073263888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31501736111111106,
+              "all_rotations_accuracy": 0.2227430555555556,
+              "rotation_agreement": 0.6216319444444444
+            },
+            "four": {
+              "mean_accuracy": 0.3321875,
+              "all_rotations_accuracy": 0.3321875,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2635416666666667,
+              "all_rotations_accuracy": 0.1246875,
+              "rotation_agreement": 0.2730208333333333
+            },
+            "opposite": {
+              "mean_accuracy": 0.2921180555555556,
+              "all_rotations_accuracy": 0.23930555555555558,
+              "rotation_agreement": 0.7279513888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2892361111111111,
+              "all_rotations_accuracy": 0.15965277777777778,
+              "rotation_agreement": 0.39267361111111115
+            },
+            "four": {
+              "mean_accuracy": 0.2979166666666666,
+              "all_rotations_accuracy": 0.2979166666666666,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3187934027777778,
+              "all_rotations_accuracy": 0.10402777777777777,
+              "rotation_agreement": 0.2037152777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.3616145833333333,
+              "all_rotations_accuracy": 0.23493055555555556,
+              "rotation_agreement": 0.5276736111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.35467881944444446,
+              "all_rotations_accuracy": 0.16517361111111112,
+              "rotation_agreement": 0.33673611111111107
+            },
+            "four": {
+              "mean_accuracy": 0.3995138888888889,
+              "all_rotations_accuracy": 0.3995138888888889,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.34026041666666673,
+              "all_rotations_accuracy": 0.13017361111111111,
+              "rotation_agreement": 0.24875
+            },
+            "opposite": {
+              "mean_accuracy": 0.37805555555555553,
+              "all_rotations_accuracy": 0.2803472222222222,
+              "rotation_agreement": 0.6442708333333335
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3511458333333334,
+              "all_rotations_accuracy": 0.17739583333333336,
+              "rotation_agreement": 0.37461805555555555
+            },
+            "four": {
+              "mean_accuracy": 0.39715277777777785,
+              "all_rotations_accuracy": 0.39715277777777785,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.33102430555555556,
+              "all_rotations_accuracy": 0.14156249999999998,
+              "rotation_agreement": 0.2938541666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.34690972222222227,
+              "all_rotations_accuracy": 0.22302083333333333,
+              "rotation_agreement": 0.5217361111111112
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3750086805555556,
+              "all_rotations_accuracy": 0.25704861111111116,
+              "rotation_agreement": 0.5784374999999999
+            },
+            "four": {
+              "mean_accuracy": 0.3898263888888889,
+              "all_rotations_accuracy": 0.3898263888888889,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2756944444444445,
+              "all_rotations_accuracy": 0.11638888888888888,
+              "rotation_agreement": 0.2389236111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.3193576388888889,
+              "all_rotations_accuracy": 0.2432638888888889,
+              "rotation_agreement": 0.6712847222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.30512152777777773,
+              "all_rotations_accuracy": 0.14440972222222223,
+              "rotation_agreement": 0.32166666666666666
+            },
+            "four": {
+              "mean_accuracy": 0.33152777777777775,
+              "all_rotations_accuracy": 0.33152777777777775,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.35441840277777775,
+              "all_rotations_accuracy": 0.12951388888888887,
+              "rotation_agreement": 0.23385416666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.39939236111111104,
+              "all_rotations_accuracy": 0.27677083333333335,
+              "rotation_agreement": 0.5670138888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3858420138888889,
+              "all_rotations_accuracy": 0.1831597222222222,
+              "rotation_agreement": 0.3439930555555555
+            },
+            "four": {
+              "mean_accuracy": 0.44281250000000005,
+              "all_rotations_accuracy": 0.44281250000000005,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3677256944444445,
+              "all_rotations_accuracy": 0.1452083333333333,
+              "rotation_agreement": 0.2544444444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.40803819444444445,
+              "all_rotations_accuracy": 0.2987152777777778,
+              "rotation_agreement": 0.6189930555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.38809895833333335,
+              "all_rotations_accuracy": 0.20694444444444443,
+              "rotation_agreement": 0.39336805555555554
+            },
+            "four": {
+              "mean_accuracy": 0.4388194444444445,
+              "all_rotations_accuracy": 0.4388194444444445,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.35814236111111114,
+              "all_rotations_accuracy": 0.16458333333333336,
+              "rotation_agreement": 0.3154166666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.3794270833333333,
+              "all_rotations_accuracy": 0.26204861111111105,
+              "rotation_agreement": 0.5655208333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.40610243055555556,
+              "all_rotations_accuracy": 0.28534722222222225,
+              "rotation_agreement": 0.5960763888888889
+            },
+            "four": {
+              "mean_accuracy": 0.42065972222222225,
+              "all_rotations_accuracy": 0.42065972222222225,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1365,
+      "source_classes": [
+        0,
+        1,
+        6,
+        7
+      ],
+      "target_classes": [
+        2,
+        3,
+        4,
+        5,
+        8,
+        9
+      ],
+      "latent_width": 97,
+      "invariant_width": 32,
+      "action_error": {
+        "learned": 0.7365682893241029
+      },
+      "order_four_error": 7.105427357601002e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2375434027777778,
+              "all_rotations_accuracy": 0.06642361111111111,
+              "rotation_agreement": 0.1990625
+            },
+            "opposite": {
+              "mean_accuracy": 0.2596354166666667,
+              "all_rotations_accuracy": 0.1392013888888889,
+              "rotation_agreement": 0.4404513888888888
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2776909722222222,
+              "all_rotations_accuracy": 0.17413194444444446,
+              "rotation_agreement": 0.5326736111111111
+            },
+            "four": {
+              "mean_accuracy": 0.2859027777777778,
+              "all_rotations_accuracy": 0.2859027777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.23572048611111113,
+              "all_rotations_accuracy": 0.028263888888888887,
+              "rotation_agreement": 0.08503472222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.27380208333333333,
+              "all_rotations_accuracy": 0.14250000000000002,
+              "rotation_agreement": 0.4246527777777777
+            },
+            "adjacent": {
+              "mean_accuracy": 0.25180555555555556,
+              "all_rotations_accuracy": 0.07635416666666667,
+              "rotation_agreement": 0.23822916666666666
+            },
+            "four": {
+              "mean_accuracy": 0.2909027777777778,
+              "all_rotations_accuracy": 0.2909027777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.24535590277777777,
+              "all_rotations_accuracy": 0.04677083333333334,
+              "rotation_agreement": 0.13725694444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.2709722222222222,
+              "all_rotations_accuracy": 0.2015277777777778,
+              "rotation_agreement": 0.6883333333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.25571180555555556,
+              "all_rotations_accuracy": 0.09118055555555556,
+              "rotation_agreement": 0.2785763888888889
+            },
+            "four": {
+              "mean_accuracy": 0.28506944444444443,
+              "all_rotations_accuracy": 0.28506944444444443,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.24424479166666668,
+              "all_rotations_accuracy": 0.07048611111111112,
+              "rotation_agreement": 0.20375
+            },
+            "opposite": {
+              "mean_accuracy": 0.24295138888888884,
+              "all_rotations_accuracy": 0.10222222222222221,
+              "rotation_agreement": 0.3270486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2851041666666667,
+              "all_rotations_accuracy": 0.21520833333333336,
+              "rotation_agreement": 0.6870833333333333
+            },
+            "four": {
+              "mean_accuracy": 0.2884027777777778,
+              "all_rotations_accuracy": 0.2884027777777778,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.25632812499999996,
+              "all_rotations_accuracy": 0.07222222222222222,
+              "rotation_agreement": 0.16902777777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.2890798611111111,
+              "all_rotations_accuracy": 0.17135416666666667,
+              "rotation_agreement": 0.4658333333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3107552083333333,
+              "all_rotations_accuracy": 0.1827083333333333,
+              "rotation_agreement": 0.4805208333333334
+            },
+            "four": {
+              "mean_accuracy": 0.3306597222222223,
+              "all_rotations_accuracy": 0.3306597222222223,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.28380208333333334,
+              "all_rotations_accuracy": 0.05545138888888888,
+              "rotation_agreement": 0.12652777777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.3364409722222222,
+              "all_rotations_accuracy": 0.20166666666666666,
+              "rotation_agreement": 0.48347222222222225
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3114583333333333,
+              "all_rotations_accuracy": 0.11944444444444445,
+              "rotation_agreement": 0.2823263888888889
+            },
+            "four": {
+              "mean_accuracy": 0.3638541666666667,
+              "all_rotations_accuracy": 0.3638541666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2898350694444444,
+              "all_rotations_accuracy": 0.07024305555555554,
+              "rotation_agreement": 0.1628125
+            },
+            "opposite": {
+              "mean_accuracy": 0.34347222222222223,
+              "all_rotations_accuracy": 0.24979166666666663,
+              "rotation_agreement": 0.6458333333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3004253472222222,
+              "all_rotations_accuracy": 0.11010416666666666,
+              "rotation_agreement": 0.2744097222222222
+            },
+            "four": {
+              "mean_accuracy": 0.35875,
+              "all_rotations_accuracy": 0.35875,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.29131944444444446,
+              "all_rotations_accuracy": 0.09083333333333334,
+              "rotation_agreement": 0.20465277777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.30373263888888896,
+              "all_rotations_accuracy": 0.1574652777777778,
+              "rotation_agreement": 0.38482638888888887
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3462586805555556,
+              "all_rotations_accuracy": 0.2381597222222222,
+              "rotation_agreement": 0.6078472222222222
+            },
+            "four": {
+              "mean_accuracy": 0.3581944444444444,
+              "all_rotations_accuracy": 0.3581944444444444,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2683506944444444,
+              "all_rotations_accuracy": 0.07413194444444444,
+              "rotation_agreement": 0.15805555555555556
+            },
+            "opposite": {
+              "mean_accuracy": 0.30592013888888886,
+              "all_rotations_accuracy": 0.1961111111111111,
+              "rotation_agreement": 0.5066666666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3258246527777777,
+              "all_rotations_accuracy": 0.1692361111111111,
+              "rotation_agreement": 0.3980902777777777
+            },
+            "four": {
+              "mean_accuracy": 0.35559027777777774,
+              "all_rotations_accuracy": 0.35559027777777774,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.31582465277777777,
+              "all_rotations_accuracy": 0.07416666666666667,
+              "rotation_agreement": 0.14493055555555553
+            },
+            "opposite": {
+              "mean_accuracy": 0.3652430555555556,
+              "all_rotations_accuracy": 0.23034722222222223,
+              "rotation_agreement": 0.5040277777777777
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34140625,
+              "all_rotations_accuracy": 0.1401736111111111,
+              "rotation_agreement": 0.2949305555555556
+            },
+            "four": {
+              "mean_accuracy": 0.39826388888888886,
+              "all_rotations_accuracy": 0.39826388888888886,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3096527777777778,
+              "all_rotations_accuracy": 0.08499999999999999,
+              "rotation_agreement": 0.17861111111111108
+            },
+            "opposite": {
+              "mean_accuracy": 0.3650868055555555,
+              "all_rotations_accuracy": 0.2650694444444444,
+              "rotation_agreement": 0.6351388888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31578124999999996,
+              "all_rotations_accuracy": 0.11701388888888889,
+              "rotation_agreement": 0.26447916666666665
+            },
+            "four": {
+              "mean_accuracy": 0.38156249999999997,
+              "all_rotations_accuracy": 0.38156249999999997,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.3018402777777778,
+              "all_rotations_accuracy": 0.07965277777777778,
+              "rotation_agreement": 0.16493055555555558
+            },
+            "opposite": {
+              "mean_accuracy": 0.32354166666666667,
+              "all_rotations_accuracy": 0.17788194444444444,
+              "rotation_agreement": 0.39916666666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.36292534722222225,
+              "all_rotations_accuracy": 0.2214930555555556,
+              "rotation_agreement": 0.5171527777777778
+            },
+            "four": {
+              "mean_accuracy": 0.3864930555555556,
+              "all_rotations_accuracy": 0.3864930555555556,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1366,
+      "source_classes": [
+        1,
+        4,
+        6,
+        9
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        8
+      ],
+      "latent_width": 89,
+      "invariant_width": 26,
+      "action_error": {
+        "learned": 0.74224656793078
+      },
+      "order_four_error": 7.993605777301127e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2487673611111111,
+              "all_rotations_accuracy": 0.08437499999999999,
+              "rotation_agreement": 0.2746527777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.2720486111111111,
+              "all_rotations_accuracy": 0.16295138888888888,
+              "rotation_agreement": 0.5294097222222223
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27894097222222225,
+              "all_rotations_accuracy": 0.15861111111111112,
+              "rotation_agreement": 0.5132291666666666
+            },
+            "four": {
+              "mean_accuracy": 0.29878472222222224,
+              "all_rotations_accuracy": 0.29878472222222224,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.23966145833333333,
+              "all_rotations_accuracy": 0.042083333333333334,
+              "rotation_agreement": 0.11204861111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.2655729166666667,
+              "all_rotations_accuracy": 0.14135416666666667,
+              "rotation_agreement": 0.44600694444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2619097222222222,
+              "all_rotations_accuracy": 0.08618055555555557,
+              "rotation_agreement": 0.24434027777777775
+            },
+            "four": {
+              "mean_accuracy": 0.29180555555555554,
+              "all_rotations_accuracy": 0.29180555555555554,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2390364583333333,
+              "all_rotations_accuracy": 0.04635416666666666,
+              "rotation_agreement": 0.13850694444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.26512152777777775,
+              "all_rotations_accuracy": 0.18552083333333333,
+              "rotation_agreement": 0.6410416666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.24631076388888887,
+              "all_rotations_accuracy": 0.07961805555555555,
+              "rotation_agreement": 0.2557291666666667
+            },
+            "four": {
+              "mean_accuracy": 0.27572916666666664,
+              "all_rotations_accuracy": 0.27572916666666664,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2680989583333333,
+              "all_rotations_accuracy": 0.08586805555555556,
+              "rotation_agreement": 0.24499999999999997
+            },
+            "opposite": {
+              "mean_accuracy": 0.27274305555555556,
+              "all_rotations_accuracy": 0.14378472222222224,
+              "rotation_agreement": 0.4361458333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28222222222222226,
+              "all_rotations_accuracy": 0.18850694444444444,
+              "rotation_agreement": 0.6280555555555555
+            },
+            "four": {
+              "mean_accuracy": 0.2849652777777778,
+              "all_rotations_accuracy": 0.2849652777777778,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.27325520833333333,
+              "all_rotations_accuracy": 0.08968749999999999,
+              "rotation_agreement": 0.21954861111111112
+            },
+            "opposite": {
+              "mean_accuracy": 0.2944791666666667,
+              "all_rotations_accuracy": 0.16388888888888892,
+              "rotation_agreement": 0.4729513888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3079427083333333,
+              "all_rotations_accuracy": 0.1589236111111111,
+              "rotation_agreement": 0.4457291666666666
+            },
+            "four": {
+              "mean_accuracy": 0.3357638888888889,
+              "all_rotations_accuracy": 0.3357638888888889,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.27155381944444446,
+              "all_rotations_accuracy": 0.05118055555555556,
+              "rotation_agreement": 0.11156250000000001
+            },
+            "opposite": {
+              "mean_accuracy": 0.30928819444444444,
+              "all_rotations_accuracy": 0.17208333333333334,
+              "rotation_agreement": 0.4452083333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.29530381944444445,
+              "all_rotations_accuracy": 0.09461805555555555,
+              "rotation_agreement": 0.2310763888888889
+            },
+            "four": {
+              "mean_accuracy": 0.34663194444444445,
+              "all_rotations_accuracy": 0.34663194444444445,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.27013020833333334,
+              "all_rotations_accuracy": 0.06468750000000001,
+              "rotation_agreement": 0.1515625
+            },
+            "opposite": {
+              "mean_accuracy": 0.30663194444444447,
+              "all_rotations_accuracy": 0.20236111111111113,
+              "rotation_agreement": 0.5845486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2770052083333333,
+              "all_rotations_accuracy": 0.09701388888888889,
+              "rotation_agreement": 0.2648611111111111
+            },
+            "four": {
+              "mean_accuracy": 0.3244444444444445,
+              "all_rotations_accuracy": 0.3244444444444445,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2852604166666666,
+              "all_rotations_accuracy": 0.07604166666666667,
+              "rotation_agreement": 0.1907986111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.2970659722222222,
+              "all_rotations_accuracy": 0.1580208333333333,
+              "rotation_agreement": 0.4410416666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3104166666666667,
+              "all_rotations_accuracy": 0.17972222222222223,
+              "rotation_agreement": 0.5104513888888889
+            },
+            "four": {
+              "mean_accuracy": 0.3233680555555556,
+              "all_rotations_accuracy": 0.3233680555555556,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3045486111111111,
+              "all_rotations_accuracy": 0.09993055555555555,
+              "rotation_agreement": 0.20989583333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.32739583333333333,
+              "all_rotations_accuracy": 0.19062500000000002,
+              "rotation_agreement": 0.4892708333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3432378472222222,
+              "all_rotations_accuracy": 0.17930555555555555,
+              "rotation_agreement": 0.42770833333333336
+            },
+            "four": {
+              "mean_accuracy": 0.3692361111111111,
+              "all_rotations_accuracy": 0.3692361111111111,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3141145833333333,
+              "all_rotations_accuracy": 0.07250000000000001,
+              "rotation_agreement": 0.13729166666666665
+            },
+            "opposite": {
+              "mean_accuracy": 0.3508506944444444,
+              "all_rotations_accuracy": 0.20413194444444444,
+              "rotation_agreement": 0.4624652777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33947916666666667,
+              "all_rotations_accuracy": 0.12170138888888889,
+              "rotation_agreement": 0.24642361111111108
+            },
+            "four": {
+              "mean_accuracy": 0.39256944444444447,
+              "all_rotations_accuracy": 0.39256944444444447,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.30600694444444443,
+              "all_rotations_accuracy": 0.08465277777777777,
+              "rotation_agreement": 0.1754861111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.3414756944444444,
+              "all_rotations_accuracy": 0.22677083333333334,
+              "rotation_agreement": 0.5781944444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31569444444444444,
+              "all_rotations_accuracy": 0.12048611111111113,
+              "rotation_agreement": 0.2729861111111111
+            },
+            "four": {
+              "mean_accuracy": 0.36711805555555554,
+              "all_rotations_accuracy": 0.36711805555555554,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.31536458333333334,
+              "all_rotations_accuracy": 0.088125,
+              "rotation_agreement": 0.18461805555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.33557291666666667,
+              "all_rotations_accuracy": 0.19034722222222222,
+              "rotation_agreement": 0.45343749999999994
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34756944444444443,
+              "all_rotations_accuracy": 0.18611111111111112,
+              "rotation_agreement": 0.45215277777777774
+            },
+            "four": {
+              "mean_accuracy": 0.36517361111111113,
+              "all_rotations_accuracy": 0.36517361111111113,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1367,
+      "source_classes": [
+        1,
+        2,
+        7,
+        8
+      ],
+      "target_classes": [
+        0,
+        3,
+        4,
+        5,
+        6,
+        9
+      ],
+      "latent_width": 107,
+      "invariant_width": 34,
+      "action_error": {
+        "learned": 0.6401821927605371
+      },
+      "order_four_error": 1.176836406102666e-14,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2408072916666667,
+              "all_rotations_accuracy": 0.09232638888888887,
+              "rotation_agreement": 0.2634027777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.2827430555555555,
+              "all_rotations_accuracy": 0.18774305555555557,
+              "rotation_agreement": 0.5755208333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2814496527777778,
+              "all_rotations_accuracy": 0.1754513888888889,
+              "rotation_agreement": 0.5158333333333333
+            },
+            "four": {
+              "mean_accuracy": 0.2885763888888889,
+              "all_rotations_accuracy": 0.2885763888888889,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.27545138888888887,
+              "all_rotations_accuracy": 0.06503472222222222,
+              "rotation_agreement": 0.11749999999999998
+            },
+            "opposite": {
+              "mean_accuracy": 0.3077777777777777,
+              "all_rotations_accuracy": 0.17378472222222222,
+              "rotation_agreement": 0.4334027777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2905989583333334,
+              "all_rotations_accuracy": 0.10402777777777777,
+              "rotation_agreement": 0.22934027777777777
+            },
+            "four": {
+              "mean_accuracy": 0.3363194444444444,
+              "all_rotations_accuracy": 0.3363194444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.27903645833333335,
+              "all_rotations_accuracy": 0.08142361111111111,
+              "rotation_agreement": 0.17059027777777774
+            },
+            "opposite": {
+              "mean_accuracy": 0.3332986111111111,
+              "all_rotations_accuracy": 0.26319444444444445,
+              "rotation_agreement": 0.7140972222222223
+            },
+            "adjacent": {
+              "mean_accuracy": 0.29113715277777774,
+              "all_rotations_accuracy": 0.12256944444444445,
+              "rotation_agreement": 0.3005902777777778
+            },
+            "four": {
+              "mean_accuracy": 0.3418055555555555,
+              "all_rotations_accuracy": 0.3418055555555555,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.287890625,
+              "all_rotations_accuracy": 0.10770833333333334,
+              "rotation_agreement": 0.24506944444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.3056423611111111,
+              "all_rotations_accuracy": 0.1703125,
+              "rotation_agreement": 0.4411805555555555
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3102517361111111,
+              "all_rotations_accuracy": 0.21774305555555554,
+              "rotation_agreement": 0.6158680555555556
+            },
+            "four": {
+              "mean_accuracy": 0.32381944444444444,
+              "all_rotations_accuracy": 0.32381944444444444,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2752777777777778,
+              "all_rotations_accuracy": 0.10961805555555554,
+              "rotation_agreement": 0.23527777777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.31394097222222217,
+              "all_rotations_accuracy": 0.2144097222222222,
+              "rotation_agreement": 0.5650000000000001
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31296875,
+              "all_rotations_accuracy": 0.1959027777777778,
+              "rotation_agreement": 0.48003472222222227
+            },
+            "four": {
+              "mean_accuracy": 0.33618055555555554,
+              "all_rotations_accuracy": 0.33618055555555554,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3192100694444444,
+              "all_rotations_accuracy": 0.09003472222222222,
+              "rotation_agreement": 0.14875
+            },
+            "opposite": {
+              "mean_accuracy": 0.35381944444444446,
+              "all_rotations_accuracy": 0.22197916666666664,
+              "rotation_agreement": 0.47972222222222216
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3442361111111111,
+              "all_rotations_accuracy": 0.14944444444444444,
+              "rotation_agreement": 0.2842708333333333
+            },
+            "four": {
+              "mean_accuracy": 0.38739583333333333,
+              "all_rotations_accuracy": 0.38739583333333333,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3230121527777778,
+              "all_rotations_accuracy": 0.11163194444444446,
+              "rotation_agreement": 0.1985763888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.3799652777777778,
+              "all_rotations_accuracy": 0.29708333333333337,
+              "rotation_agreement": 0.6819444444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3416666666666667,
+              "all_rotations_accuracy": 0.16083333333333333,
+              "rotation_agreement": 0.32350694444444444
+            },
+            "four": {
+              "mean_accuracy": 0.39663194444444444,
+              "all_rotations_accuracy": 0.39663194444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.32609374999999996,
+              "all_rotations_accuracy": 0.14156249999999998,
+              "rotation_agreement": 0.2684722222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.3468229166666667,
+              "all_rotations_accuracy": 0.21725694444444443,
+              "rotation_agreement": 0.4797569444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3508246527777778,
+              "all_rotations_accuracy": 0.2401388888888889,
+              "rotation_agreement": 0.5666319444444444
+            },
+            "four": {
+              "mean_accuracy": 0.3675,
+              "all_rotations_accuracy": 0.3675,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.29368055555555556,
+              "all_rotations_accuracy": 0.10913194444444443,
+              "rotation_agreement": 0.1995486111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.3270486111111111,
+              "all_rotations_accuracy": 0.22260416666666666,
+              "rotation_agreement": 0.5605902777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3252343750000001,
+              "all_rotations_accuracy": 0.18013888888888888,
+              "rotation_agreement": 0.4046180555555555
+            },
+            "four": {
+              "mean_accuracy": 0.35583333333333333,
+              "all_rotations_accuracy": 0.35583333333333333,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.35368055555555555,
+              "all_rotations_accuracy": 0.12083333333333333,
+              "rotation_agreement": 0.18434027777777776
+            },
+            "opposite": {
+              "mean_accuracy": 0.3971006944444444,
+              "all_rotations_accuracy": 0.265,
+              "rotation_agreement": 0.5179166666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3842534722222223,
+              "all_rotations_accuracy": 0.17843749999999997,
+              "rotation_agreement": 0.2984722222222222
+            },
+            "four": {
+              "mean_accuracy": 0.43881944444444443,
+              "all_rotations_accuracy": 0.43881944444444443,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.34373263888888883,
+              "all_rotations_accuracy": 0.1135763888888889,
+              "rotation_agreement": 0.18385416666666668
+            },
+            "opposite": {
+              "mean_accuracy": 0.41239583333333335,
+              "all_rotations_accuracy": 0.3010416666666667,
+              "rotation_agreement": 0.6068749999999999
+            },
+            "adjacent": {
+              "mean_accuracy": 0.36982638888888886,
+              "all_rotations_accuracy": 0.17461805555555554,
+              "rotation_agreement": 0.31784722222222217
+            },
+            "four": {
+              "mean_accuracy": 0.4380208333333333,
+              "all_rotations_accuracy": 0.4380208333333333,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.34258680555555554,
+              "all_rotations_accuracy": 0.14798611111111112,
+              "rotation_agreement": 0.25850694444444444
+            },
+            "opposite": {
+              "mean_accuracy": 0.36624999999999996,
+              "all_rotations_accuracy": 0.2365972222222222,
+              "rotation_agreement": 0.4963541666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.37396701388888887,
+              "all_rotations_accuracy": 0.24208333333333332,
+              "rotation_agreement": 0.5163888888888889
+            },
+            "four": {
+              "mean_accuracy": 0.3962847222222222,
+              "all_rotations_accuracy": 0.3962847222222222,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1368,
+      "source_classes": [
+        0,
+        1,
+        3,
+        7
+      ],
+      "target_classes": [
+        2,
+        4,
+        5,
+        6,
+        8,
+        9
+      ],
+      "latent_width": 127,
+      "invariant_width": 38,
+      "action_error": {
+        "learned": 0.865747895481171
+      },
+      "order_four_error": 5.773159728050814e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.25372395833333333,
+              "all_rotations_accuracy": 0.10333333333333333,
+              "rotation_agreement": 0.31173611111111116
+            },
+            "opposite": {
+              "mean_accuracy": 0.26774305555555555,
+              "all_rotations_accuracy": 0.1778125,
+              "rotation_agreement": 0.595
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2734461805555556,
+              "all_rotations_accuracy": 0.16784722222222223,
+              "rotation_agreement": 0.5476388888888888
+            },
+            "four": {
+              "mean_accuracy": 0.28746527777777775,
+              "all_rotations_accuracy": 0.28746527777777775,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.23706597222222223,
+              "all_rotations_accuracy": 0.027256944444444448,
+              "rotation_agreement": 0.0814236111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.2900868055555556,
+              "all_rotations_accuracy": 0.14711805555555557,
+              "rotation_agreement": 0.4188194444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2738454861111111,
+              "all_rotations_accuracy": 0.07760416666666667,
+              "rotation_agreement": 0.21923611111111113
+            },
+            "four": {
+              "mean_accuracy": 0.32944444444444443,
+              "all_rotations_accuracy": 0.32944444444444443,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2656076388888889,
+              "all_rotations_accuracy": 0.06458333333333333,
+              "rotation_agreement": 0.17277777777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.30840277777777775,
+              "all_rotations_accuracy": 0.22750000000000004,
+              "rotation_agreement": 0.6770833333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28730902777777784,
+              "all_rotations_accuracy": 0.1148263888888889,
+              "rotation_agreement": 0.30256944444444445
+            },
+            "four": {
+              "mean_accuracy": 0.3241319444444445,
+              "all_rotations_accuracy": 0.3241319444444445,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2780902777777778,
+              "all_rotations_accuracy": 0.0878125,
+              "rotation_agreement": 0.23836805555555557
+            },
+            "opposite": {
+              "mean_accuracy": 0.29060763888888885,
+              "all_rotations_accuracy": 0.1482638888888889,
+              "rotation_agreement": 0.4210069444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31214409722222225,
+              "all_rotations_accuracy": 0.22333333333333333,
+              "rotation_agreement": 0.6508333333333334
+            },
+            "four": {
+              "mean_accuracy": 0.32243055555555555,
+              "all_rotations_accuracy": 0.32243055555555555,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2919704861111111,
+              "all_rotations_accuracy": 0.14375,
+              "rotation_agreement": 0.3483333333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.32362847222222224,
+              "all_rotations_accuracy": 0.23347222222222225,
+              "rotation_agreement": 0.6284027777777776
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31912326388888884,
+              "all_rotations_accuracy": 0.19489583333333332,
+              "rotation_agreement": 0.4963888888888889
+            },
+            "four": {
+              "mean_accuracy": 0.34663194444444445,
+              "all_rotations_accuracy": 0.34663194444444445,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.285234375,
+              "all_rotations_accuracy": 0.04604166666666667,
+              "rotation_agreement": 0.10506944444444444
+            },
+            "opposite": {
+              "mean_accuracy": 0.3536458333333333,
+              "all_rotations_accuracy": 0.2096875,
+              "rotation_agreement": 0.47677083333333325
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32046006944444444,
+              "all_rotations_accuracy": 0.11083333333333333,
+              "rotation_agreement": 0.24840277777777775
+            },
+            "four": {
+              "mean_accuracy": 0.3836805555555555,
+              "all_rotations_accuracy": 0.3836805555555555,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3064496527777778,
+              "all_rotations_accuracy": 0.08850694444444444,
+              "rotation_agreement": 0.18322916666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.37159722222222225,
+              "all_rotations_accuracy": 0.28715277777777776,
+              "rotation_agreement": 0.6802083333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3302343750000001,
+              "all_rotations_accuracy": 0.14190972222222223,
+              "rotation_agreement": 0.31409722222222225
+            },
+            "four": {
+              "mean_accuracy": 0.3872222222222222,
+              "all_rotations_accuracy": 0.3872222222222222,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.3369791666666667,
+              "all_rotations_accuracy": 0.1367013888888889,
+              "rotation_agreement": 0.28444444444444444
+            },
+            "opposite": {
+              "mean_accuracy": 0.3497048611111111,
+              "all_rotations_accuracy": 0.21041666666666664,
+              "rotation_agreement": 0.47739583333333335
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3786805555555556,
+              "all_rotations_accuracy": 0.2714583333333333,
+              "rotation_agreement": 0.6156250000000001
+            },
+            "four": {
+              "mean_accuracy": 0.3900347222222222,
+              "all_rotations_accuracy": 0.3900347222222222,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.29809895833333333,
+              "all_rotations_accuracy": 0.14791666666666664,
+              "rotation_agreement": 0.34458333333333335
+            },
+            "opposite": {
+              "mean_accuracy": 0.34015625000000005,
+              "all_rotations_accuracy": 0.24621527777777777,
+              "rotation_agreement": 0.636875
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33506076388888884,
+              "all_rotations_accuracy": 0.1860416666666667,
+              "rotation_agreement": 0.4373958333333333
+            },
+            "four": {
+              "mean_accuracy": 0.36725694444444446,
+              "all_rotations_accuracy": 0.36725694444444446,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.31748263888888895,
+              "all_rotations_accuracy": 0.07513888888888888,
+              "rotation_agreement": 0.15222222222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.39184027777777775,
+              "all_rotations_accuracy": 0.24881944444444445,
+              "rotation_agreement": 0.5085763888888888
+            },
+            "adjacent": {
+              "mean_accuracy": 0.356892361111111,
+              "all_rotations_accuracy": 0.1499652777777778,
+              "rotation_agreement": 0.3022916666666666
+            },
+            "four": {
+              "mean_accuracy": 0.4246180555555556,
+              "all_rotations_accuracy": 0.4246180555555556,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.34249131944444444,
+              "all_rotations_accuracy": 0.12045138888888889,
+              "rotation_agreement": 0.22770833333333332
+            },
+            "opposite": {
+              "mean_accuracy": 0.3984375,
+              "all_rotations_accuracy": 0.30874999999999997,
+              "rotation_agreement": 0.6759722222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.36182291666666666,
+              "all_rotations_accuracy": 0.17520833333333333,
+              "rotation_agreement": 0.3518402777777778
+            },
+            "four": {
+              "mean_accuracy": 0.41472222222222227,
+              "all_rotations_accuracy": 0.41472222222222227,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.35261284722222225,
+              "all_rotations_accuracy": 0.14229166666666665,
+              "rotation_agreement": 0.27989583333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.3731944444444445,
+              "all_rotations_accuracy": 0.23913194444444447,
+              "rotation_agreement": 0.5131597222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.39815972222222223,
+              "all_rotations_accuracy": 0.2762847222222222,
+              "rotation_agreement": 0.5914583333333333
+            },
+            "four": {
+              "mean_accuracy": 0.4135416666666667,
+              "all_rotations_accuracy": 0.4135416666666667,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1369,
+      "source_classes": [
+        0,
+        2,
+        7,
+        8
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        6,
+        9
+      ],
+      "latent_width": 100,
+      "invariant_width": 32,
+      "action_error": {
+        "learned": 0.807671473242966
+      },
+      "order_four_error": 6.217248937900877e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.21793402777777776,
+              "all_rotations_accuracy": 0.07604166666666667,
+              "rotation_agreement": 0.27760416666666665
+            },
+            "opposite": {
+              "mean_accuracy": 0.22814236111111114,
+              "all_rotations_accuracy": 0.1449652777777778,
+              "rotation_agreement": 0.5838194444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2283246527777778,
+              "all_rotations_accuracy": 0.13888888888888887,
+              "rotation_agreement": 0.5588888888888889
+            },
+            "four": {
+              "mean_accuracy": 0.23427083333333334,
+              "all_rotations_accuracy": 0.23427083333333334,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.23538194444444444,
+              "all_rotations_accuracy": 0.034791666666666665,
+              "rotation_agreement": 0.0963888888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.25515625000000003,
+              "all_rotations_accuracy": 0.12430555555555556,
+              "rotation_agreement": 0.401875
+            },
+            "adjacent": {
+              "mean_accuracy": 0.24828125,
+              "all_rotations_accuracy": 0.07121527777777778,
+              "rotation_agreement": 0.22149305555555557
+            },
+            "four": {
+              "mean_accuracy": 0.27305555555555555,
+              "all_rotations_accuracy": 0.27305555555555555,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.23385416666666667,
+              "all_rotations_accuracy": 0.04802083333333333,
+              "rotation_agreement": 0.13586805555555556
+            },
+            "opposite": {
+              "mean_accuracy": 0.2768402777777778,
+              "all_rotations_accuracy": 0.19288194444444445,
+              "rotation_agreement": 0.6270138888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.23753472222222224,
+              "all_rotations_accuracy": 0.0821875,
+              "rotation_agreement": 0.27274305555555556
+            },
+            "four": {
+              "mean_accuracy": 0.27958333333333335,
+              "all_rotations_accuracy": 0.27958333333333335,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.24549479166666663,
+              "all_rotations_accuracy": 0.08131944444444444,
+              "rotation_agreement": 0.23989583333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.2498090277777778,
+              "all_rotations_accuracy": 0.13645833333333335,
+              "rotation_agreement": 0.47173611111111113
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27069444444444446,
+              "all_rotations_accuracy": 0.1716319444444444,
+              "rotation_agreement": 0.561875
+            },
+            "four": {
+              "mean_accuracy": 0.2783333333333333,
+              "all_rotations_accuracy": 0.2783333333333333,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.21271701388888892,
+              "all_rotations_accuracy": 0.06458333333333333,
+              "rotation_agreement": 0.21465277777777775
+            },
+            "opposite": {
+              "mean_accuracy": 0.2502951388888889,
+              "all_rotations_accuracy": 0.16086805555555556,
+              "rotation_agreement": 0.5706249999999999
+            },
+            "adjacent": {
+              "mean_accuracy": 0.23524305555555555,
+              "all_rotations_accuracy": 0.12229166666666667,
+              "rotation_agreement": 0.45833333333333337
+            },
+            "four": {
+              "mean_accuracy": 0.26513888888888887,
+              "all_rotations_accuracy": 0.26513888888888887,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2645486111111111,
+              "all_rotations_accuracy": 0.0434375,
+              "rotation_agreement": 0.106875
+            },
+            "opposite": {
+              "mean_accuracy": 0.2972743055555556,
+              "all_rotations_accuracy": 0.15770833333333334,
+              "rotation_agreement": 0.44222222222222224
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2823090277777778,
+              "all_rotations_accuracy": 0.08909722222222222,
+              "rotation_agreement": 0.23850694444444445
+            },
+            "four": {
+              "mean_accuracy": 0.3231944444444444,
+              "all_rotations_accuracy": 0.3231944444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.26848958333333334,
+              "all_rotations_accuracy": 0.056562499999999995,
+              "rotation_agreement": 0.14680555555555552
+            },
+            "opposite": {
+              "mean_accuracy": 0.30671875,
+              "all_rotations_accuracy": 0.19565972222222222,
+              "rotation_agreement": 0.5534375
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28140624999999997,
+              "all_rotations_accuracy": 0.10124999999999999,
+              "rotation_agreement": 0.28131944444444446
+            },
+            "four": {
+              "mean_accuracy": 0.3269097222222222,
+              "all_rotations_accuracy": 0.3269097222222222,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.27658854166666663,
+              "all_rotations_accuracy": 0.0835763888888889,
+              "rotation_agreement": 0.21576388888888892
+            },
+            "opposite": {
+              "mean_accuracy": 0.2929513888888889,
+              "all_rotations_accuracy": 0.16961805555555556,
+              "rotation_agreement": 0.4907291666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31149305555555556,
+              "all_rotations_accuracy": 0.16586805555555556,
+              "rotation_agreement": 0.4377083333333333
+            },
+            "four": {
+              "mean_accuracy": 0.33013888888888887,
+              "all_rotations_accuracy": 0.33013888888888887,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2207638888888889,
+              "all_rotations_accuracy": 0.06260416666666667,
+              "rotation_agreement": 0.18069444444444446
+            },
+            "opposite": {
+              "mean_accuracy": 0.2721527777777778,
+              "all_rotations_accuracy": 0.18111111111111108,
+              "rotation_agreement": 0.5934027777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.24906250000000002,
+              "all_rotations_accuracy": 0.10447916666666666,
+              "rotation_agreement": 0.35677083333333337
+            },
+            "four": {
+              "mean_accuracy": 0.2921180555555556,
+              "all_rotations_accuracy": 0.2921180555555556,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.29683159722222224,
+              "all_rotations_accuracy": 0.06333333333333334,
+              "rotation_agreement": 0.13135416666666666
+            },
+            "opposite": {
+              "mean_accuracy": 0.32756944444444447,
+              "all_rotations_accuracy": 0.1845486111111111,
+              "rotation_agreement": 0.46579861111111115
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31750868055555553,
+              "all_rotations_accuracy": 0.1104861111111111,
+              "rotation_agreement": 0.2540972222222222
+            },
+            "four": {
+              "mean_accuracy": 0.36826388888888895,
+              "all_rotations_accuracy": 0.36826388888888895,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2966666666666667,
+              "all_rotations_accuracy": 0.07131944444444445,
+              "rotation_agreement": 0.14555555555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.3348263888888888,
+              "all_rotations_accuracy": 0.20604166666666668,
+              "rotation_agreement": 0.5132638888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3191059027777778,
+              "all_rotations_accuracy": 0.12666666666666665,
+              "rotation_agreement": 0.2830555555555556
+            },
+            "four": {
+              "mean_accuracy": 0.3676041666666667,
+              "all_rotations_accuracy": 0.3676041666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.29835069444444445,
+              "all_rotations_accuracy": 0.0920138888888889,
+              "rotation_agreement": 0.2020138888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.31954861111111105,
+              "all_rotations_accuracy": 0.19159722222222222,
+              "rotation_agreement": 0.47600694444444447
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3352170138888889,
+              "all_rotations_accuracy": 0.15416666666666667,
+              "rotation_agreement": 0.34836805555555556
+            },
+            "four": {
+              "mean_accuracy": 0.3670486111111111,
+              "all_rotations_accuracy": 0.3670486111111111,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1370,
+      "source_classes": [
+        1,
+        6,
+        7,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        9
+      ],
+      "latent_width": 98,
+      "invariant_width": 30,
+      "action_error": {
+        "learned": 0.7376528085596326
+      },
+      "order_four_error": 8.659739592076221e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.26026041666666666,
+              "all_rotations_accuracy": 0.1059375,
+              "rotation_agreement": 0.29899305555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.27883680555555557,
+              "all_rotations_accuracy": 0.19125,
+              "rotation_agreement": 0.5990277777777777
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2773177083333333,
+              "all_rotations_accuracy": 0.18024305555555556,
+              "rotation_agreement": 0.5697222222222222
+            },
+            "four": {
+              "mean_accuracy": 0.2910763888888889,
+              "all_rotations_accuracy": 0.2910763888888889,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.25263888888888886,
+              "all_rotations_accuracy": 0.04795138888888889,
+              "rotation_agreement": 0.11743055555555557
+            },
+            "opposite": {
+              "mean_accuracy": 0.27208333333333334,
+              "all_rotations_accuracy": 0.15302083333333333,
+              "rotation_agreement": 0.45881944444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27611979166666667,
+              "all_rotations_accuracy": 0.10184027777777777,
+              "rotation_agreement": 0.2712152777777778
+            },
+            "four": {
+              "mean_accuracy": 0.30104166666666665,
+              "all_rotations_accuracy": 0.30104166666666665,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2593836805555555,
+              "all_rotations_accuracy": 0.0651388888888889,
+              "rotation_agreement": 0.16652777777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.3019618055555555,
+              "all_rotations_accuracy": 0.2286111111111111,
+              "rotation_agreement": 0.6897916666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27285590277777777,
+              "all_rotations_accuracy": 0.10229166666666666,
+              "rotation_agreement": 0.28263888888888894
+            },
+            "four": {
+              "mean_accuracy": 0.3069444444444444,
+              "all_rotations_accuracy": 0.3069444444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.24404513888888887,
+              "all_rotations_accuracy": 0.08645833333333335,
+              "rotation_agreement": 0.24399305555555556
+            },
+            "opposite": {
+              "mean_accuracy": 0.25190972222222224,
+              "all_rotations_accuracy": 0.1351388888888889,
+              "rotation_agreement": 0.43013888888888885
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27611979166666667,
+              "all_rotations_accuracy": 0.17725694444444445,
+              "rotation_agreement": 0.5781597222222222
+            },
+            "four": {
+              "mean_accuracy": 0.28489583333333335,
+              "all_rotations_accuracy": 0.28489583333333335,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2948784722222222,
+              "all_rotations_accuracy": 0.113125,
+              "rotation_agreement": 0.25225694444444446
+            },
+            "opposite": {
+              "mean_accuracy": 0.3239583333333333,
+              "all_rotations_accuracy": 0.22274305555555554,
+              "rotation_agreement": 0.5690277777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32040798611111115,
+              "all_rotations_accuracy": 0.18972222222222224,
+              "rotation_agreement": 0.48006944444444444
+            },
+            "four": {
+              "mean_accuracy": 0.33753472222222225,
+              "all_rotations_accuracy": 0.33753472222222225,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.29356770833333334,
+              "all_rotations_accuracy": 0.06864583333333334,
+              "rotation_agreement": 0.13805555555555554
+            },
+            "opposite": {
+              "mean_accuracy": 0.3291666666666667,
+              "all_rotations_accuracy": 0.19472222222222224,
+              "rotation_agreement": 0.48253472222222216
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32384548611111114,
+              "all_rotations_accuracy": 0.1312847222222222,
+              "rotation_agreement": 0.28815972222222225
+            },
+            "four": {
+              "mean_accuracy": 0.3705902777777778,
+              "all_rotations_accuracy": 0.3705902777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3063194444444445,
+              "all_rotations_accuracy": 0.08236111111111112,
+              "rotation_agreement": 0.1665625
+            },
+            "opposite": {
+              "mean_accuracy": 0.3571006944444445,
+              "all_rotations_accuracy": 0.26631944444444444,
+              "rotation_agreement": 0.6502083333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3254513888888889,
+              "all_rotations_accuracy": 0.12718749999999998,
+              "rotation_agreement": 0.2789930555555556
+            },
+            "four": {
+              "mean_accuracy": 0.3746527777777778,
+              "all_rotations_accuracy": 0.3746527777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.29049479166666664,
+              "all_rotations_accuracy": 0.10173611111111111,
+              "rotation_agreement": 0.22274305555555554
+            },
+            "opposite": {
+              "mean_accuracy": 0.30109375000000005,
+              "all_rotations_accuracy": 0.17430555555555557,
+              "rotation_agreement": 0.448611111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32881944444444444,
+              "all_rotations_accuracy": 0.19854166666666667,
+              "rotation_agreement": 0.5031944444444444
+            },
+            "four": {
+              "mean_accuracy": 0.33538194444444447,
+              "all_rotations_accuracy": 0.33538194444444447,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3154166666666666,
+              "all_rotations_accuracy": 0.12128472222222222,
+              "rotation_agreement": 0.24340277777777775
+            },
+            "opposite": {
+              "mean_accuracy": 0.3441666666666667,
+              "all_rotations_accuracy": 0.23649305555555555,
+              "rotation_agreement": 0.5620486111111112
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3457204861111111,
+              "all_rotations_accuracy": 0.196875,
+              "rotation_agreement": 0.4409375
+            },
+            "four": {
+              "mean_accuracy": 0.37319444444444444,
+              "all_rotations_accuracy": 0.37319444444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3259288194444444,
+              "all_rotations_accuracy": 0.08989583333333331,
+              "rotation_agreement": 0.16447916666666665
+            },
+            "opposite": {
+              "mean_accuracy": 0.3661631944444445,
+              "all_rotations_accuracy": 0.22666666666666668,
+              "rotation_agreement": 0.49763888888888885
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3591666666666667,
+              "all_rotations_accuracy": 0.16756944444444444,
+              "rotation_agreement": 0.33940972222222215
+            },
+            "four": {
+              "mean_accuracy": 0.41083333333333333,
+              "all_rotations_accuracy": 0.41083333333333333,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.33671875,
+              "all_rotations_accuracy": 0.1070138888888889,
+              "rotation_agreement": 0.19194444444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.3922395833333333,
+              "all_rotations_accuracy": 0.2835069444444444,
+              "rotation_agreement": 0.6083680555555555
+            },
+            "adjacent": {
+              "mean_accuracy": 0.35941840277777776,
+              "all_rotations_accuracy": 0.15461805555555555,
+              "rotation_agreement": 0.30906249999999996
+            },
+            "four": {
+              "mean_accuracy": 0.4177083333333333,
+              "all_rotations_accuracy": 0.4177083333333333,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.31378472222222226,
+              "all_rotations_accuracy": 0.11062499999999999,
+              "rotation_agreement": 0.21746527777777777
+            },
+            "opposite": {
+              "mean_accuracy": 0.3255902777777778,
+              "all_rotations_accuracy": 0.19697916666666668,
+              "rotation_agreement": 0.4661458333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.35247395833333334,
+              "all_rotations_accuracy": 0.20062500000000003,
+              "rotation_agreement": 0.4573263888888889
+            },
+            "four": {
+              "mean_accuracy": 0.36454861111111114,
+              "all_rotations_accuracy": 0.36454861111111114,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1371,
+      "source_classes": [
+        0,
+        1,
+        3,
+        4
+      ],
+      "target_classes": [
+        2,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "latent_width": 89,
+      "invariant_width": 29,
+      "action_error": {
+        "learned": 0.6778874622782892
+      },
+      "order_four_error": 6.217248937900877e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.24231770833333333,
+              "all_rotations_accuracy": 0.08930555555555555,
+              "rotation_agreement": 0.25472222222222224
+            },
+            "opposite": {
+              "mean_accuracy": 0.2793055555555556,
+              "all_rotations_accuracy": 0.1942361111111111,
+              "rotation_agreement": 0.594375
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2683506944444444,
+              "all_rotations_accuracy": 0.16333333333333333,
+              "rotation_agreement": 0.5054166666666666
+            },
+            "four": {
+              "mean_accuracy": 0.28208333333333335,
+              "all_rotations_accuracy": 0.28208333333333335,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.24527777777777776,
+              "all_rotations_accuracy": 0.03829861111111112,
+              "rotation_agreement": 0.10076388888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.2908854166666667,
+              "all_rotations_accuracy": 0.15871527777777777,
+              "rotation_agreement": 0.4321527777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27661458333333333,
+              "all_rotations_accuracy": 0.0892013888888889,
+              "rotation_agreement": 0.22892361111111112
+            },
+            "four": {
+              "mean_accuracy": 0.3146527777777778,
+              "all_rotations_accuracy": 0.3146527777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.25796006944444444,
+              "all_rotations_accuracy": 0.065625,
+              "rotation_agreement": 0.1720486111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.30897569444444445,
+              "all_rotations_accuracy": 0.22631944444444446,
+              "rotation_agreement": 0.6560763888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2769270833333333,
+              "all_rotations_accuracy": 0.11333333333333333,
+              "rotation_agreement": 0.32336805555555553
+            },
+            "four": {
+              "mean_accuracy": 0.3154166666666667,
+              "all_rotations_accuracy": 0.3154166666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2629253472222222,
+              "all_rotations_accuracy": 0.08517361111111112,
+              "rotation_agreement": 0.23548611111111115
+            },
+            "opposite": {
+              "mean_accuracy": 0.26675347222222223,
+              "all_rotations_accuracy": 0.13711805555555556,
+              "rotation_agreement": 0.4130555555555555
+            },
+            "adjacent": {
+              "mean_accuracy": 0.301015625,
+              "all_rotations_accuracy": 0.21076388888888886,
+              "rotation_agreement": 0.6300347222222222
+            },
+            "four": {
+              "mean_accuracy": 0.30496527777777777,
+              "all_rotations_accuracy": 0.30496527777777777,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.27153645833333334,
+              "all_rotations_accuracy": 0.11041666666666666,
+              "rotation_agreement": 0.25149305555555557
+            },
+            "opposite": {
+              "mean_accuracy": 0.30430555555555555,
+              "all_rotations_accuracy": 0.21961805555555555,
+              "rotation_agreement": 0.6057291666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.29484375,
+              "all_rotations_accuracy": 0.17322916666666666,
+              "rotation_agreement": 0.45559027777777783
+            },
+            "four": {
+              "mean_accuracy": 0.3221180555555556,
+              "all_rotations_accuracy": 0.3221180555555556,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2972916666666666,
+              "all_rotations_accuracy": 0.06552083333333333,
+              "rotation_agreement": 0.1401736111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.3377951388888889,
+              "all_rotations_accuracy": 0.1998611111111111,
+              "rotation_agreement": 0.4658333333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32595486111111105,
+              "all_rotations_accuracy": 0.116875,
+              "rotation_agreement": 0.24836805555555558
+            },
+            "four": {
+              "mean_accuracy": 0.3809027777777778,
+              "all_rotations_accuracy": 0.3809027777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3031944444444445,
+              "all_rotations_accuracy": 0.08413194444444444,
+              "rotation_agreement": 0.17336805555555557
+            },
+            "opposite": {
+              "mean_accuracy": 0.3528819444444445,
+              "all_rotations_accuracy": 0.25125000000000003,
+              "rotation_agreement": 0.6130208333333335
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33218749999999997,
+              "all_rotations_accuracy": 0.14006944444444444,
+              "rotation_agreement": 0.30524305555555553
+            },
+            "four": {
+              "mean_accuracy": 0.3778472222222222,
+              "all_rotations_accuracy": 0.3778472222222222,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.29900173611111114,
+              "all_rotations_accuracy": 0.09416666666666666,
+              "rotation_agreement": 0.21267361111111113
+            },
+            "opposite": {
+              "mean_accuracy": 0.31960069444444444,
+              "all_rotations_accuracy": 0.18291666666666667,
+              "rotation_agreement": 0.4498263888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3558246527777778,
+              "all_rotations_accuracy": 0.23559027777777777,
+              "rotation_agreement": 0.5625347222222222
+            },
+            "four": {
+              "mean_accuracy": 0.3679166666666667,
+              "all_rotations_accuracy": 0.3679166666666667,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2802864583333333,
+              "all_rotations_accuracy": 0.1292013888888889,
+              "rotation_agreement": 0.2674305555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.32123263888888887,
+              "all_rotations_accuracy": 0.23875000000000002,
+              "rotation_agreement": 0.6272569444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3076128472222222,
+              "all_rotations_accuracy": 0.18618055555555557,
+              "rotation_agreement": 0.4471875
+            },
+            "four": {
+              "mean_accuracy": 0.34298611111111105,
+              "all_rotations_accuracy": 0.34298611111111105,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3346961805555555,
+              "all_rotations_accuracy": 0.106875,
+              "rotation_agreement": 0.20649305555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.3804513888888889,
+              "all_rotations_accuracy": 0.2459027777777778,
+              "rotation_agreement": 0.5146180555555555
+            },
+            "adjacent": {
+              "mean_accuracy": 0.364765625,
+              "all_rotations_accuracy": 0.15631944444444446,
+              "rotation_agreement": 0.2972569444444445
+            },
+            "four": {
+              "mean_accuracy": 0.42861111111111116,
+              "all_rotations_accuracy": 0.42861111111111116,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3386458333333333,
+              "all_rotations_accuracy": 0.11298611111111112,
+              "rotation_agreement": 0.2148263888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.3859201388888889,
+              "all_rotations_accuracy": 0.28315972222222224,
+              "rotation_agreement": 0.6322222222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3706163194444444,
+              "all_rotations_accuracy": 0.17746527777777776,
+              "rotation_agreement": 0.34079861111111115
+            },
+            "four": {
+              "mean_accuracy": 0.42378472222222224,
+              "all_rotations_accuracy": 0.42378472222222224,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.33440972222222226,
+              "all_rotations_accuracy": 0.12465277777777778,
+              "rotation_agreement": 0.24965277777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.36149305555555555,
+              "all_rotations_accuracy": 0.22736111111111112,
+              "rotation_agreement": 0.49930555555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3953298611111111,
+              "all_rotations_accuracy": 0.2639236111111111,
+              "rotation_agreement": 0.5678819444444445
+            },
+            "four": {
+              "mean_accuracy": 0.4120486111111111,
+              "all_rotations_accuracy": 0.4120486111111111,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1372,
+      "source_classes": [
+        0,
+        2,
+        6,
+        9
+      ],
+      "target_classes": [
+        1,
+        3,
+        4,
+        5,
+        7,
+        8
+      ],
+      "latent_width": 97,
+      "invariant_width": 30,
+      "action_error": {
+        "learned": 0.7043300860909051
+      },
+      "order_four_error": 7.327471962526033e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.25138020833333335,
+              "all_rotations_accuracy": 0.06333333333333334,
+              "rotation_agreement": 0.15472222222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.28510416666666666,
+              "all_rotations_accuracy": 0.1852430555555556,
+              "rotation_agreement": 0.5273263888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27500868055555555,
+              "all_rotations_accuracy": 0.13618055555555553,
+              "rotation_agreement": 0.3790625
+            },
+            "four": {
+              "mean_accuracy": 0.2995486111111111,
+              "all_rotations_accuracy": 0.2995486111111111,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2450954861111111,
+              "all_rotations_accuracy": 0.03225694444444445,
+              "rotation_agreement": 0.07979166666666666
+            },
+            "opposite": {
+              "mean_accuracy": 0.28079861111111115,
+              "all_rotations_accuracy": 0.14861111111111114,
+              "rotation_agreement": 0.42625
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2740451388888889,
+              "all_rotations_accuracy": 0.07864583333333333,
+              "rotation_agreement": 0.21086805555555557
+            },
+            "four": {
+              "mean_accuracy": 0.3250347222222222,
+              "all_rotations_accuracy": 0.3250347222222222,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.26319444444444445,
+              "all_rotations_accuracy": 0.05506944444444444,
+              "rotation_agreement": 0.13819444444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.3081597222222222,
+              "all_rotations_accuracy": 0.21711805555555555,
+              "rotation_agreement": 0.6194791666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28296875,
+              "all_rotations_accuracy": 0.10572916666666667,
+              "rotation_agreement": 0.2864930555555556
+            },
+            "four": {
+              "mean_accuracy": 0.3169444444444445,
+              "all_rotations_accuracy": 0.3169444444444445,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2709114583333333,
+              "all_rotations_accuracy": 0.08934027777777778,
+              "rotation_agreement": 0.23472222222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.2921180555555556,
+              "all_rotations_accuracy": 0.16427083333333334,
+              "rotation_agreement": 0.4452083333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2951475694444445,
+              "all_rotations_accuracy": 0.1946875,
+              "rotation_agreement": 0.5941666666666666
+            },
+            "four": {
+              "mean_accuracy": 0.31760416666666663,
+              "all_rotations_accuracy": 0.31760416666666663,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.284765625,
+              "all_rotations_accuracy": 0.08576388888888888,
+              "rotation_agreement": 0.15336805555555555
+            },
+            "opposite": {
+              "mean_accuracy": 0.3353125,
+              "all_rotations_accuracy": 0.21909722222222222,
+              "rotation_agreement": 0.505
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31930555555555556,
+              "all_rotations_accuracy": 0.16565972222222222,
+              "rotation_agreement": 0.3631944444444445
+            },
+            "four": {
+              "mean_accuracy": 0.35680555555555554,
+              "all_rotations_accuracy": 0.35680555555555554,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3026041666666667,
+              "all_rotations_accuracy": 0.06465277777777778,
+              "rotation_agreement": 0.1205902777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.3539236111111111,
+              "all_rotations_accuracy": 0.2134027777777778,
+              "rotation_agreement": 0.4551041666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3398090277777778,
+              "all_rotations_accuracy": 0.12763888888888889,
+              "rotation_agreement": 0.25559027777777776
+            },
+            "four": {
+              "mean_accuracy": 0.401875,
+              "all_rotations_accuracy": 0.401875,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.31191840277777777,
+              "all_rotations_accuracy": 0.08520833333333334,
+              "rotation_agreement": 0.16239583333333332
+            },
+            "opposite": {
+              "mean_accuracy": 0.36706597222222215,
+              "all_rotations_accuracy": 0.2613888888888889,
+              "rotation_agreement": 0.5824652777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3348524305555556,
+              "all_rotations_accuracy": 0.14895833333333333,
+              "rotation_agreement": 0.31888888888888883
+            },
+            "four": {
+              "mean_accuracy": 0.39656250000000004,
+              "all_rotations_accuracy": 0.39656250000000004,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.3197135416666667,
+              "all_rotations_accuracy": 0.1228472222222222,
+              "rotation_agreement": 0.24312499999999998
+            },
+            "opposite": {
+              "mean_accuracy": 0.3530034722222222,
+              "all_rotations_accuracy": 0.21381944444444445,
+              "rotation_agreement": 0.4538541666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3613541666666667,
+              "all_rotations_accuracy": 0.24621527777777774,
+              "rotation_agreement": 0.5727430555555556
+            },
+            "four": {
+              "mean_accuracy": 0.3927083333333333,
+              "all_rotations_accuracy": 0.3927083333333333,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.30605034722222224,
+              "all_rotations_accuracy": 0.10892361111111111,
+              "rotation_agreement": 0.1837847222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.35925347222222226,
+              "all_rotations_accuracy": 0.24562499999999998,
+              "rotation_agreement": 0.5302777777777777
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33210069444444446,
+              "all_rotations_accuracy": 0.16927083333333337,
+              "rotation_agreement": 0.3430208333333333
+            },
+            "four": {
+              "mean_accuracy": 0.3806597222222223,
+              "all_rotations_accuracy": 0.3806597222222223,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3255295138888889,
+              "all_rotations_accuracy": 0.08246527777777778,
+              "rotation_agreement": 0.13777777777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.3803125,
+              "all_rotations_accuracy": 0.2434375,
+              "rotation_agreement": 0.48225694444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3692708333333333,
+              "all_rotations_accuracy": 0.16086805555555558,
+              "rotation_agreement": 0.2894097222222222
+            },
+            "four": {
+              "mean_accuracy": 0.4361805555555555,
+              "all_rotations_accuracy": 0.4361805555555555,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.33328125,
+              "all_rotations_accuracy": 0.1063888888888889,
+              "rotation_agreement": 0.17857638888888888
+            },
+            "opposite": {
+              "mean_accuracy": 0.3867534722222222,
+              "all_rotations_accuracy": 0.2655555555555556,
+              "rotation_agreement": 0.5400347222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3597829861111111,
+              "all_rotations_accuracy": 0.16708333333333333,
+              "rotation_agreement": 0.32013888888888886
+            },
+            "four": {
+              "mean_accuracy": 0.4212152777777778,
+              "all_rotations_accuracy": 0.4212152777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.34390625,
+              "all_rotations_accuracy": 0.1284375,
+              "rotation_agreement": 0.22604166666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.38354166666666667,
+              "all_rotations_accuracy": 0.2382291666666667,
+              "rotation_agreement": 0.4617013888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.39295138888888886,
+              "all_rotations_accuracy": 0.2553472222222222,
+              "rotation_agreement": 0.5165624999999999
+            },
+            "four": {
+              "mean_accuracy": 0.42906249999999996,
+              "all_rotations_accuracy": 0.42906249999999996,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1373,
+      "source_classes": [
+        0,
+        2,
+        4,
+        9
+      ],
+      "target_classes": [
+        1,
+        3,
+        5,
+        6,
+        7,
+        8
+      ],
+      "latent_width": 82,
+      "invariant_width": 26,
+      "action_error": {
+        "learned": 0.6430970483485395
+      },
+      "order_four_error": 7.549516567451064e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.25440972222222225,
+              "all_rotations_accuracy": 0.08277777777777777,
+              "rotation_agreement": 0.23510416666666673
+            },
+            "opposite": {
+              "mean_accuracy": 0.28954861111111113,
+              "all_rotations_accuracy": 0.20236111111111107,
+              "rotation_agreement": 0.5982291666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27533854166666666,
+              "all_rotations_accuracy": 0.15194444444444444,
+              "rotation_agreement": 0.45097222222222216
+            },
+            "four": {
+              "mean_accuracy": 0.29510416666666667,
+              "all_rotations_accuracy": 0.29510416666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.24449652777777778,
+              "all_rotations_accuracy": 0.034756944444444444,
+              "rotation_agreement": 0.09256944444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.26703125,
+              "all_rotations_accuracy": 0.13472222222222222,
+              "rotation_agreement": 0.4098611111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.250625,
+              "all_rotations_accuracy": 0.08006944444444444,
+              "rotation_agreement": 0.2511805555555556
+            },
+            "four": {
+              "mean_accuracy": 0.2932638888888889,
+              "all_rotations_accuracy": 0.2932638888888889,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.24549479166666668,
+              "all_rotations_accuracy": 0.04701388888888889,
+              "rotation_agreement": 0.13121527777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.28848958333333335,
+              "all_rotations_accuracy": 0.21447916666666667,
+              "rotation_agreement": 0.6815625000000001
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2633333333333333,
+              "all_rotations_accuracy": 0.08920138888888889,
+              "rotation_agreement": 0.2807986111111111
+            },
+            "four": {
+              "mean_accuracy": 0.29812500000000003,
+              "all_rotations_accuracy": 0.29812500000000003,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.255625,
+              "all_rotations_accuracy": 0.08031250000000001,
+              "rotation_agreement": 0.2316666666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.2724652777777778,
+              "all_rotations_accuracy": 0.13909722222222223,
+              "rotation_agreement": 0.39604166666666674
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2754253472222222,
+              "all_rotations_accuracy": 0.1889236111111111,
+              "rotation_agreement": 0.6212499999999999
+            },
+            "four": {
+              "mean_accuracy": 0.29104166666666664,
+              "all_rotations_accuracy": 0.29104166666666664,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.29986979166666666,
+              "all_rotations_accuracy": 0.11177083333333333,
+              "rotation_agreement": 0.22302083333333333
+            },
+            "opposite": {
+              "mean_accuracy": 0.3502604166666667,
+              "all_rotations_accuracy": 0.2527430555555556,
+              "rotation_agreement": 0.6008333333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33075520833333333,
+              "all_rotations_accuracy": 0.1821875,
+              "rotation_agreement": 0.389375
+            },
+            "four": {
+              "mean_accuracy": 0.3693402777777778,
+              "all_rotations_accuracy": 0.3693402777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.29059027777777774,
+              "all_rotations_accuracy": 0.06944444444444445,
+              "rotation_agreement": 0.12854166666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.34859375000000004,
+              "all_rotations_accuracy": 0.21340277777777777,
+              "rotation_agreement": 0.4686458333333334
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3302170138888889,
+              "all_rotations_accuracy": 0.13260416666666666,
+              "rotation_agreement": 0.27284722222222224
+            },
+            "four": {
+              "mean_accuracy": 0.38809027777777777,
+              "all_rotations_accuracy": 0.38809027777777777,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.29746527777777776,
+              "all_rotations_accuracy": 0.06444444444444444,
+              "rotation_agreement": 0.12940972222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.3682465277777777,
+              "all_rotations_accuracy": 0.27402777777777776,
+              "rotation_agreement": 0.6261805555555555
+            },
+            "adjacent": {
+              "mean_accuracy": 0.328125,
+              "all_rotations_accuracy": 0.1226388888888889,
+              "rotation_agreement": 0.2657291666666667
+            },
+            "four": {
+              "mean_accuracy": 0.38763888888888887,
+              "all_rotations_accuracy": 0.38763888888888887,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.3139236111111111,
+              "all_rotations_accuracy": 0.12333333333333332,
+              "rotation_agreement": 0.2411111111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.33611111111111114,
+              "all_rotations_accuracy": 0.21111111111111108,
+              "rotation_agreement": 0.464375
+            },
+            "adjacent": {
+              "mean_accuracy": 0.35353298611111106,
+              "all_rotations_accuracy": 0.23989583333333336,
+              "rotation_agreement": 0.5630555555555556
+            },
+            "four": {
+              "mean_accuracy": 0.3715277777777777,
+              "all_rotations_accuracy": 0.3715277777777777,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3223524305555555,
+              "all_rotations_accuracy": 0.12843749999999998,
+              "rotation_agreement": 0.2284027777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.37378472222222225,
+              "all_rotations_accuracy": 0.2797222222222222,
+              "rotation_agreement": 0.6206597222222222
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3487673611111111,
+              "all_rotations_accuracy": 0.18239583333333334,
+              "rotation_agreement": 0.3572569444444444
+            },
+            "four": {
+              "mean_accuracy": 0.3883333333333333,
+              "all_rotations_accuracy": 0.3883333333333333,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3341059027777778,
+              "all_rotations_accuracy": 0.095,
+              "rotation_agreement": 0.15836805555555553
+            },
+            "opposite": {
+              "mean_accuracy": 0.3919270833333333,
+              "all_rotations_accuracy": 0.2589930555555556,
+              "rotation_agreement": 0.5051041666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.37365451388888893,
+              "all_rotations_accuracy": 0.1576736111111111,
+              "rotation_agreement": 0.27541666666666664
+            },
+            "four": {
+              "mean_accuracy": 0.42802083333333335,
+              "all_rotations_accuracy": 0.42802083333333335,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.33373263888888893,
+              "all_rotations_accuracy": 0.0923263888888889,
+              "rotation_agreement": 0.15784722222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.39876736111111116,
+              "all_rotations_accuracy": 0.2981944444444445,
+              "rotation_agreement": 0.6182638888888888
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3625173611111111,
+              "all_rotations_accuracy": 0.14461805555555557,
+              "rotation_agreement": 0.2662847222222222
+            },
+            "four": {
+              "mean_accuracy": 0.42583333333333334,
+              "all_rotations_accuracy": 0.42583333333333334,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.3379166666666667,
+              "all_rotations_accuracy": 0.14243055555555556,
+              "rotation_agreement": 0.2520486111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.3594097222222222,
+              "all_rotations_accuracy": 0.23510416666666667,
+              "rotation_agreement": 0.48500000000000004
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3747829861111111,
+              "all_rotations_accuracy": 0.241875,
+              "rotation_agreement": 0.5122916666666666
+            },
+            "four": {
+              "mean_accuracy": 0.395,
+              "all_rotations_accuracy": 0.395,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1374,
+      "source_classes": [
+        0,
+        3,
+        7,
+        9
+      ],
+      "target_classes": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        8
+      ],
+      "latent_width": 139,
+      "invariant_width": 43,
+      "action_error": {
+        "learned": 0.7706996526275401
+      },
+      "order_four_error": 7.105427357601002e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.23348090277777778,
+              "all_rotations_accuracy": 0.08361111111111111,
+              "rotation_agreement": 0.2659027777777778
+            },
+            "opposite": {
+              "mean_accuracy": 0.25482638888888887,
+              "all_rotations_accuracy": 0.16489583333333332,
+              "rotation_agreement": 0.5595486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2493315972222222,
+              "all_rotations_accuracy": 0.14159722222222224,
+              "rotation_agreement": 0.47833333333333333
+            },
+            "four": {
+              "mean_accuracy": 0.26743055555555556,
+              "all_rotations_accuracy": 0.26743055555555556,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.24249131944444446,
+              "all_rotations_accuracy": 0.029305555555555557,
+              "rotation_agreement": 0.0811111111111111
+            },
+            "opposite": {
+              "mean_accuracy": 0.28262152777777777,
+              "all_rotations_accuracy": 0.1425,
+              "rotation_agreement": 0.4070138888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2710763888888889,
+              "all_rotations_accuracy": 0.07569444444444444,
+              "rotation_agreement": 0.1992013888888889
+            },
+            "four": {
+              "mean_accuracy": 0.31881944444444443,
+              "all_rotations_accuracy": 0.31881944444444443,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2555121527777778,
+              "all_rotations_accuracy": 0.05364583333333333,
+              "rotation_agreement": 0.15819444444444444
+            },
+            "opposite": {
+              "mean_accuracy": 0.3080902777777778,
+              "all_rotations_accuracy": 0.21934027777777781,
+              "rotation_agreement": 0.6308680555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.26741319444444445,
+              "all_rotations_accuracy": 0.09746527777777778,
+              "rotation_agreement": 0.2967361111111111
+            },
+            "four": {
+              "mean_accuracy": 0.3123263888888889,
+              "all_rotations_accuracy": 0.3123263888888889,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.25890625,
+              "all_rotations_accuracy": 0.07586805555555556,
+              "rotation_agreement": 0.21538194444444447
+            },
+            "opposite": {
+              "mean_accuracy": 0.2806076388888889,
+              "all_rotations_accuracy": 0.1486111111111111,
+              "rotation_agreement": 0.41555555555555557
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3046875,
+              "all_rotations_accuracy": 0.2049652777777778,
+              "rotation_agreement": 0.5976736111111112
+            },
+            "four": {
+              "mean_accuracy": 0.31756944444444446,
+              "all_rotations_accuracy": 0.31756944444444446,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.25546875,
+              "all_rotations_accuracy": 0.09027777777777778,
+              "rotation_agreement": 0.2435763888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.2915451388888889,
+              "all_rotations_accuracy": 0.19406249999999997,
+              "rotation_agreement": 0.5511458333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2762847222222222,
+              "all_rotations_accuracy": 0.15458333333333332,
+              "rotation_agreement": 0.46218750000000003
+            },
+            "four": {
+              "mean_accuracy": 0.3005902777777778,
+              "all_rotations_accuracy": 0.3005902777777778,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.28717881944444446,
+              "all_rotations_accuracy": 0.03725694444444445,
+              "rotation_agreement": 0.08826388888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.3522222222222222,
+              "all_rotations_accuracy": 0.20152777777777778,
+              "rotation_agreement": 0.4623263888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3214930555555555,
+              "all_rotations_accuracy": 0.08982638888888889,
+              "rotation_agreement": 0.2020486111111111
+            },
+            "four": {
+              "mean_accuracy": 0.3875694444444444,
+              "all_rotations_accuracy": 0.3875694444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2798263888888889,
+              "all_rotations_accuracy": 0.06722222222222221,
+              "rotation_agreement": 0.1713888888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.3555902777777778,
+              "all_rotations_accuracy": 0.26458333333333334,
+              "rotation_agreement": 0.6564236111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31270833333333337,
+              "all_rotations_accuracy": 0.11986111111111113,
+              "rotation_agreement": 0.2935763888888889
+            },
+            "four": {
+              "mean_accuracy": 0.3741319444444444,
+              "all_rotations_accuracy": 0.3741319444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.29077256944444446,
+              "all_rotations_accuracy": 0.07791666666666666,
+              "rotation_agreement": 0.19145833333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.31428819444444445,
+              "all_rotations_accuracy": 0.1694097222222222,
+              "rotation_agreement": 0.41753472222222227
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34985243055555554,
+              "all_rotations_accuracy": 0.22583333333333333,
+              "rotation_agreement": 0.5449999999999999
+            },
+            "four": {
+              "mean_accuracy": 0.36875,
+              "all_rotations_accuracy": 0.36875,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2638020833333333,
+              "all_rotations_accuracy": 0.10166666666666668,
+              "rotation_agreement": 0.2707291666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.2998784722222222,
+              "all_rotations_accuracy": 0.19888888888888887,
+              "rotation_agreement": 0.5431944444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2804513888888889,
+              "all_rotations_accuracy": 0.14368055555555553,
+              "rotation_agreement": 0.4079166666666666
+            },
+            "four": {
+              "mean_accuracy": 0.31250000000000006,
+              "all_rotations_accuracy": 0.31250000000000006,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.3202517361111111,
+              "all_rotations_accuracy": 0.05760416666666667,
+              "rotation_agreement": 0.11906249999999999
+            },
+            "opposite": {
+              "mean_accuracy": 0.3835590277777778,
+              "all_rotations_accuracy": 0.2346875,
+              "rotation_agreement": 0.48770833333333335
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3619357638888889,
+              "all_rotations_accuracy": 0.12288194444444443,
+              "rotation_agreement": 0.23409722222222218
+            },
+            "four": {
+              "mean_accuracy": 0.43260416666666673,
+              "all_rotations_accuracy": 0.43260416666666673,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.30401909722222226,
+              "all_rotations_accuracy": 0.07402777777777778,
+              "rotation_agreement": 0.16659722222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.3803472222222223,
+              "all_rotations_accuracy": 0.2768055555555555,
+              "rotation_agreement": 0.6218055555555556
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33788194444444447,
+              "all_rotations_accuracy": 0.12496527777777777,
+              "rotation_agreement": 0.2695486111111111
+            },
+            "four": {
+              "mean_accuracy": 0.40065972222222224,
+              "all_rotations_accuracy": 0.40065972222222224,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.30506076388888886,
+              "all_rotations_accuracy": 0.06680555555555555,
+              "rotation_agreement": 0.15673611111111113
+            },
+            "opposite": {
+              "mean_accuracy": 0.3394444444444444,
+              "all_rotations_accuracy": 0.19163194444444445,
+              "rotation_agreement": 0.4336111111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3657725694444444,
+              "all_rotations_accuracy": 0.21645833333333334,
+              "rotation_agreement": 0.48131944444444447
+            },
+            "four": {
+              "mean_accuracy": 0.39267361111111115,
+              "all_rotations_accuracy": 0.39267361111111115,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1375,
+      "source_classes": [
+        1,
+        6,
+        7,
+        9
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        8
+      ],
+      "latent_width": 90,
+      "invariant_width": 28,
+      "action_error": {
+        "learned": 0.7227171538151399
+      },
+      "order_four_error": 6.661338147750939e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.2622569444444445,
+              "all_rotations_accuracy": 0.09999999999999999,
+              "rotation_agreement": 0.30420138888888887
+            },
+            "opposite": {
+              "mean_accuracy": 0.27465277777777775,
+              "all_rotations_accuracy": 0.16020833333333334,
+              "rotation_agreement": 0.5226736111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.27260416666666665,
+              "all_rotations_accuracy": 0.17875,
+              "rotation_agreement": 0.6020138888888888
+            },
+            "four": {
+              "mean_accuracy": 0.28253472222222226,
+              "all_rotations_accuracy": 0.28253472222222226,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.2575,
+              "all_rotations_accuracy": 0.0573263888888889,
+              "rotation_agreement": 0.14631944444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.2788541666666667,
+              "all_rotations_accuracy": 0.16583333333333333,
+              "rotation_agreement": 0.5138194444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.26684895833333333,
+              "all_rotations_accuracy": 0.10048611111111111,
+              "rotation_agreement": 0.29020833333333335
+            },
+            "four": {
+              "mean_accuracy": 0.2886111111111111,
+              "all_rotations_accuracy": 0.2886111111111111,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.2570399305555556,
+              "all_rotations_accuracy": 0.06559027777777779,
+              "rotation_agreement": 0.17927083333333332
+            },
+            "opposite": {
+              "mean_accuracy": 0.28652777777777777,
+              "all_rotations_accuracy": 0.22020833333333337,
+              "rotation_agreement": 0.7201041666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.26850694444444445,
+              "all_rotations_accuracy": 0.10930555555555554,
+              "rotation_agreement": 0.3223958333333334
+            },
+            "four": {
+              "mean_accuracy": 0.29510416666666667,
+              "all_rotations_accuracy": 0.29510416666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.2603472222222223,
+              "all_rotations_accuracy": 0.11135416666666667,
+              "rotation_agreement": 0.34784722222222225
+            },
+            "opposite": {
+              "mean_accuracy": 0.26506944444444447,
+              "all_rotations_accuracy": 0.15291666666666667,
+              "rotation_agreement": 0.5019791666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28763020833333336,
+              "all_rotations_accuracy": 0.2090972222222222,
+              "rotation_agreement": 0.6855902777777777
+            },
+            "four": {
+              "mean_accuracy": 0.288125,
+              "all_rotations_accuracy": 0.288125,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.28537326388888884,
+              "all_rotations_accuracy": 0.09166666666666667,
+              "rotation_agreement": 0.25736111111111115
+            },
+            "opposite": {
+              "mean_accuracy": 0.30050347222222223,
+              "all_rotations_accuracy": 0.18114583333333337,
+              "rotation_agreement": 0.5188541666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.30734374999999997,
+              "all_rotations_accuracy": 0.18402777777777776,
+              "rotation_agreement": 0.5335763888888889
+            },
+            "four": {
+              "mean_accuracy": 0.3170486111111111,
+              "all_rotations_accuracy": 0.3170486111111111,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.29443576388888887,
+              "all_rotations_accuracy": 0.06697916666666667,
+              "rotation_agreement": 0.148125
+            },
+            "opposite": {
+              "mean_accuracy": 0.31628472222222226,
+              "all_rotations_accuracy": 0.1778125,
+              "rotation_agreement": 0.4666666666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31078125,
+              "all_rotations_accuracy": 0.12128472222222222,
+              "rotation_agreement": 0.2944791666666667
+            },
+            "four": {
+              "mean_accuracy": 0.35031249999999997,
+              "all_rotations_accuracy": 0.35031249999999997,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3007638888888889,
+              "all_rotations_accuracy": 0.07572916666666667,
+              "rotation_agreement": 0.17305555555555557
+            },
+            "opposite": {
+              "mean_accuracy": 0.33782986111111113,
+              "all_rotations_accuracy": 0.24986111111111112,
+              "rotation_agreement": 0.6681944444444445
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3130381944444445,
+              "all_rotations_accuracy": 0.12392361111111111,
+              "rotation_agreement": 0.3040625
+            },
+            "four": {
+              "mean_accuracy": 0.3500347222222222,
+              "all_rotations_accuracy": 0.3500347222222222,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.3053385416666667,
+              "all_rotations_accuracy": 0.10909722222222223,
+              "rotation_agreement": 0.2634722222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.3103298611111111,
+              "all_rotations_accuracy": 0.1823611111111111,
+              "rotation_agreement": 0.49291666666666667
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3330295138888889,
+              "all_rotations_accuracy": 0.22472222222222224,
+              "rotation_agreement": 0.6077777777777778
+            },
+            "four": {
+              "mean_accuracy": 0.34572916666666664,
+              "all_rotations_accuracy": 0.34572916666666664,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3056944444444445,
+              "all_rotations_accuracy": 0.08371527777777778,
+              "rotation_agreement": 0.19211805555555553
+            },
+            "opposite": {
+              "mean_accuracy": 0.3253645833333333,
+              "all_rotations_accuracy": 0.19086805555555553,
+              "rotation_agreement": 0.4827777777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.33219618055555555,
+              "all_rotations_accuracy": 0.18538194444444445,
+              "rotation_agreement": 0.47076388888888887
+            },
+            "four": {
+              "mean_accuracy": 0.3541666666666667,
+              "all_rotations_accuracy": 0.3541666666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.32197048611111106,
+              "all_rotations_accuracy": 0.08562499999999999,
+              "rotation_agreement": 0.17180555555555557
+            },
+            "opposite": {
+              "mean_accuracy": 0.35276041666666663,
+              "all_rotations_accuracy": 0.21256944444444445,
+              "rotation_agreement": 0.49645833333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34261284722222224,
+              "all_rotations_accuracy": 0.13989583333333333,
+              "rotation_agreement": 0.30645833333333333
+            },
+            "four": {
+              "mean_accuracy": 0.3900694444444444,
+              "all_rotations_accuracy": 0.3900694444444444,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.32750868055555554,
+              "all_rotations_accuracy": 0.09694444444444444,
+              "rotation_agreement": 0.1913194444444445
+            },
+            "opposite": {
+              "mean_accuracy": 0.37236111111111114,
+              "all_rotations_accuracy": 0.26913194444444444,
+              "rotation_agreement": 0.6302777777777778
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3442708333333333,
+              "all_rotations_accuracy": 0.1465972222222222,
+              "rotation_agreement": 0.3236805555555555
+            },
+            "four": {
+              "mean_accuracy": 0.38545138888888886,
+              "all_rotations_accuracy": 0.38545138888888886,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.33837673611111113,
+              "all_rotations_accuracy": 0.11503472222222222,
+              "rotation_agreement": 0.2435763888888889
+            },
+            "opposite": {
+              "mean_accuracy": 0.35125,
+              "all_rotations_accuracy": 0.22531250000000003,
+              "rotation_agreement": 0.5329513888888889
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3617534722222222,
+              "all_rotations_accuracy": 0.21229166666666668,
+              "rotation_agreement": 0.5067708333333333
+            },
+            "four": {
+              "mean_accuracy": 0.37961805555555556,
+              "all_rotations_accuracy": 0.37961805555555556,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1376,
+      "source_classes": [
+        1,
+        4,
+        7,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        5,
+        6,
+        9
+      ],
+      "latent_width": 97,
+      "invariant_width": 32,
+      "action_error": {
+        "learned": 0.7676776405355725
+      },
+      "order_four_error": 8.881784197001252e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.27415798611111114,
+              "all_rotations_accuracy": 0.11996527777777778,
+              "rotation_agreement": 0.3250347222222223
+            },
+            "opposite": {
+              "mean_accuracy": 0.28932291666666665,
+              "all_rotations_accuracy": 0.21197916666666666,
+              "rotation_agreement": 0.6466666666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.2998177083333333,
+              "all_rotations_accuracy": 0.19961805555555556,
+              "rotation_agreement": 0.5736458333333334
+            },
+            "four": {
+              "mean_accuracy": 0.3069791666666667,
+              "all_rotations_accuracy": 0.3069791666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.23673611111111115,
+              "all_rotations_accuracy": 0.053125,
+              "rotation_agreement": 0.12499999999999999
+            },
+            "opposite": {
+              "mean_accuracy": 0.29229166666666667,
+              "all_rotations_accuracy": 0.16711805555555556,
+              "rotation_agreement": 0.45381944444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.26493055555555556,
+              "all_rotations_accuracy": 0.10777777777777778,
+              "rotation_agreement": 0.28815972222222225
+            },
+            "four": {
+              "mean_accuracy": 0.3198263888888889,
+              "all_rotations_accuracy": 0.3198263888888889,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.27020833333333333,
+              "all_rotations_accuracy": 0.08447916666666666,
+              "rotation_agreement": 0.20260416666666664
+            },
+            "opposite": {
+              "mean_accuracy": 0.3156076388888889,
+              "all_rotations_accuracy": 0.2509027777777778,
+              "rotation_agreement": 0.7170833333333333
+            },
+            "adjacent": {
+              "mean_accuracy": 0.28489583333333335,
+              "all_rotations_accuracy": 0.12934027777777776,
+              "rotation_agreement": 0.34059027777777773
+            },
+            "four": {
+              "mean_accuracy": 0.3252083333333333,
+              "all_rotations_accuracy": 0.3252083333333333,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.28917534722222227,
+              "all_rotations_accuracy": 0.12076388888888889,
+              "rotation_agreement": 0.2815972222222222
+            },
+            "opposite": {
+              "mean_accuracy": 0.2979861111111111,
+              "all_rotations_accuracy": 0.1676388888888889,
+              "rotation_agreement": 0.4357986111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.32297743055555556,
+              "all_rotations_accuracy": 0.2498263888888889,
+              "rotation_agreement": 0.6894444444444445
+            },
+            "four": {
+              "mean_accuracy": 0.32190972222222225,
+              "all_rotations_accuracy": 0.32190972222222225,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "20": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3055208333333333,
+              "all_rotations_accuracy": 0.13246527777777778,
+              "rotation_agreement": 0.2861458333333334
+            },
+            "opposite": {
+              "mean_accuracy": 0.33022569444444444,
+              "all_rotations_accuracy": 0.2431944444444445,
+              "rotation_agreement": 0.6298611111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.34325520833333334,
+              "all_rotations_accuracy": 0.21350694444444446,
+              "rotation_agreement": 0.5069097222222223
+            },
+            "four": {
+              "mean_accuracy": 0.36354166666666665,
+              "all_rotations_accuracy": 0.36354166666666665,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.30136284722222223,
+              "all_rotations_accuracy": 0.09743055555555555,
+              "rotation_agreement": 0.1748958333333333
+            },
+            "opposite": {
+              "mean_accuracy": 0.34315972222222224,
+              "all_rotations_accuracy": 0.21135416666666668,
+              "rotation_agreement": 0.48006944444444444
+            },
+            "adjacent": {
+              "mean_accuracy": 0.31606770833333336,
+              "all_rotations_accuracy": 0.1403125,
+              "rotation_agreement": 0.29875
+            },
+            "four": {
+              "mean_accuracy": 0.38326388888888885,
+              "all_rotations_accuracy": 0.38326388888888885,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.318359375,
+              "all_rotations_accuracy": 0.10819444444444444,
+              "rotation_agreement": 0.20013888888888892
+            },
+            "opposite": {
+              "mean_accuracy": 0.3680902777777778,
+              "all_rotations_accuracy": 0.28944444444444445,
+              "rotation_agreement": 0.6907291666666666
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3304947916666667,
+              "all_rotations_accuracy": 0.14708333333333334,
+              "rotation_agreement": 0.31135416666666665
+            },
+            "four": {
+              "mean_accuracy": 0.3908680555555556,
+              "all_rotations_accuracy": 0.3908680555555556,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.32754340277777777,
+              "all_rotations_accuracy": 0.14503472222222225,
+              "rotation_agreement": 0.2995833333333333
+            },
+            "opposite": {
+              "mean_accuracy": 0.34524305555555557,
+              "all_rotations_accuracy": 0.21979166666666666,
+              "rotation_agreement": 0.49881944444444437
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3720833333333333,
+              "all_rotations_accuracy": 0.27020833333333333,
+              "rotation_agreement": 0.6254861111111111
+            },
+            "four": {
+              "mean_accuracy": 0.3857291666666667,
+              "all_rotations_accuracy": 0.3857291666666667,
+              "rotation_agreement": 1.0
+            }
+          }
+        },
+        "60": {
+          "inference_only": {
+            "one": {
+              "mean_accuracy": 0.3305208333333334,
+              "all_rotations_accuracy": 0.14531249999999998,
+              "rotation_agreement": 0.27666666666666667
+            },
+            "opposite": {
+              "mean_accuracy": 0.35845486111111113,
+              "all_rotations_accuracy": 0.2622569444444444,
+              "rotation_agreement": 0.6164236111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.37235243055555556,
+              "all_rotations_accuracy": 0.23475694444444442,
+              "rotation_agreement": 0.4974305555555556
+            },
+            "four": {
+              "mean_accuracy": 0.39625000000000005,
+              "all_rotations_accuracy": 0.39625000000000005,
+              "rotation_agreement": 1.0
+            }
+          },
+          "learned_training": {
+            "one": {
+              "mean_accuracy": 0.33826388888888886,
+              "all_rotations_accuracy": 0.13083333333333336,
+              "rotation_agreement": 0.22243055555555558
+            },
+            "opposite": {
+              "mean_accuracy": 0.3816666666666666,
+              "all_rotations_accuracy": 0.2560763888888889,
+              "rotation_agreement": 0.5245486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.3621961805555555,
+              "all_rotations_accuracy": 0.19295138888888888,
+              "rotation_agreement": 0.3676388888888889
+            },
+            "four": {
+              "mean_accuracy": 0.4207291666666667,
+              "all_rotations_accuracy": 0.4207291666666667,
+              "rotation_agreement": 1.0
+            }
+          },
+          "half_turn_training": {
+            "one": {
+              "mean_accuracy": 0.3481163194444445,
+              "all_rotations_accuracy": 0.13291666666666668,
+              "rotation_agreement": 0.22468750000000004
+            },
+            "opposite": {
+              "mean_accuracy": 0.40467013888888886,
+              "all_rotations_accuracy": 0.3111458333333333,
+              "rotation_agreement": 0.65625
+            },
+            "adjacent": {
+              "mean_accuracy": 0.36876736111111114,
+              "all_rotations_accuracy": 0.18395833333333333,
+              "rotation_agreement": 0.3464236111111111
+            },
+            "four": {
+              "mean_accuracy": 0.4264583333333333,
+              "all_rotations_accuracy": 0.4264583333333333,
+              "rotation_agreement": 1.0
+            }
+          },
+          "adjacent_training": {
+            "one": {
+              "mean_accuracy": 0.3547309027777778,
+              "all_rotations_accuracy": 0.16739583333333333,
+              "rotation_agreement": 0.3089930555555556
+            },
+            "opposite": {
+              "mean_accuracy": 0.3699305555555556,
+              "all_rotations_accuracy": 0.2545833333333333,
+              "rotation_agreement": 0.5470486111111111
+            },
+            "adjacent": {
+              "mean_accuracy": 0.396875,
+              "all_rotations_accuracy": 0.2732291666666667,
+              "rotation_agreement": 0.574375
+            },
+            "four": {
+              "mean_accuracy": 0.4140625,
+              "all_rotations_accuracy": 0.4140625,
+              "rotation_agreement": 1.0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "elapsed_seconds": 170.93383034993894
+}
