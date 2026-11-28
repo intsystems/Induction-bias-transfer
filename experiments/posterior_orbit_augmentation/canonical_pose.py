@@ -1078,7 +1078,7 @@ def select_posterior_logits(choices):
     return steps
 
 
-def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, head_kernels=None):
+def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, head_kernels=None, distilled_support=None):
     parity = np.concatenate((kernels["fixed_even"], kernels["fixed_odd"]))
     prediction_priors = {} if args.track_parity_prior_route else (head_kernels or {})
     if args.track_head_evidence:
@@ -1107,6 +1107,10 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
             even, _ = predict(kernels["fixed_even"], f, y, identity, args.noise)
             heads = {name: predict(prior, f, y, identity, args.noise, center_evidence=True)[0]
                      for name, prior in prediction_priors.items()}
+            distilled_heads = {}
+            for name, features in (distilled_support or {}).items():
+                design = np.concatenate([features[label][j[:count]] for label, j in zip(pair, ids, strict=True)])
+                distilled_heads[name] = predict(parity, design, y, identity, args.noise, center_evidence=True)[0]
             values = {"posterior_same": float(probability[0]), "strengths": {}}
             if args.track_head_evidence:
                 adaptive, joint_mass = predict(joint, f, y, identity, args.noise, center_evidence=True)
@@ -1121,7 +1125,7 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
                 route_weight = route_probability[0]
                 values["prior_correct_action"] = float((route_weight >= .5) == (sign == 1))
             for strength, (embeddings, truth, n_negative) in batches_by_strength.items():
-                choices = {name: features @ weights for name, features in embeddings.items()}
+                choices = {name: features @ distilled_heads.get(name, weights) for name, features in embeddings.items()}
                 choices.update({name: embeddings["raw"] @ head for name, head in heads.items()})
                 if args.track_parity_policy:
                     p_same = probability[0]
@@ -1182,12 +1186,15 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
         pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200, 0.)
     support = {label: features[0] for label, features in embed(student, train, args, device).items()}
     head_kernels = None
+    distilled_support = None
     if args.natural_track_pose:
         tracks, natural_queries = split_natural_tracks(tracks, args.shots, args.test_per_class, seed + 400)
         teacher_rotation = None
         teacher_parity = None
         pair_diagnostics = None
-        if args.track_head_prior:
+        if args.track_distillation:
+            models = {}
+        elif args.track_head_prior:
             models = {}
             head_kernels, pair_diagnostics = natural_track_head_priors(
                 teacher, basis, odd, probe if args.track_head_predicted else source, source_partners,
@@ -1229,7 +1236,21 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             query = pooled_track_embeddings(student, models["same_track"], train, natural_queries, args, device, seed + 500)
         else:
             query = natural_track_embeddings(student, models, train, natural_queries, args, device,
-                                             angle_control=source_partners is None and not args.track_head_prior)
+                                             angle_control=source_partners is None and not args.track_head_prior
+                                             and not args.track_distillation)
+        if args.track_distillation:
+            priors, _ = natural_track_head_priors(teacher, basis, odd, source, source_partners, args, seed + 250)
+            distilled_support = {}
+            for name, key in (("track_distilled", "head_same_class"), ("rotated_distilled", "head_rotated")):
+                matrix = priors[key].sum(axis=0)
+                metric = source.new_tensor(matrix / np.diag(matrix).mean())
+                learned = fit_student(source, teacher, basis, mean, args, seed + 100, metric=metric)
+                features = embed(learned, train, args, device)
+                distilled_support[name] = {label: values[0] for label, values in features.items()}
+                transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
+                for label, positions in transformed.items():
+                    for strength, (values, _) in positions.items():
+                        query[label][strength][0][name] = values["raw"]
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
         if args.track_consistency:
@@ -1300,7 +1321,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
     rng = np.random.default_rng(seed)
     kernels = prior_kernels(energies.cpu().numpy(), rng)
     tasks = {family: {"-".join(map(str, pair)): evaluate_task(
-        pair, 1 if family == "invariant" else -1, support, query, tracks, kernels, args, rng, head_kernels=head_kernels)
+        pair, 1 if family == "invariant" else -1, support, query, tracks, kernels, args, rng,
+        head_kernels=head_kernels, distilled_support=distilled_support)
         for pair in pairs} for family, pairs in TASKS.items()}
     print(seed, "completed", flush=True)
     return {"seed": seed, "tasks": tasks, **diagnostics}
@@ -1357,6 +1379,7 @@ def main():
     selection.add_argument("--track-head-source-split", action="store_true")
     selection.add_argument("--track-head-synthetic", action="store_true")
     selection.add_argument("--track-head-cross-parity", action="store_true")
+    selection.add_argument("--track-distillation", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1371,7 +1394,7 @@ def main():
         args.track_teacher_parity = True
     if args.track_consistency or args.track_pooling or args.track_teacher_basis or args.track_teacher_parity:
         args.train_track_canonicalizer = True
-    if args.train_track_canonicalizer or args.track_head_prior:
+    if args.train_track_canonicalizer or args.track_head_prior or args.track_distillation:
         args.natural_track_pose = True
     if args.shots is None:
         args.shots = [1, 2, 3] if args.natural_track_pose else [1, 2, 4, 5]
@@ -1381,7 +1404,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_parity_prior_route:
+        if args.track_distillation:
+            name = "track_distillation"
+        elif args.track_parity_prior_route:
             name = "track_parity_prior_route"
         elif args.track_head_cross_parity:
             name = "track_head_cross_parity"
@@ -1461,7 +1486,7 @@ def main():
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train_dataset = GTSRB(args.data, split="train", download=True)
-    use_source_paths = args.train_track_canonicalizer or args.track_head_prior
+    use_source_paths = args.train_track_canonicalizer or args.track_head_prior or args.track_distillation
     data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args,
                       include_source_paths=use_source_paths and not args.track_head_predicted,
                       include_probe_paths=args.track_head_predicted or args.track_head_source_split)

@@ -142,7 +142,7 @@ def discover_basis(teacher, probe, args):
     return mean.float(), (stencil @ directions).float(), energies.clamp(0, 1).float()
 
 
-def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None):
+def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, 192), nn.GELU(),
                             nn.Linear(192, basis.shape[1])).to(x.device)
@@ -158,7 +158,13 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None):
             optimizer.zero_grad(set_to_none=True)
             batch = x[ix]
             prediction = student(torch.cat([batch, *(view(batch) for view in views)]))
-            F.mse_loss(prediction, torch.cat([target[ix], *(values[ix] for values in targets_by_view)])).backward()
+            expected = torch.cat([target[ix], *(values[ix] for values in targets_by_view)])
+            if metric is None:
+                loss = F.mse_loss(prediction, expected)
+            else:
+                residual = prediction - expected
+                loss = ((residual @ metric) * residual).mean()
+            loss.backward()
             optimizer.step()
     return student.eval()
 
