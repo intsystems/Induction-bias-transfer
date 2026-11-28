@@ -1220,3 +1220,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-schedule --seeds $(seq 665 680) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Ширина студента и перенос геометрии
+
+Сравниваем студентов с 48 и 192 скрытыми нейронами. Для каждой ширины используем равномерную ошибку, ошибку с весами по геометрии естественных пар и повёрнутый контроль с тем же спектром. Учитель, размер его целевого представления, порядок изображений, число шагов и поддержка в целевых эпизодах совпадают. Инициализация совпадает между тремя условиями каждой ширины.
+
+Основной парный контраст на seed 681–696 при трёх метках измеряет разность выигрышей естественной геометрии над повёрнутой у узкого и широкого студента. Сбалансированную точность отражённых кадров из отложенных треков GTSRB усредняем с равными весами двух семейств задач и трёх позиций кадра. Дополнительно сравниваем с равномерной ошибкой при каждой ширине и оцениваем исходные кадры и меньшие бюджеты меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_width"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-width --seeds $(seq 681 696) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```

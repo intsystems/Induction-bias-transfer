@@ -1272,13 +1272,18 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 variants = [(f"{phase}_{name}", key, source, epochs)
                             for phase, epochs in (("early", early), ("late", late))
                             for name, key in (("track", "head_same_class"), ("rotated", "head_rotated"))]
+            narrow_variants = {}
+            if args.track_distillation_width:
+                narrow_variants = {"narrow_uniform": None, "narrow_track": "head_same_class", "narrow_rotated": "head_rotated"}
+                variants.extend((name, key, source, None) for name, key in narrow_variants.items())
             for name, key, training_source, metric_epochs in variants:
                 metric = None
                 if key is not None:
                     matrix = priors[key].sum(axis=0)
                     metric = source.new_tensor(matrix / np.diag(matrix).mean())
                 learned = fit_student(training_source, teacher, basis, mean, args, seed + 100,
-                                      metric=metric, metric_epochs=metric_epochs)
+                                      metric=metric, metric_epochs=metric_epochs,
+                                      hidden_width=48 if name in narrow_variants else 192)
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
@@ -1426,11 +1431,12 @@ def main():
     selection.add_argument("--track-distillation-joint", action="store_true")
     selection.add_argument("--track-distillation-blocks", action="store_true")
     selection.add_argument("--track-distillation-schedule", action="store_true")
+    selection.add_argument("--track-distillation-width", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
-            or args.track_distillation_schedule):
+            or args.track_distillation_schedule or args.track_distillation_width):
         args.track_distillation = True
     if args.track_parity_prior_route:
         args.track_parity_policy = True
@@ -1453,7 +1459,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_distillation_schedule:
+        if args.track_distillation_width:
+            name = "track_distillation_width"
+        elif args.track_distillation_schedule:
             name = "track_distillation_schedule"
         elif args.track_distillation_blocks:
             name = "track_distillation_blocks"

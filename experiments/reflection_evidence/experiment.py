@@ -142,10 +142,11 @@ def discover_basis(teacher, probe, args):
     return mean.float(), (stencil @ directions).float(), energies.clamp(0, 1).float()
 
 
-def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None):
+def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
+                hidden_width=192):
     torch.manual_seed(seed)
-    student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, 192), nn.GELU(),
-                            nn.Linear(192, basis.shape[1])).to(x.device)
+    student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
+                            nn.Linear(hidden_width, basis.shape[1])).to(x.device)
     optimizer = torch.optim.AdamW(student.parameters(), lr=0.002)
     rng = torch.Generator().manual_seed(seed)
     views = (teacher.view,) if training_views is None else training_views
