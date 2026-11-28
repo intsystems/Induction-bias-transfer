@@ -144,7 +144,7 @@ def discover_basis(teacher, probe, args):
 
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
                 hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.,
-                reflection_epochs=None, orbit_actions=None):
+                reflection_epochs=None, orbit_actions=None, orbit_order=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
                             nn.Linear(hidden_width, basis.shape[1])).to(x.device)
@@ -155,8 +155,19 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         raise ValueError("reflection projection requires the teacher's default training view")
     if reflection_penalty and reflection_action is None:
         raise ValueError("a reflection penalty requires a projection action")
-    if orbit_actions is not None and (reflection_action is not None or len(orbit_actions) != len(views) + 1):
-        raise ValueError("orbit projection requires one action per view and no separate reflection action")
+    if orbit_actions is not None:
+        if orbit_actions.ndim == 3:
+            orbit_actions = orbit_actions.unsqueeze(0)
+        if (reflection_action is not None or orbit_actions.ndim != 4
+                or orbit_actions.shape[0] * orbit_actions.shape[1] != len(views) + 1):
+            raise ValueError("orbit projection requires one action per view and no separate reflection action")
+        if orbit_order is not None:
+            if sorted(orbit_order) != list(range(len(views) + 1)):
+                raise ValueError("orbit order must be a permutation of all view indices")
+            orbit_order = torch.tensor(orbit_order, device=x.device)
+            inverse_order = orbit_order.argsort()
+    elif orbit_order is not None:
+        raise ValueError("orbit order requires orbit actions")
     with torch.no_grad():
         target = torch.cat([(teacher.encode(batch) - mean) @ basis for batch in x.split(args.batch_size)])
         targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
@@ -175,9 +186,15 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
                 pair = prediction.reshape(2, len(batch), -1)
                 prediction = ((pair + pair.flip(0) @ reflection_action) / 2).flatten(0, 1)
             if orbit_actions is not None:
-                orbit = prediction.reshape(len(orbit_actions), len(batch), -1)
-                centered = (orbit @ orbit_actions.transpose(1, 2)).mean(dim=0)
-                prediction = (centered @ orbit_actions).flatten(0, 1)
+                orbit = prediction.reshape(len(views) + 1, len(batch), -1)
+                if orbit_order is not None:
+                    orbit = orbit[orbit_order]
+                orbit = orbit.reshape(*orbit_actions.shape[:2], len(batch), -1)
+                centered = (orbit @ orbit_actions.transpose(-2, -1)).mean(dim=1, keepdim=True)
+                projected = (centered @ orbit_actions).flatten(0, 1)
+                if orbit_order is not None:
+                    projected = projected[inverse_order]
+                prediction = projected.flatten(0, 1)
             expected = torch.cat([target[ix], *(values[ix] for values in targets_by_view)])
             if not weighted:
                 loss = F.mse_loss(prediction, expected)

@@ -14,6 +14,8 @@ METHODS = {"inference_only": "Project only for prediction", "learned_training": 
            "rotated_training": "Rotated action in training"}
 APPROXIMATE_METHODS = {"inference_only": "Project only for prediction", "learned_training": "Round all angles",
                        "midpoint_training": "Round angles halfway", "unrounded_training": "Keep fitted angles"}
+SUBGROUP_METHODS = {"inference_only": "Project only for prediction", "learned_training": "Joint projection",
+                    "rotations_only": "Rotation projection", "reflection_only": "Reflection projection"}
 
 
 def main():
@@ -27,6 +29,8 @@ def main():
         plot_view_budget(data["runs"], shots, args.output)
         return
     methods = APPROXIMATE_METHODS if data["config"].get("approximate_action", False) else METHODS
+    if data["config"].get("dihedral_subgroups", False):
+        methods = SUBGROUP_METHODS
     performance = {method: 100 * np.array([
         [run["shots"][str(count)][method]["clean_accuracy"] for count in shots] for run in data["runs"]
     ]) for method in methods}
@@ -52,10 +56,12 @@ def plot_view_budget(runs, shots, output):
     names = ("one", "adjacent", "opposite", "four")
     labels = ("One", "Two adjacent", "Two opposite", "Four")
     figure, axes = plt.subplots(1, 2, figsize=(11, 4), layout="constrained")
+    models = {"inference_only": "Projection only at prediction", "learned_training": "Four views in training projection"}
+    if "half_turn_training" in runs[0]["shots"][str(min(shots))]:
+        models["half_turn_training"] = "Two views in training projection"
     for axis, (metric, title) in zip(axes, (("mean_accuracy", "Mean over input rotations"),
                                            ("all_rotations_accuracy", "All input rotations correct")), strict=True):
-        for model, label in (("inference_only", "Projection only at prediction"),
-                             ("learned_training", "Projection also in training")):
+        for model, label in models.items():
             accuracy = [[run["shots"][str(min(shots))][model][view][metric] for view in names] for run in runs]
             axis.plot(labels, 100 * np.mean(accuracy, axis=0), marker="o", label=label)
         axis.set_title(title)

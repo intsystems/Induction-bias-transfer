@@ -89,6 +89,14 @@ def dihedral_actions(rotation, reflection):
     return np.stack((powers, powers @ reflection), axis=1).reshape(8, len(rotation), len(rotation))
 
 
+def subgroup_actions(rotation, reflection):
+    powers = rotation_powers(rotation)
+    rotations = np.stack((powers, powers[[0, 3, 2, 1]]))
+    rotation_order = (0, 2, 4, 6, 1, 3, 5, 7)
+    reflections = np.repeat(np.stack((np.eye(len(reflection)), reflection))[None], 4, axis=0)
+    return (("rotations_only", rotations, rotation_order), ("reflection_only", reflections, None))
+
+
 @torch.inference_mode()
 def teacher_orbit(teacher, images, basis, mean, batch_size):
     parts = []
@@ -134,9 +142,11 @@ def evaluate_view_budgets(prior, support, queries, target_classes, args, seed):
             for name, pooled_support in fixed_support.items():
                 train = np.concatenate([pooled_support[label][indices[:count]]
                                         for label, indices in zip(target_classes, chosen, strict=True)]).astype(np.float64)
-                correct = predict(prior, train, labels, fixed_queries[name], args.noise).argmax(axis=-1) == truth
-                observations[str(count)][name].append((correct.mean(), correct.all(axis=0).mean()))
-    return {count: {name: dict(zip(("mean_accuracy", "all_rotations_accuracy"),
+                predictions = predict(prior, train, labels, fixed_queries[name], args.noise).argmax(axis=-1)
+                correct = predictions == truth
+                agreement = (predictions == predictions[:1]).all(axis=0).mean()
+                observations[str(count)][name].append((correct.mean(), correct.all(axis=0).mean(), agreement))
+    return {count: {name: dict(zip(("mean_accuracy", "all_rotations_accuracy", "rotation_agreement"),
                                   np.mean(rows, axis=0).tolist(), strict=True))
                     for name, rows in measurements.items()} for count, measurements in observations.items()}
 
@@ -163,7 +173,7 @@ def run(train, test, args, seed, device):
     candidates = {"learned": action}
     if args.approximate_action:
         candidates.update(midpoint=round_quarter_turn(fitted, .5), unrounded=fitted)
-    elif not args.view_budget:
+    elif not (args.view_budget or args.dihedral_subgroups):
         generator = np.random.default_rng(seed + 250)
         rotation, _ = np.linalg.qr(generator.standard_normal(action.shape))
         candidates["rotated"] = rotation @ action @ rotation.T
@@ -176,17 +186,23 @@ def run(train, test, args, seed, device):
     fixed_tensor = source.new_tensor(fixed)
 
     shots = {str(count): {} for count in args.shots}
-    variants = [("inference_only", None)]
+    variants = [("inference_only", None, None)]
     for name, action_option in candidates.items():
         if args.dihedral_action:
             reflection_option = reflection if name == "learned" else rotation @ reflection @ rotation.T
             actions = dihedral_actions(action_option, reflection_option)
         else:
             actions = rotation_powers(action_option)
-        variants.append((f"{name}_training", actions))
-    for name, actions in variants:
+        variants.append((f"{name}_training", actions, None))
+    if args.dihedral_subgroups:
+        variants.extend(subgroup_actions(action, reflection))
+    if args.training_view_budget:
+        pairs = np.repeat(powers[[0, 2]][None], 2, axis=0)
+        variants.append(("half_turn_training", pairs, (0, 2, 1, 3)))
+    for name, actions, action_order in variants:
         student = fit_student(source, teacher, basis, mean, args, seed + 100, training_views=orbit_views,
-                              orbit_actions=None if actions is None else source.new_tensor(actions))
+                              orbit_actions=None if actions is None else source.new_tensor(actions),
+                              orbit_order=action_order)
         support, queries = (invariant_embeddings(student, part, fixed_tensor, args, device, views=orbit_views,
                                                  return_orbit=args.view_budget)
                             for part in (target, query))
@@ -236,12 +252,22 @@ def main():
     comparison.add_argument("--approximate-action", action="store_true")
     comparison.add_argument("--view-budget", action="store_true")
     comparison.add_argument("--dihedral-action", action="store_true")
+    comparison.add_argument("--dihedral-subgroups", action="store_true")
+    comparison.add_argument("--training-view-budget", action="store_true")
     args = parser.parse_args()
+    if args.dihedral_subgroups:
+        args.dihedral_action = True
+    if args.training_view_budget:
+        args.view_budget = True
     dataset_name, first_seed = RESULTS.name, 1249
     if args.approximate_action:
         dataset_name, first_seed = "quarter_turn_approximate", 1265
+    elif args.training_view_budget:
+        dataset_name, first_seed = "quarter_turn_training_view_budget", 1329
     elif args.view_budget:
         dataset_name, first_seed = "quarter_turn_view_budget", 1281
+    elif args.dihedral_subgroups:
+        dataset_name, first_seed = "dihedral_subgroups", 1313
     elif args.dihedral_action:
         dataset_name, first_seed = "dihedral_projection", 1297
     if args.output is None:
