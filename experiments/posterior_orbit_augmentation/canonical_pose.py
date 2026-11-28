@@ -498,6 +498,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
     rng = np.random.default_rng(seed)
     names = ["head_same_track", "head_same_class", "head_rotated"]
     spectrum_names = ("head_track_cross_spectrum", "head_class_cross_spectrum", "head_rotated_cross_spectrum")
+    include_synthetic = args.track_head_synthetic or args.track_distillation_synthetic
     width = basis.shape[1]
     odd = odd.cpu().numpy()
     eligible = np.flatnonzero(partners["same_track"].numpy() >= 0)
@@ -555,7 +556,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             residuals[1], source_labels.numpy()[eligible], probe_latent, probe_labels.numpy(),
             probe_partners["same_class"].numpy(), seed + 1100)
         additional_residuals.update(matched)
-    if args.track_head_synthetic:
+    if include_synthetic:
         rng_pose = torch.Generator(device=source.device).manual_seed(seed + 1200)
         distorted = []
         for indices in torch.from_numpy(eligible).split(args.batch_size):
@@ -564,7 +565,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             distorted.append(teacher.encode(pose_warp(images, pose)) @ basis)
         additional_residuals["head_synthetic_pairs"] = latent[eligible] - torch.cat(distorted).cpu().numpy()
     names.extend(additional_residuals)
-    if args.track_head_synthetic:
+    if include_synthetic:
         names.append("head_natural_synthetic")
     if args.track_head_spectrum:
         names.extend(spectrum_names)
@@ -585,7 +586,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
         for residual in (*student_residuals, *additional_residuals.values()):
             part = residual[:, block].astype(np.float64)
             bases.append(np.linalg.eigh(part.T @ part)[1])
-        if args.track_head_synthetic:
+        if include_synthetic:
             synthetic = additional_residuals["head_synthetic_pairs"][:, block].astype(np.float64)
             synthetic_moment = synthetic.T @ synthetic / len(synthetic)
             mixed = moments[1] / max(float(np.trace(moments[1])), 1e-12)
@@ -1260,6 +1261,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             if args.track_distillation_blocks:
                 variants.extend((("even_distilled", "head_learned_even", source, None),
                                  ("odd_distilled", "head_learned_odd", source, None)))
+            if args.track_distillation_synthetic:
+                variants.extend((("synthetic_distilled", "head_synthetic_pairs", source, None),
+                                 ("mixed_distilled", "head_natural_synthetic", source, None)))
             if args.track_distillation_budget:
                 indices = repeated_source_indices(labels.numpy(), 32, seed + 600)
                 limited = source[torch.from_numpy(indices)]
@@ -1432,11 +1436,12 @@ def main():
     selection.add_argument("--track-distillation-blocks", action="store_true")
     selection.add_argument("--track-distillation-schedule", action="store_true")
     selection.add_argument("--track-distillation-width", action="store_true")
+    selection.add_argument("--track-distillation-synthetic", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
-            or args.track_distillation_schedule or args.track_distillation_width):
+            or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic):
         args.track_distillation = True
     if args.track_parity_prior_route:
         args.track_parity_policy = True
@@ -1461,6 +1466,8 @@ def main():
     if args.output is None:
         if args.track_distillation_width:
             name = "track_distillation_width"
+        elif args.track_distillation_synthetic:
+            name = "track_distillation_synthetic"
         elif args.track_distillation_schedule:
             name = "track_distillation_schedule"
         elif args.track_distillation_blocks:

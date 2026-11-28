@@ -123,6 +123,9 @@ TRACK_DISTILLATION_SCHEDULE_METHODS = {"raw": "Uniform throughout", "early_track
 TRACK_DISTILLATION_WIDTH_METHODS = {"raw": "Width 192 · uniform", "track_distilled": "Width 192 · natural metric",
                                    "rotated_distilled": "Width 192 · rotated", "narrow_uniform": "Width 48 · uniform",
                                    "narrow_track": "Width 48 · natural metric", "narrow_rotated": "Width 48 · rotated"}
+TRACK_DISTILLATION_SYNTHETIC_METHODS = {"raw": "Uniform loss", "track_distilled": "Natural pairs",
+                                       "synthetic_distilled": "Synthetic pairs", "mixed_distilled": "Mixed pairs",
+                                       "rotated_distilled": "Rotated directions"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -155,6 +158,8 @@ def main():
     methods = METHODS
     if results["config"].get("track_distillation_width", False):
         methods = TRACK_DISTILLATION_WIDTH_METHODS
+    elif results["config"].get("track_distillation_synthetic", False):
+        methods = TRACK_DISTILLATION_SYNTHETIC_METHODS
     elif results["config"].get("track_distillation_schedule", False):
         methods = TRACK_DISTILLATION_SCHEDULE_METHODS
     elif results["config"].get("track_distillation_blocks", False):
