@@ -602,7 +602,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
             block_covariance = (axes * spectra[name]) @ axes.T
             for mode, proportion in enumerate(proportions):
                 priors[name][mode][index] = proportion * block_covariance
-    if args.track_head_blocks:
+    if args.track_head_blocks or args.track_distillation_blocks:
         for name, mask in (("head_learned_even", ~odd), ("head_learned_odd", odd)):
             keep = mask[:, None] & mask[None, :]
             priors[name] = np.where(keep, priors["head_same_class"], priors["head_rotated"])
@@ -1256,6 +1256,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             if args.track_distillation_joint:
                 head_kernels = {key: priors[key] for key in ("head_same_class", "head_rotated")}
             variants = [("track_distilled", "head_same_class", source), ("rotated_distilled", "head_rotated", source)]
+            if args.track_distillation_blocks:
+                variants.extend((("even_distilled", "head_learned_even", source),
+                                 ("odd_distilled", "head_learned_odd", source)))
             if args.track_distillation_budget:
                 indices = repeated_source_indices(labels.numpy(), 32, seed + 600)
                 limited = source[torch.from_numpy(indices)]
@@ -1412,10 +1415,11 @@ def main():
     selection.add_argument("--track-distillation", action="store_true")
     selection.add_argument("--track-distillation-budget", action="store_true")
     selection.add_argument("--track-distillation-joint", action="store_true")
+    selection.add_argument("--track-distillation-blocks", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
-    if args.track_distillation_budget or args.track_distillation_joint:
+    if args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks:
         args.track_distillation = True
     if args.track_parity_prior_route:
         args.track_parity_policy = True
@@ -1438,7 +1442,9 @@ def main():
         else:
             args.strengths = [0., .5, 1.] if args.natural_track_pose else [0., .5, 1., 1.5]
     if args.output is None:
-        if args.track_distillation_joint:
+        if args.track_distillation_blocks:
+            name = "track_distillation_blocks"
+        elif args.track_distillation_joint:
             name = "track_distillation_joint"
         elif args.track_distillation_budget:
             name = "track_distillation_budget"
