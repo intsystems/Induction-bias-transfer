@@ -34,17 +34,20 @@ def reflect(x):
 
 
 class Teacher(nn.Module):
-    def __init__(self, classes=len(SOURCE_IDS), *, view=reflect):
+    def __init__(self, classes=len(SOURCE_IDS), *, view=reflect, equivariant=True):
         super().__init__()
         self.view = view
+        self.equivariant = equivariant
         self.base = nn.Sequential(
             nn.Conv2d(3, 24, 5, padding=2), nn.GELU(), nn.AvgPool2d(2),
             nn.Conv2d(24, 32, 3, padding=1), nn.GELU(),
             nn.AdaptiveAvgPool2d(2), nn.Flatten(),
         )
-        self.head = nn.Linear(256, classes)
+        self.head = nn.Linear(256 if equivariant else 128, classes)
 
     def encode(self, x):
+        if not self.equivariant:
+            return self.base(x)
         clean, mirrored = self.base(torch.cat([x, self.view(x)])).chunk(2)
         return torch.cat(((clean + mirrored) / 2, (clean - mirrored) / 2), dim=1)
 
@@ -111,9 +114,9 @@ def preprocess(train, test, args, *, target_ids=None, include_source_paths=False
     return data
 
 
-def fit_teacher(x, y, args, seed, classes=len(SOURCE_IDS), *, view=reflect):
+def fit_teacher(x, y, args, seed, classes=len(SOURCE_IDS), *, view=reflect, equivariant=True):
     torch.manual_seed(seed)
-    teacher = Teacher(classes, view=view).to(x.device)
+    teacher = Teacher(classes, view=view, equivariant=equivariant).to(x.device)
     optimizer = torch.optim.AdamW(teacher.parameters(), lr=0.003)
     rng = torch.Generator().manual_seed(seed)
     for _ in range(args.teacher_epochs):
@@ -145,7 +148,7 @@ def discover_basis(teacher, probe, args):
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
                 hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.,
                 reflection_epochs=None, orbit_actions=None, orbit_order=None, invariant_variance_weight=0.,
-                target_inputs=None, variance_projector=None, reflection_penalty_mask=None):
+                target_inputs=None, variance_projector=None, reflection_penalty_mask=None, reflection_strengths=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
                             nn.Linear(hidden_width, basis.shape[1])).to(x.device)
@@ -156,6 +159,8 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         raise ValueError("reflection projection requires the teacher's default training view")
     if reflection_penalty and reflection_action is None:
         raise ValueError("a reflection penalty requires a projection action")
+    if reflection_strengths is not None and reflection_action is None:
+        raise ValueError("reflection strengths require a projection action")
     penalty_metric = metric
     if reflection_penalty_mask is not None and metric is not None:
         block = metric[reflection_penalty_mask][:, reflection_penalty_mask]
@@ -204,7 +209,10 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
             prediction = raw_prediction
             if project:
                 pair = prediction.reshape(2, len(batch), -1)
-                prediction = ((pair + pair.flip(0) @ reflection_action) / 2).flatten(0, 1)
+                symmetrized = (pair + pair.flip(0) @ reflection_action) / 2
+                if reflection_strengths is not None:
+                    symmetrized = pair + reflection_strengths * (symmetrized - pair)
+                prediction = symmetrized.flatten(0, 1)
             if orbit_actions is not None:
                 orbit = prediction.reshape(len(views) + 1, len(batch), -1)
                 if orbit_order is not None:

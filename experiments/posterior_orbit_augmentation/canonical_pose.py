@@ -746,8 +746,21 @@ def natural_track_embeddings(student, models, images, tracks, args, device, *, a
     return output
 
 
-def reflect_projected_views(views, action):
-    return (views + views[::-1] @ action) / 2
+def reflect_projected_views(views, action, strengths=None):
+    projected = (views + views[::-1] @ action) / 2
+    return projected if strengths is None else views + strengths * (projected - views)
+
+
+@torch.inference_mode()
+def teacher_reflection_error(teacher, images, basis, mean, odd, batch_size):
+    sign = torch.where(odd, -1., 1.)
+    error, energy = 0., 0.
+    for batch in images.split(batch_size):
+        views = torch.cat((batch, teacher.view(batch)))
+        clean, reflected = ((teacher.encode(views) - mean) @ basis).chunk(2)
+        error += (reflected - clean * sign).square().sum().item()
+        energy += clean.square().sum().item() + reflected.square().sum().item()
+    return error / max(energy, 1e-12)
 
 
 @torch.no_grad()
@@ -810,14 +823,15 @@ def calibrate_track_projection(student, images, odd_count, batch_size, *, sparse
     return actions
 
 
-def add_projected_track_readouts(name, support, original, query, actions, prior, distilled_support, *, feature="raw"):
+def add_projected_track_readouts(name, support, original, query, actions, prior, distilled_support, *,
+                                 feature="raw", strengths=None):
     for variant, action in actions.items():
         key = f"{name}_{variant}"
-        distilled_support[key] = ({label: reflect_projected_views(views, action)[0]
+        distilled_support[key] = ({label: reflect_projected_views(views, action, strengths)[0]
                                    for label, views in support.items()}, prior)
         for label, positions in original.items():
             for strength, (values, _) in positions.items():
-                query[label][strength][0][key] = reflect_projected_views(values[feature], action)
+                query[label][strength][0][key] = reflect_projected_views(values[feature], action, strengths)
 
 
 def average_head_directions(teacher_prior, student_prior, odd):
@@ -1393,8 +1407,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
     (source, labels), (probe, probe_labels), train, test, tracks = data
     source = source.to(device, dtype=torch.float32) / 255
     probe = probe.to(device, dtype=torch.float32) / 255
-    teacher = fit_teacher(source, labels.to(device), args, seed)
+    teacher = fit_teacher(source, labels.to(device), args, seed,
+                          equivariant=not args.track_distillation_projection_approx_teacher)
     basis_probe = (probe[::2] if args.selective or args.posterior_selection or args.pose_refinement or args.angle_gate
+                   or args.track_distillation_projection_approx_teacher
                    else probe)
     mean, basis, energies = discover_basis(teacher, basis_probe, args)
     student = fit_student(source, teacher, basis, mean, args, seed + 100)
@@ -1460,7 +1476,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                              angle_control=source_partners is None and not args.track_head_prior
                                              and not args.track_distillation)
         if args.track_distillation:
-            priors, _ = natural_track_head_priors(teacher, basis, odd, source, source_partners, args, seed + 250)
+            priors = {}
+            if not args.track_distillation_projection_approx_teacher:
+                priors, _ = natural_track_head_priors(teacher, basis, odd, source, source_partners, args, seed + 250)
             distilled_support = {}
             if args.track_distillation_joint:
                 head_kernels = {key: priors[key] for key in ("head_same_class", "head_rotated")}
@@ -1505,6 +1523,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             projection_penalties = {}
             reflection_schedules = {}
             reflection_penalty_masks = {}
+            training_projection_actions = {}
+            projection_strengths = None
             if args.track_distillation_projection:
                 late = range(args.student_epochs - args.student_epochs // 2, args.student_epochs)
                 variants = [("late_track", "head_same_class", source, late)]
@@ -1567,6 +1587,17 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                 ("relative_augmented", "head_same_class", natural, late),
                                 ("relative_shuffled", "head_same_class", shuffled, late)]
                     projection_penalties = dict.fromkeys((name for name, *_ in variants), 0.)
+                elif args.track_distillation_projection_approx_teacher:
+                    variants = [("estimated_training", None, source, None)]
+                    if args.track_distillation_projection_confident_teacher:
+                        variants.append(("confident_training", None, source, None))
+                        projection_strengths = (2 * energies - 1).abs().cpu().numpy()
+                    else:
+                        variants.append(("rotated_training", None, source, None))
+                        rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
+                            (len(reflection_sign), len(reflection_sign))))
+                        training_projection_actions["rotated_training"] = (rotation * reflection_sign) @ rotation.T
+                    projection_penalties = dict.fromkeys((name for name, *_ in variants), 0.)
                 else:
                     rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                         (len(reflection_sign), len(reflection_sign))))
@@ -1593,6 +1624,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     projection_distances["raw"] = float(distance / np.sqrt(len(reflection_sign)))
                 add_projected_track_readouts("raw", support_views, query, query, raw_actions,
                                              projection_prior, distilled_support)
+                if projection_strengths is not None:
+                    add_projected_track_readouts("raw", support_views, query, query,
+                                                 {"confident": projection_actions["aligned"]}, projection_prior,
+                                                 distilled_support, strengths=projection_strengths)
             narrow_variants = {}
             if args.track_distillation_width:
                 narrow_variants = {"narrow_uniform": None, "narrow_track": "head_same_class", "narrow_rotated": "head_rotated"}
@@ -1603,17 +1638,20 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     matrix = priors[key].sum(axis=0)
                     metric = source.new_tensor(matrix / np.diag(matrix).mean())
                 during_training = name in projection_penalties
+                action = (source.new_tensor(training_projection_actions.get(name, projection_actions["aligned"]))
+                          if during_training else None)
                 learned = fit_student(training_source, teacher, basis, mean, args, seed + 100,
                                       metric=metric, metric_epochs=metric_epochs,
                                       hidden_width=48 if name in narrow_variants else 192,
                                       frozen_feature_epochs=frozen_epochs.get(name),
-                                      reflection_action=source.new_tensor(projection_actions["aligned"])
-                                      if during_training else None,
+                                      reflection_action=action,
                                       reflection_penalty=projection_penalties.get(name, 0.),
                                       reflection_epochs=reflection_schedules.get(name),
                                       target_inputs=source if name in {"canonical_trained", "relative_augmented",
                                                                        "relative_shuffled"} else None,
-                                      reflection_penalty_mask=reflection_penalty_masks.get(name))
+                                      reflection_penalty_mask=reflection_penalty_masks.get(name),
+                                      reflection_strengths=source.new_tensor(projection_strengths)
+                                      if name == "confident_training" else None)
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, models, train, natural_queries, args, device,
@@ -1635,6 +1673,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                         projection_distances[name] = float(distance / np.sqrt(len(reflection_sign)))
                     add_projected_track_readouts(name, features, transformed, query, learned_actions,
                                                  projection_prior, distilled_support)
+                    if projection_strengths is not None:
+                        add_projected_track_readouts(name, features, transformed, query,
+                                                     {"confident": projection_actions["aligned"]}, projection_prior,
+                                                     distilled_support, strengths=projection_strengths)
                 if args.track_distillation_projection_canonical:
                     for method in ("canonical", "canonical_symmetric"):
                         add_projected_track_readouts(method, features, transformed, query, projection_actions,
@@ -1712,6 +1754,11 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             diagnostics["folded_projection"] = folding
         if augmentation_count is not None:
             diagnostics["augmented_source_count"] = augmentation_count
+        if args.track_distillation_projection_approx_teacher:
+            diagnostics["teacher_reflection_error"] = teacher_reflection_error(
+                teacher, probe[1::2], basis, mean, odd, args.batch_size)
+        if args.track_distillation_projection_confident_teacher:
+            diagnostics["mean_projection_strength"] = float(projection_strengths.mean())
         if args.track_consistency:
             diagnostics["mean_track_weight"] = select_track_corrections(query, odd, seed + 500)
         if teacher_rotation is not None:
@@ -1868,9 +1915,13 @@ def main():
     selection.add_argument("--track-distillation-projection-relative-augmentation", action="store_true")
     selection.add_argument("--track-distillation-projection-mixed-prior", action="store_true")
     selection.add_argument("--track-distillation-projection-head-validation", action="store_true")
+    selection.add_argument("--track-distillation-projection-approx-teacher", action="store_true")
+    selection.add_argument("--track-distillation-projection-confident-teacher", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_distillation_projection_confident_teacher:
+        args.track_distillation_projection_approx_teacher = True
     if args.track_distillation_projection_mixed_prior:
         args.track_distillation_projection_student_prior = True
     if (args.track_distillation_projection_student_prior or args.track_distillation_projection_head_routing
@@ -1886,7 +1937,7 @@ def main():
             or args.track_distillation_projection_folded or args.track_distillation_projection_terminal
             or args.track_distillation_projection_canonical or args.track_distillation_projection_joint_head
             or args.track_distillation_projection_canonical_train or args.track_distillation_projection_single_view_penalty
-            or args.track_distillation_projection_relative_augmentation):
+            or args.track_distillation_projection_relative_augmentation or args.track_distillation_projection_approx_teacher):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1955,6 +2006,10 @@ def main():
             name = "track_distillation_projection_head_validation"
         elif args.track_distillation_projection_relative_augmentation:
             name = "track_distillation_projection_relative_augmentation"
+        elif args.track_distillation_projection_confident_teacher:
+            name = "track_distillation_projection_confident_teacher"
+        elif args.track_distillation_projection_approx_teacher:
+            name = "track_distillation_projection_approx_teacher"
         elif args.track_distillation_projection_joint_head:
             name = "track_distillation_projection_joint_head"
         elif args.track_distillation_projection_canonical_train:
@@ -2060,7 +2115,8 @@ def main():
     torch.set_num_threads(2)
     device = torch.device(args.device)
     train_dataset = GTSRB(args.data, split="train", download=True)
-    use_source_paths = args.train_track_canonicalizer or args.track_head_prior or args.track_distillation
+    use_source_paths = (args.train_track_canonicalizer or args.track_head_prior
+                        or (args.track_distillation and not args.track_distillation_projection_approx_teacher))
     data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args,
                       include_source_paths=use_source_paths and not args.track_head_predicted,
                       include_probe_paths=args.track_head_predicted or args.track_head_source_split)

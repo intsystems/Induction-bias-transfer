@@ -220,6 +220,19 @@ TRACK_DISTILLATION_PROJECTION_RELATIVE_AUGMENTATION_METHODS = {
     "relative_augmented_aligned": "Relative pose from paired frame",
     "relative_shuffled_aligned": "Same relative poses shuffled within class",
 }
+TRACK_DISTILLATION_PROJECTION_APPROX_TEACHER_METHODS = {
+    "raw_aligned": "Estimated action · prediction only",
+    "estimated_training_aligned": "Estimated action in training",
+    "rotated_training_aligned": "Rotated action in training",
+}
+TRACK_DISTILLATION_PROJECTION_CONFIDENT_TEACHER_METHODS = {
+    "raw_aligned": "Ordinary training · full projection",
+    "estimated_training_aligned": "Full training projection · full projection",
+    "confident_training_aligned": "Weighted training projection · full projection",
+    "raw_confident": "Ordinary training · weighted projection",
+    "estimated_training_confident": "Full training projection · weighted projection",
+    "confident_training_confident": "Weighted training and prediction projection",
+}
 TRACK_DISTILLATION_PROJECTION_MIXED_PRIOR_METHODS = {
     "trained_late_natural_head_aligned": "Training projection · teacher prior",
     "trained_late_student_head_aligned": "Training projection · student prior",
@@ -332,6 +345,10 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_HEAD_POLICY_METHODS
     elif results["config"].get("track_distillation_projection_relative_augmentation", False):
         methods = TRACK_DISTILLATION_PROJECTION_RELATIVE_AUGMENTATION_METHODS
+    elif results["config"].get("track_distillation_projection_confident_teacher", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CONFIDENT_TEACHER_METHODS
+    elif results["config"].get("track_distillation_projection_approx_teacher", False):
+        methods = TRACK_DISTILLATION_PROJECTION_APPROX_TEACHER_METHODS
     elif results["config"].get("track_distillation_projection_joint_head", False):
         methods = TRACK_DISTILLATION_PROJECTION_JOINT_HEAD_METHODS
     elif results["config"].get("track_distillation_projection_canonical_train", False):
