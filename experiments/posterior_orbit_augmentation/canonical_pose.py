@@ -466,7 +466,7 @@ def track_prior_spectrum(energies):
 
 @torch.no_grad()
 def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed, *,
-                              source_paths=None, student=None, source_labels=None):
+                              source_paths=None, student=None, source_labels=None, probe_data=None):
     rng = np.random.default_rng(seed)
     names = ["head_same_track", "head_same_class", "head_rotated"]
     spectrum_names = ("head_track_cross_spectrum", "head_class_cross_spectrum", "head_rotated_cross_spectrum")
@@ -487,8 +487,8 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
                              for name in ("same_track", "same_class")]
         names.extend(("head_student_track", "head_student_class"))
     additional_residuals = {}
-    neighbor_diagnostics = None
-    if source_labels is not None:
+    pair_diagnostics = None
+    if source_labels is not None and probe_data is None:
         labels = source_labels.numpy()[eligible]
         sampling = np.random.default_rng(seed + 1000)
         order = [sampling.permutation(np.flatnonzero(labels == label)) for label in np.unique(labels)]
@@ -517,9 +517,16 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
         logits = None
         if args.track_head_predicted:
             logits = torch.cat([teacher(batch) for batch in source.split(args.batch_size)]).cpu().numpy()
-        neighbor_residuals, neighbor_diagnostics = natural_track_neighbor_residuals(
+        neighbor_residuals, pair_diagnostics = natural_track_neighbor_residuals(
             latent, source_paths, eligible, odd, logits=logits)
         additional_residuals.update(neighbor_residuals)
+    if probe_data is not None:
+        probe, probe_labels, probe_partners = probe_data
+        probe_latent = torch.cat([teacher.encode(batch) @ basis for batch in probe.split(args.batch_size)]).cpu().numpy()
+        matched, pair_diagnostics = matched_source_track_residuals(
+            residuals[1], source_labels.numpy()[eligible], probe_latent, probe_labels.numpy(),
+            probe_partners["same_class"].numpy(), seed + 1100)
+        additional_residuals.update(matched)
     names.extend(additional_residuals)
     if args.track_head_spectrum:
         names.extend(spectrum_names)
@@ -555,7 +562,7 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
         for name, mask in (("head_learned_even", ~odd), ("head_learned_odd", odd)):
             keep = mask[:, None] & mask[None, :]
             priors[name] = np.where(keep, priors["head_same_class"], priors["head_rotated"])
-    return priors, neighbor_diagnostics
+    return priors, pair_diagnostics
 
 
 def natural_centroid_differences(latent, paths, eligible):
@@ -613,6 +620,25 @@ def natural_track_neighbor_residuals(latent, paths, eligible, odd, *, logits=Non
             "fallback_fraction": float(np.average(fallback, weights=list(map(len, groups)))),
         }
     return residuals, diagnostics
+
+
+def matched_source_track_residuals(train, train_labels, probe, probe_labels, partners, seed):
+    eligible = partners >= 0
+    probe_residual = probe[eligible] - probe[partners[eligible]]
+    probe_labels = probe_labels[eligible]
+    rng = np.random.default_rng(seed)
+    train_subset, probe_subset, count_by_class = [], [], {}
+    for label in np.intersect1d(train_labels, probe_labels):
+        first = np.flatnonzero(train_labels == label)
+        second = np.flatnonzero(probe_labels == label)
+        count = min(len(first), len(second))
+        train_subset.append(train[rng.permutation(first)[:count]])
+        probe_subset.append(probe_residual[rng.permutation(second)[:count]])
+        count_by_class[str(label)] = count
+    if not count_by_class:
+        raise ValueError("no shared source classes with track pairs")
+    return ({"head_matched_train": np.concatenate(train_subset), "head_matched_probe": np.concatenate(probe_subset)},
+            {"pair_count": sum(count_by_class.values()), "class_count": len(count_by_class)})
 
 
 @torch.inference_mode()
@@ -1094,8 +1120,8 @@ def evaluate_task(pair, sign, support, query, tracks, kernels, args, rng, *, hea
     }
 
 
-def run(data, args, device, seed, *, source_partners=None, source_paths=None):
-    (source, labels), (probe, _), train, test, tracks = data
+def run(data, args, device, seed, *, source_partners=None, source_paths=None, probe_partners=None):
+    (source, labels), (probe, probe_labels), train, test, tracks = data
     source = source.to(device, dtype=torch.float32) / 255
     probe = probe.to(device, dtype=torch.float32) / 255
     teacher = fit_teacher(source, labels.to(device), args, seed)
@@ -1113,15 +1139,16 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
         tracks, natural_queries = split_natural_tracks(tracks, args.shots, args.test_per_class, seed + 400)
         teacher_rotation = None
         teacher_parity = None
-        neighbor_diagnostics = None
+        pair_diagnostics = None
         if args.track_head_prior:
             models = {}
-            head_kernels, neighbor_diagnostics = natural_track_head_priors(
+            head_kernels, pair_diagnostics = natural_track_head_priors(
                 teacher, basis, odd, probe if args.track_head_predicted else source, source_partners,
                 args, seed + 250, source_paths=source_paths,
                 student=student if args.track_head_student else None,
                 source_labels=labels if (args.track_head_budget or args.track_head_pair_control
-                                         or args.track_head_distance) else None)
+                                         or args.track_head_distance or args.track_head_source_split) else None,
+                probe_data=(probe, probe_labels, probe_partners) if args.track_head_source_split else None)
         elif source_partners is None:
             models = {name: fit_paired_canonicalizer(source, args, seed + 200, pairing, angle_bias=True)
                       for name, pairing in (("pose_point", "absolute"), ("paired_full", "same"))}
@@ -1164,8 +1191,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None):
             diagnostics["teacher_rotation"] = teacher_rotation
         if teacher_parity is not None:
             diagnostics["teacher_parity"] = teacher_parity
-        if neighbor_diagnostics is not None:
-            diagnostics["neighbor_pairing"] = neighbor_diagnostics
+        if pair_diagnostics is not None:
+            key = "matched_source" if args.track_head_source_split else "neighbor_pairing"
+            diagnostics[key] = pair_diagnostics
     elif args.pose_refinement:
         calibration = fit_pose_refinement(probe[1::2], pose_model, args, seed + 250)
         query, errors = refinement_embeddings(student, pose_model, test, args, device, seed + 300,
@@ -1275,6 +1303,7 @@ def main():
     selection.add_argument("--track-head-neighbors", action="store_true")
     selection.add_argument("--track-head-spectrum", action="store_true")
     selection.add_argument("--track-head-predicted", action="store_true")
+    selection.add_argument("--track-head-source-split", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1282,7 +1311,8 @@ def main():
         args.track_parity_policy = True
     if (args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget
             or args.track_head_blocks or args.track_head_pair_control or args.track_head_distance
-            or args.track_head_neighbors or args.track_head_spectrum or args.track_head_predicted):
+            or args.track_head_neighbors or args.track_head_spectrum or args.track_head_predicted
+            or args.track_head_source_split):
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1300,6 +1330,8 @@ def main():
     if args.output is None:
         if args.track_parity_prior_route:
             name = "track_parity_prior_route"
+        elif args.track_head_source_split:
+            name = "track_head_source_split"
         elif args.track_head_predicted:
             name = "track_head_predicted"
         elif args.track_head_spectrum:
@@ -1375,10 +1407,15 @@ def main():
     use_source_paths = args.train_track_canonicalizer or args.track_head_prior
     data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args,
                       include_source_paths=use_source_paths and not args.track_head_predicted,
-                      include_probe_paths=args.track_head_predicted)
+                      include_probe_paths=args.track_head_predicted or args.track_head_source_split)
     source_partners = None
     source_paths = None
-    if use_source_paths:
+    probe_partners = None
+    if args.track_head_source_split:
+        data, source_paths, probe_paths = data[:-2], data[-2], data[-1]
+        source_partners = natural_source_partners(source_paths)
+        probe_partners = natural_source_partners(probe_paths)
+    elif use_source_paths:
         data, source_paths = data[:-1], data[-1]
         source_partners = natural_source_partners(source_paths)
     if args.natural_track_pose:
@@ -1405,7 +1442,7 @@ def main():
     start = time.monotonic()
     for seed in args.seeds:
         output["runs"].append(run(data, args, device, seed, source_partners=source_partners,
-                                  source_paths=retained_paths))
+                                  source_paths=retained_paths, probe_partners=probe_partners))
         output["elapsed_seconds"] = time.monotonic() - start
         temporary = args.output.with_suffix(".tmp")
         temporary.write_text(json.dumps(output, indent=2, allow_nan=False) + "\n")

@@ -1015,3 +1015,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-parity-prior-route --seeds $(seq 537 552) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Источник оценки априора при одинаковом бюджете пар
+
+Фиксируем одного учителя и студента. Оцениваем базис по разностям между треками одного исходного класса на двух выборках. Первая состоит из обучающих треков, вторая — из треков, отложенных от обучения сетей. Для каждого класса оставляем одинаковое число пар, доступное в обеих выборках. Во всех вариантах используем спектр, оценённый по разностям внутри обучающих треков. Координаты студента и выборка для оценки чётности общие. Последняя содержит отложенные исходные треки.
+
+Основной парный контраст на seed 553–568 при трёх метках сравнивает отложенные и обучающие треки при совпадающем бюджете. Сбалансированная точность отражённых кадров усредняется по двум семействам задач и трём позициям целевого кадра. Дополнительно сравниваем с априором по всем обучающим парам, равномерным и повёрнутым базисами, проверяем одну и две метки.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_head_source_split"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-head-source-split --seeds $(seq 553 568) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```
