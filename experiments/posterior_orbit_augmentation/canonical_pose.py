@@ -755,6 +755,11 @@ def reflect_projected_views(views, action, strengths=None):
     return projected if strengths is None else views + strengths * (projected - views)
 
 
+def rotated_reflection_action(signs, seed):
+    rotation, _ = np.linalg.qr(np.random.default_rng(seed).standard_normal((len(signs), len(signs))))
+    return (rotation * signs) @ rotation.T
+
+
 @torch.inference_mode()
 def teacher_reflection_error(teacher, images, basis, mean, odd, batch_size):
     sign = torch.where(odd, -1., 1.)
@@ -877,6 +882,13 @@ def rotate_class_prototypes(prototypes, counts, seed):
     return (mean + (action @ ((values - mean) * scale)) / scale).to(prototypes.dtype)
 
 
+def class_target_scale(targets, prototypes):
+    mean = targets.mean(dim=1, keepdim=True)
+    total = (targets - mean).square().mean()
+    between = (prototypes - mean).square().mean()
+    return (total.clamp_min(1e-12) / between.clamp_min(1e-12)).sqrt()
+
+
 def class_target_means(views, labels, *, restore_variance, rotation_seed=None):
     targets = torch.stack(views)
     classes, membership, counts = torch.unique(labels, return_inverse=True, return_counts=True)
@@ -886,10 +898,17 @@ def class_target_means(views, labels, *, restore_variance, rotation_seed=None):
     prototypes = means[:, membership]
     if restore_variance:
         mean = targets.mean(dim=1, keepdim=True)
-        total = (targets - mean).square().mean()
-        between = (prototypes - mean).square().mean()
-        prototypes = mean + (prototypes - mean) * (total / between.clamp_min(1e-12)).sqrt()
+        prototypes = mean + (prototypes - mean) * class_target_scale(targets, prototypes)
     return prototypes.unbind(0)
+
+
+@torch.inference_mode()
+def source_class_target_scale(teacher, source, basis, mean, labels, batch_size):
+    batches = [((teacher.encode(torch.cat((batch, teacher.view(batch)))) - mean) @ basis).reshape(2, len(batch), -1)
+               for batch in source.split(batch_size)]
+    targets = torch.cat(batches, dim=1)
+    prototypes = torch.stack(class_target_means(targets.unbind(0), labels, restore_variance=False))
+    return float(class_target_scale(targets, prototypes))
 
 
 def gaussian_class_targets(views, labels, seed, *, rotation=None):
@@ -1621,6 +1640,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             architecture_diagnostics = {}
             projection_strengths = None
             confidence_priors = {}
+            head_prior_multipliers = {}
             if args.track_distillation_projection:
                 late = range(args.student_epochs - args.student_epochs // 2, args.student_epochs)
                 variants = [("late_track", "head_same_class", source, late)]
@@ -1740,6 +1760,18 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                                                   restore_variance=restore, rotation_seed=rotation_seed)
                                 variants.append((name, None, source, None))
                                 projection_penalties[name] = 0.
+                            if args.track_distillation_projection_class_scale:
+                                target_scale = source_class_target_scale(teacher, source, basis, mean, class_labels,
+                                                                         args.batch_size)
+                                head_prior_multipliers = {"class_prototypes": target_scale**2,
+                                                          "scaled_class_prototypes": target_scale**-2}
+                            if args.track_distillation_projection_class_projection:
+                                for name in ("class_targets_no_projection", "class_targets_rotated_projection"):
+                                    target_transforms[name] = target_transforms["scaled_class_prototypes"]
+                                    variants.append((name, None, source, None))
+                                projection_penalties["class_targets_rotated_projection"] = 0.
+                                training_projection_actions["class_targets_rotated_projection"] = (
+                                    rotated_reflection_action(reflection_sign, seed + 950))
                         if args.track_distillation_projection_gaussian_targets:
                             class_labels = labels.to(source.device)
                             rotation = np.eye(len(odd))
@@ -1772,13 +1804,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     else:
                         variants.append(("rotated_training", None, source, None))
                         projection_penalties["rotated_training"] = 0.
-                        rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
-                            (len(reflection_sign), len(reflection_sign))))
-                        training_projection_actions["rotated_training"] = (rotation * reflection_sign) @ rotation.T
+                        training_projection_actions["rotated_training"] = rotated_reflection_action(reflection_sign,
+                                                                                                      seed + 950)
                 else:
-                    rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
-                        (len(reflection_sign), len(reflection_sign))))
-                    projection_actions["rotated"] = (rotation * reflection_sign) @ rotation.T
+                    projection_actions["rotated"] = rotated_reflection_action(reflection_sign, seed + 950)
                 projection_prior = np.eye(len(reflection_sign))[None] / len(reflection_sign)
                 distilled_support["raw"] = support, projection_prior
                 raw_actions = projection_actions
@@ -1871,6 +1900,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                         projection_distances[name] = float(distance / np.sqrt(len(reflection_sign)))
                     add_projected_track_readouts(name, features, transformed, query, learned_actions,
                                                  projection_prior, distilled_support)
+                    if name in head_prior_multipliers:
+                        adjusted_prior = projection_prior * head_prior_multipliers[name]
+                        add_projected_track_readouts(f"{name}_adjusted_head", features, transformed, query,
+                                                     learned_actions, adjusted_prior, distilled_support)
                     for head_name, head_prior in confidence_priors.items():
                         add_projected_track_readouts(f"{name}_{head_name}", features, transformed, query,
                                                      projection_actions, head_prior, distilled_support)
@@ -1962,6 +1995,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             diagnostics["mean_projection_strength"] = float(projection_strengths.mean())
         if args.track_distillation_projection_parity_student:
             diagnostics["student_architectures"] = architecture_diagnostics
+        if args.track_distillation_projection_class_scale:
+            diagnostics["class_target_scale"] = target_scale
         if args.track_consistency:
             diagnostics["mean_track_weight"] = select_track_corrections(query, odd, seed + 500)
         if teacher_rotation is not None:
@@ -2129,6 +2164,8 @@ def main():
     selection.add_argument("--track-distillation-projection-blended-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-class-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-class-geometry", action="store_true")
+    selection.add_argument("--track-distillation-projection-class-scale", action="store_true")
+    selection.add_argument("--track-distillation-projection-class-projection", action="store_true")
     selection.add_argument("--track-distillation-projection-gaussian-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-student", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-supervision", action="store_true")
@@ -2137,7 +2174,8 @@ def main():
     args = parser.parse_args()
     if args.track_distillation_projection_parity_supervision:
         args.track_distillation_projection_parity_student = True
-    if args.track_distillation_projection_class_geometry:
+    if (args.track_distillation_projection_class_geometry or args.track_distillation_projection_class_scale
+            or args.track_distillation_projection_class_projection):
         args.track_distillation_projection_class_targets = True
     if (args.track_distillation_projection_blended_targets or args.track_distillation_projection_class_targets
             or args.track_distillation_projection_gaussian_targets):
@@ -2250,6 +2288,10 @@ def main():
             name = "track_distillation_projection_blended_targets"
         elif args.track_distillation_projection_class_geometry:
             name = "track_distillation_projection_class_geometry"
+        elif args.track_distillation_projection_class_scale:
+            name = "track_distillation_projection_class_scale"
+        elif args.track_distillation_projection_class_projection:
+            name = "track_distillation_projection_class_projection"
         elif args.track_distillation_projection_class_targets:
             name = "track_distillation_projection_class_targets"
         elif args.track_distillation_projection_gaussian_targets:

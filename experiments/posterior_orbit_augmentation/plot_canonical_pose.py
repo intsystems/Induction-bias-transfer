@@ -278,6 +278,19 @@ TRACK_DISTILLATION_PROJECTION_CLASS_GEOMETRY_METHODS = {
     **TRACK_DISTILLATION_PROJECTION_CLASS_TARGETS_METHODS,
     "rotated_class_prototypes_aligned": "Rotated class correspondences with matched covariance",
 }
+TRACK_DISTILLATION_PROJECTION_CLASS_SCALE_METHODS = {
+    "class_prototypes_aligned": "Original target scale · standard head",
+    "class_prototypes_adjusted_head_aligned": "Original target scale · weaker head regularization",
+    "scaled_class_prototypes_aligned": "Restored target scale · standard head",
+    "scaled_class_prototypes_adjusted_head_aligned": "Restored target scale · stronger head regularization",
+}
+TRACK_DISTILLATION_PROJECTION_CLASS_PROJECTION_METHODS = {
+    "raw_aligned": "Frame targets · prediction projection",
+    "estimated_training_aligned": "Frame targets · training projection",
+    "class_targets_no_projection_aligned": "Class targets · prediction projection",
+    "scaled_class_prototypes_aligned": "Class targets · training projection",
+    "class_targets_rotated_projection_aligned": "Class targets · rotated training projection",
+}
 TRACK_DISTILLATION_PROJECTION_GAUSSIAN_TARGETS_METHODS = {
     **TRACK_DISTILLATION_PROJECTION_TRACK_TARGETS_METHODS,
     "class_prototypes_aligned": "Class mean targets",
@@ -425,6 +438,10 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_BLENDED_TARGETS_METHODS
     elif results["config"].get("track_distillation_projection_class_geometry", False):
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_GEOMETRY_METHODS
+    elif results["config"].get("track_distillation_projection_class_scale", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CLASS_SCALE_METHODS
+    elif results["config"].get("track_distillation_projection_class_projection", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CLASS_PROJECTION_METHODS
     elif results["config"].get("track_distillation_projection_class_targets", False):
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_TARGETS_METHODS
     elif results["config"].get("track_distillation_projection_gaussian_targets", False):
