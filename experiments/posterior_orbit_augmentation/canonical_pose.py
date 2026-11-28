@@ -1360,6 +1360,13 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     projection_penalties = {"project_early": 0., "project_late": 0., "project_all": 0.}
                     reflection_schedules = {"project_early": range(len(late)), "project_late": late}
                     variants.extend((method, "head_same_class", source, late) for method in projection_penalties)
+                elif args.track_distillation_projection_timing_weights:
+                    for geometry, key in (("uniform", None), ("natural", "head_same_class")):
+                        for phase, epochs in (("early", range(len(late))), ("late", late)):
+                            method = f"{geometry}_{phase}"
+                            variants.append((method, key, source, late))
+                            projection_penalties[method] = 0.
+                            reflection_schedules[method] = epochs
                 elif args.track_distillation_projection_compress:
                     variants.append(("trained_late", "head_same_class", source, late))
                     projection_penalties = {"trained_late": 0.}
@@ -1592,6 +1599,7 @@ def main():
     selection.add_argument("--track-distillation-projection-shrink", action="store_true")
     selection.add_argument("--track-distillation-projection-schedule", action="store_true")
     selection.add_argument("--track-distillation-projection-compress", action="store_true")
+    selection.add_argument("--track-distillation-projection-timing-weights", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1599,7 +1607,7 @@ def main():
         args.track_distillation_projection_calibrated = True
     if (args.track_distillation_projection_train or args.track_distillation_projection_calibrated
             or args.track_distillation_projection_penalty or args.track_distillation_projection_schedule
-            or args.track_distillation_projection_compress):
+            or args.track_distillation_projection_compress or args.track_distillation_projection_timing_weights):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1646,6 +1654,8 @@ def main():
             name = "track_distillation_projection_schedule"
         elif args.track_distillation_projection_compress:
             name = "track_distillation_projection_compress"
+        elif args.track_distillation_projection_timing_weights:
+            name = "track_distillation_projection_timing_weights"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:
