@@ -1422,6 +1422,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     variants.extend((("trained_uniform", None, source, None),
                                      ("trained_late", "head_same_class", source, late)))
                     projection_penalties = {"trained_uniform": 0., "trained_late": 0.}
+                elif args.track_distillation_projection_joint_head:
+                    variants.append(("trained_late", "head_same_class", source, late))
+                    projection_penalties = {"trained_late": 0.}
                 elif args.track_distillation_projection_penalty:
                     variants.extend((method, "head_same_class", source, late) for method in PROJECTION_PENALTIES)
                     projection_penalties = PROJECTION_PENALTIES
@@ -1519,6 +1522,10 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     for method in ("canonical", "canonical_symmetric"):
                         add_projected_track_readouts(method, features, transformed, query, projection_actions,
                                                      projection_prior, distilled_support, feature=method)
+                if args.track_distillation_projection_joint_head:
+                    for geometry, key in (("natural_head", "head_same_class"), ("rotated_head", "head_rotated")):
+                        add_projected_track_readouts(f"{name}_{geometry}", features, transformed, query,
+                                                     projection_actions, priors[key], distilled_support)
                 if args.track_distillation_projection_compress:
                     action = source.new_tensor(projection_actions["aligned"])
 
@@ -1705,6 +1712,7 @@ def main():
     selection.add_argument("--track-distillation-projection-folded-batched", action="store_true")
     selection.add_argument("--track-distillation-projection-terminal", action="store_true")
     selection.add_argument("--track-distillation-projection-canonical", action="store_true")
+    selection.add_argument("--track-distillation-projection-joint-head", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1716,7 +1724,7 @@ def main():
             or args.track_distillation_projection_penalty or args.track_distillation_projection_schedule
             or args.track_distillation_projection_compress or args.track_distillation_projection_timing_weights
             or args.track_distillation_projection_folded or args.track_distillation_projection_terminal
-            or args.track_distillation_projection_canonical):
+            or args.track_distillation_projection_canonical or args.track_distillation_projection_joint_head):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1773,6 +1781,8 @@ def main():
             name = "track_distillation_projection_terminal"
         elif args.track_distillation_projection_canonical:
             name = "track_distillation_projection_canonical"
+        elif args.track_distillation_projection_joint_head:
+            name = "track_distillation_projection_joint_head"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:
