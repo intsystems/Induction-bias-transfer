@@ -15,7 +15,7 @@ import torch
 
 from experiment import (GTSRB, HERE, TASKS, PoseGenerator, batches, discover_basis, embed,
                         fit_student, fit_teacher, predict, preprocess, prior_kernels)
-from reflection_evidence.experiment import FoldedReflectionStudent, MIXTURE, paths_by_class
+from reflection_evidence.experiment import BatchedFoldedReflectionStudent, FoldedReflectionStudent, MIXTURE, paths_by_class
 
 ANGLE = math.radians(32)
 SHIFT = .24
@@ -778,7 +778,7 @@ def add_track_readout(name, support, original, query, prior, distilled_support):
 
 
 @torch.inference_mode()
-def compare_folded_projection(student, folded, probe, odd, device):
+def compare_folded_projection(student, folded, probe, odd, device, *, batched=None):
     sign = torch.where(odd, -1., 1.)
 
     def two_views(batch):
@@ -787,11 +787,17 @@ def compare_folded_projection(student, folded, probe, odd, device):
 
     timings = {}
     max_error = 0.
+    batched_error = 0.
+    methods = [("two_view", two_views), ("folded", folded)]
+    if batched is not None:
+        methods.append(("batched", batched))
     for size in sorted({min(size, len(probe)) for size in (16, 64, 128)}):
         batch = probe[:size]
-        max_error = max(max_error, float((two_views(batch) - folded(batch)).abs().max()))
-        samples = {"two_view": [], "folded": []}
-        methods = (("two_view", two_views), ("folded", folded))
+        reference = two_views(batch)
+        max_error = max(max_error, float((reference - folded(batch)).abs().max()))
+        if batched is not None:
+            batched_error = max(batched_error, float((reference - batched(batch)).abs().max()))
+        samples = {name: [] for name, _ in methods}
         for _, method in methods:
             for _ in range(10):
                 method(batch)
@@ -799,7 +805,11 @@ def compare_folded_projection(student, folded, probe, odd, device):
             stream = torch.cuda.current_stream(device)
             torch.cuda.synchronize(device)
         for index in range(6):
-            for name, method in (methods if index % 2 == 0 else methods[::-1]):
+            offset = (index // 2) % len(methods)
+            order = methods[offset:] + methods[:offset]
+            if index % 2:
+                order = order[::-1]
+            for name, method in order:
                 if device.type == "cuda":
                     start = torch.cuda.Event(enable_timing=True)
                     end = torch.cuda.Event(enable_timing=True)
@@ -816,7 +826,10 @@ def compare_folded_projection(student, folded, probe, odd, device):
                     milliseconds = 1000 * (time.perf_counter() - start)
                 samples[name].append(milliseconds / 30)
         timings[str(len(batch))] = {name: float(np.median(times)) for name, times in samples.items()}
-    return {"latency_ms": timings, "max_prediction_difference": max_error}
+    result = {"latency_ms": timings, "max_prediction_difference": max_error}
+    if batched is not None:
+        result["max_batched_prediction_difference"] = batched_error
+    return result
 
 
 def select_track_corrections(query, odd, seed):
@@ -1496,11 +1509,17 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       projection_prior, distilled_support)
                 if args.track_distillation_projection_folded:
                     folded = FoldedReflectionStudent(learned, odd).eval()
-                    folded_support = {label: views[0] for label, views in embed(folded, train, args, device).items()}
-                    folded_query = natural_track_embeddings(folded, {}, train, natural_queries, args, device)
-                    add_track_readout(f"{name}_folded", folded_support, folded_query, query,
-                                      projection_prior, distilled_support)
-                    folding = compare_folded_projection(learned, folded, probe, odd, device)
+                    implementations = [("folded", folded)]
+                    batched = None
+                    if args.track_distillation_projection_folded_batched:
+                        batched = BatchedFoldedReflectionStudent(folded).eval()
+                        implementations.append(("batched", batched))
+                    for implementation, model in implementations:
+                        folded_support = {label: views[0] for label, views in embed(model, train, args, device).items()}
+                        folded_query = natural_track_embeddings(model, {}, train, natural_queries, args, device)
+                        add_track_readout(f"{name}_{implementation}", folded_support, folded_query, query,
+                                          projection_prior, distilled_support)
+                    folding = compare_folded_projection(learned, folded, probe, odd, device, batched=batched)
         diagnostics = {"track_counts": {label: {"support": len(groups), "query": len(natural_queries[label])}
                                          for label, groups in tracks.items()}}
         if args.track_distillation_budget:
@@ -1656,9 +1675,12 @@ def main():
     selection.add_argument("--track-distillation-projection-compress", action="store_true")
     selection.add_argument("--track-distillation-projection-timing-weights", action="store_true")
     selection.add_argument("--track-distillation-projection-folded", action="store_true")
+    selection.add_argument("--track-distillation-projection-folded-batched", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_distillation_projection_folded_batched:
+        args.track_distillation_projection_folded = True
     if args.track_distillation_projection_shrink:
         args.track_distillation_projection_calibrated = True
     if (args.track_distillation_projection_train or args.track_distillation_projection_calibrated
@@ -1713,6 +1735,8 @@ def main():
             name = "track_distillation_projection_compress"
         elif args.track_distillation_projection_timing_weights:
             name = "track_distillation_projection_timing_weights"
+        elif args.track_distillation_projection_folded_batched:
+            name = "track_distillation_projection_folded_batched"
         elif args.track_distillation_projection_folded:
             name = "track_distillation_projection_folded"
         elif args.track_distillation_projection:

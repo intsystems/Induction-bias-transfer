@@ -221,6 +221,34 @@ class FoldedReflectionStudent(nn.Module):
         return torch.cat((invariant, changing), dim=-1)[:, self.output_order]
 
 
+class BatchedFoldedReflectionStudent(nn.Module):
+    def __init__(self, folded):
+        super().__init__()
+        with torch.no_grad():
+            self.register_buffer("input_weights", torch.stack((folded.input_even.T, folded.input_odd.T)))
+            self.register_buffer("input_bias", torch.stack((folded.input_bias, torch.zeros_like(folded.input_bias))))
+            self.even_count = len(folded.output_even)
+            self.odd_count = len(folded.output_odd)
+            width = max(self.even_count, self.odd_count)
+            self.register_buffer("output_weights", torch.stack((
+                F.pad(folded.output_even.T, (0, width - self.even_count)),
+                F.pad(folded.output_odd.T, (0, width - self.odd_count)),
+            )))
+            bias = torch.stack((F.pad(folded.output_even_bias, (0, width - self.even_count)),
+                                folded.output_even_bias.new_zeros((width,))))
+            self.register_buffer("output_bias", bias)
+            self.register_buffer("output_order", folded.output_order.detach().clone())
+
+    def forward(self, images):
+        left, right = images[..., :16], images[..., 16:].flip(-1)
+        pixels = torch.stack((left + right, left - right)).flatten(2) / 2
+        even, odd = torch.bmm(pixels, self.input_weights) + self.input_bias[:, None]
+        first, second = F.gelu(torch.stack((even + odd, even - odd)))
+        hidden = torch.stack((first + second, first - second)) / 2
+        output = torch.bmm(hidden, self.output_weights) + self.output_bias[:, None]
+        return torch.cat((output[0, :, :self.even_count], output[1, :, :self.odd_count]), dim=-1)[:, self.output_order]
+
+
 def prior_kernels(energies, rng):
     width = len(energies)
     odd = np.diag(energies > 0.5).astype(float)

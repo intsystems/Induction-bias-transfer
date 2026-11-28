@@ -21,20 +21,26 @@ def main():
     runs = [run["folded_projection"]["latency_ms"] for run in data["runs"]]
     sizes = sorted(map(int, runs[0]))
     methods = {"two_view": "Batched two-view projection", "folded": "Folded weights"}
+    if "batched" in runs[0][str(sizes[0])]:
+        methods["batched"] = "Folded weights · grouped matmuls"
     latency = {key: np.array([[run[str(size)][key] for size in sizes] for run in runs]) for key in methods}
     figure, (times, ratios) = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
     for method, label in methods.items():
         low, center, high = np.percentile(latency[method], [25, 50, 75], axis=0)
         times.plot(sizes, center, marker="o", label=label)
         times.fill_between(sizes, low, high, alpha=.15)
-    ratio = latency["folded"] / latency["two_view"]
-    low, center, high = np.percentile(ratio, [25, 50, 75], axis=0)
-    ratios.plot(sizes, center, marker="o")
-    ratios.fill_between(sizes, low, high, alpha=.15)
+    for method, label in methods.items():
+        if method != "two_view":
+            ratio = latency[method] / latency["two_view"]
+            low, center, high = np.percentile(ratio, [25, 50, 75], axis=0)
+            ratios.plot(sizes, center, marker="o", label=label)
+            ratios.fill_between(sizes, low, high, alpha=.15)
     ratios.axhline(1, color=".5", linewidth=1)
     times.set_ylabel("Latency per batch (ms)")
     ratios.set_ylabel("Folded latency ÷ two-view latency")
     times.legend(fontsize=8)
+    if "batched" in methods:
+        ratios.legend(fontsize=8)
     for axis in (times, ratios):
         axis.set_xlabel("Images per batch")
         axis.set_xticks(sizes)

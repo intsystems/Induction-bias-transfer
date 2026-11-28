@@ -11,12 +11,13 @@ from scipy.linalg import schur
 import torch
 
 from experiment import (CIFAR10, HERE, class_split, data_partitions, discover_basis,
-                        evaluate, fit_student, fit_teacher)
+                        evaluate, fit_student, fit_teacher, predict)
 
 RESULTS = HERE / "results" / "quarter_turn_projection"
 VIEWS = tuple(partial(torch.rot90, k=rotation, dims=(-2, -1)) for rotation in range(1, 4))
 QUARTER_TURNS = np.array([[[1, 0], [0, 1]], [[0, -1], [1, 0]],
                           [[-1, 0], [0, -1]], [[0, 1], [-1, 0]]])
+VIEW_BUDGETS = {"one": (0,), "opposite": (0, 2), "adjacent": (0, 1), "four": (0, 1, 2, 3)}
 
 
 def rotation_from_pairs(orbit):
@@ -62,17 +63,46 @@ def teacher_orbit(teacher, images, basis, mean, batch_size):
 
 
 @torch.inference_mode()
-def invariant_embeddings(student, dataset, fixed, args, device):
+def invariant_embeddings(student, dataset, fixed, args, device, *, return_orbit=False):
     result = {}
     for label, images in dataset.items():
         parts = []
         for batch in images.split(args.batch_size):
             batch = batch.to(device, dtype=torch.float32) / 255
             views = torch.cat((batch, *(view(batch) for view in VIEWS)))
-            mean = student(views).reshape(4, len(batch), -1).mean(dim=0)
-            parts.append((mean @ fixed).cpu().numpy())
-        result[label] = np.stack([np.concatenate(parts)] * 2)
+            orbit = student(views).reshape(4, len(batch), -1)
+            embedding = orbit if return_orbit else orbit.mean(dim=0)
+            parts.append((embedding @ fixed).cpu().numpy())
+        result[label] = np.concatenate(parts, axis=1) if return_orbit else np.stack([np.concatenate(parts)] * 2)
     return result
+
+
+def pool_rotation_views(orbit, offsets):
+    if len(offsets) == len(orbit):
+        return np.broadcast_to(orbit.mean(axis=0), orbit.shape)
+    return np.mean([np.roll(orbit, -offset, axis=0) for offset in offsets], axis=0)
+
+
+def evaluate_view_budgets(prior, support, queries, target_classes, args, seed):
+    query_orbit = np.concatenate([queries[label] for label in target_classes], axis=1).astype(np.float64)
+    truth = np.repeat(np.arange(len(target_classes)), [queries[label].shape[1] for label in target_classes])
+    fixed_queries = {name: pool_rotation_views(query_orbit, offsets) for name, offsets in VIEW_BUDGETS.items()}
+    fixed_support = {name: {label: pool_rotation_views(orbit, offsets)[0] for label, orbit in support.items()}
+                     for name, offsets in VIEW_BUDGETS.items()}
+    rng = np.random.default_rng(seed)
+    observations = {str(count): {name: [] for name in VIEW_BUDGETS} for count in args.shots}
+    for _ in range(args.episodes):
+        chosen = [rng.choice(support[label].shape[1], max(args.shots), replace=False) for label in target_classes]
+        for count in args.shots:
+            labels = np.repeat(np.eye(len(target_classes)), count, axis=0) - 1 / len(target_classes)
+            for name, pooled_support in fixed_support.items():
+                train = np.concatenate([pooled_support[label][indices[:count]]
+                                        for label, indices in zip(target_classes, chosen, strict=True)]).astype(np.float64)
+                correct = predict(prior, train, labels, fixed_queries[name], args.noise).argmax(axis=-1) == truth
+                observations[str(count)][name].append((correct.mean(), correct.all(axis=0).mean()))
+    return {count: {name: dict(zip(("mean_accuracy", "all_rotations_accuracy"),
+                                  np.mean(rows, axis=0).tolist(), strict=True))
+                    for name, rows in measurements.items()} for count, measurements in observations.items()}
 
 
 def run(train, test, args, seed, device):
@@ -89,7 +119,7 @@ def run(train, test, args, seed, device):
     candidates = {"learned": action}
     if args.approximate_action:
         candidates.update(midpoint=round_quarter_turn(fitted, .5), unrounded=fitted)
-    else:
+    elif not args.view_budget:
         generator = np.random.default_rng(seed + 250)
         rotation, _ = np.linalg.qr(generator.standard_normal(action.shape))
         candidates["rotated"] = rotation @ action @ rotation.T
@@ -107,12 +137,18 @@ def run(train, test, args, seed, device):
     for name, actions in variants:
         student = fit_student(source, teacher, basis, mean, args, seed + 100, training_views=VIEWS,
                               orbit_actions=None if actions is None else source.new_tensor(actions))
-        support, queries = (invariant_embeddings(student, part, fixed_tensor, args, device)
+        support, queries = (invariant_embeddings(student, part, fixed_tensor, args, device,
+                                                 return_orbit=args.view_budget)
                             for part in (target, query))
-        scores = evaluate({name: prior}, support, queries, target_classes, args,
-                          np.random.default_rng(seed + 500))
-        for count, row in scores.items():
-            shots[count].update(row)
+        if args.view_budget:
+            scores = evaluate_view_budgets(prior, support, queries, target_classes, args, seed + 500)
+            for count, row in scores.items():
+                shots[count][name] = row
+        else:
+            scores = evaluate({name: prior}, support, queries, target_classes, args,
+                              np.random.default_rng(seed + 500))
+            for count, row in scores.items():
+                shots[count].update(row)
     holdout = probe_orbit[:, 1::2]
     energy = max(float(np.square(holdout).mean()), 1e-12)
     diagnostics = {name: float(np.square(np.roll(holdout, -1, axis=0) - holdout @ generator).mean() / energy)
@@ -144,13 +180,18 @@ def main():
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=.45)
-    parser.add_argument("--approximate-action", action="store_true")
+    comparison = parser.add_mutually_exclusive_group()
+    comparison.add_argument("--approximate-action", action="store_true")
+    comparison.add_argument("--view-budget", action="store_true")
     args = parser.parse_args()
     if args.output is None:
         folder = RESULTS.with_name("quarter_turn_approximate") if args.approximate_action else RESULTS
+        if args.view_budget:
+            folder = RESULTS.with_name("quarter_turn_view_budget")
         args.output = folder / "metrics.json"
     if args.seeds is None:
-        args.seeds = list(range(1265, 1281) if args.approximate_action else range(1249, 1265))
+        first_seed = 1281 if args.view_budget else (1265 if args.approximate_action else 1249)
+        args.seeds = list(range(first_seed, first_seed + 16))
     if not 0 < min(args.shots) <= max(args.shots) <= args.target_pool <= 5000:
         parser.error("shots must fit a nonempty target pool of at most 5000 examples per class")
     if args.probe_examples < 2 or not 0 < args.source_examples <= 5000 - args.probe_examples:

@@ -23,6 +23,9 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
+    if data["config"].get("view_budget", False):
+        plot_view_budget(data["runs"], shots, args.output)
+        return
     methods = APPROXIMATE_METHODS if data["config"].get("approximate_action", False) else METHODS
     performance = {method: 100 * np.array([
         [run["shots"][str(count)][method]["clean_accuracy"] for count in shots] for run in data["runs"]
@@ -43,6 +46,25 @@ def main():
         axis.grid(alpha=.2)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(args.output, dpi=170)
+
+
+def plot_view_budget(runs, shots, output):
+    names = ("one", "adjacent", "opposite", "four")
+    labels = ("One", "Two adjacent", "Two opposite", "Four")
+    figure, axes = plt.subplots(1, 2, figsize=(11, 4), layout="constrained")
+    for axis, (metric, title) in zip(axes, (("mean_accuracy", "Mean over input rotations"),
+                                           ("all_rotations_accuracy", "All input rotations correct")), strict=True):
+        for model, label in (("inference_only", "Projection only at prediction"),
+                             ("learned_training", "Projection also in training")):
+            accuracy = [[run["shots"][str(min(shots))][model][view][metric] for view in names] for run in runs]
+            axis.plot(labels, 100 * np.mean(accuracy, axis=0), marker="o", label=label)
+        axis.set_title(title)
+        axis.set_xlabel(f"Views averaged at prediction, {min(shots)} labels/class")
+        axis.set_ylabel("Balanced accuracy (%)")
+        axis.legend(fontsize=8)
+        axis.grid(alpha=.2)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=170)
 
 
 if __name__ == "__main__":
