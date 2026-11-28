@@ -750,6 +750,13 @@ def reflect_projected_views(views, action):
     return (views + views[::-1] @ action) / 2
 
 
+@torch.no_grad()
+def canonicalize_track_view(batch, model):
+    first, second = parameters(model, torch.cat((batch, batch.flip(-1))))[0].chunk(2)
+    center = (first + reflect_pose(second)) / 2
+    return pose_warp(batch, center.clamp(-2, 2))
+
+
 def fit_reflection_involution(clean, reflected, odd_count, reference=None):
     cross = clean.T @ reflected
     symmetric = (cross + cross.T) / 2
@@ -1454,6 +1461,14 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     projection_penalties = {"trained_late": 0.}
                     models = {"canonical": fit_canonicalizer(source, teacher, basis, odd, args, seed + 200,
                                                               0., partners=source_partners["same_track"])}
+                elif args.track_distillation_projection_canonical_train:
+                    pose_model = fit_canonicalizer(source, teacher, basis, odd, args, seed + 200,
+                                                   0., partners=source_partners["same_track"])
+                    corrected_source = torch.cat([canonicalize_track_view(batch, pose_model)
+                                                  for batch in source.split(args.batch_size)])
+                    variants = [("trained_late", "head_same_class", source, late),
+                                ("canonical_trained", "head_same_class", corrected_source, late)]
+                    projection_penalties = {"trained_late": 0., "canonical_trained": 0.}
                 else:
                     rotation, _ = np.linalg.qr(np.random.default_rng(seed + 950).standard_normal(
                         (len(reflection_sign), len(reflection_sign))))
@@ -1497,7 +1512,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       reflection_action=source.new_tensor(projection_actions["aligned"])
                                       if during_training else None,
                                       reflection_penalty=projection_penalties.get(name, 0.),
-                                      reflection_epochs=reflection_schedules.get(name))
+                                      reflection_epochs=reflection_schedules.get(name),
+                                      target_inputs=source if name == "canonical_trained" else None)
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, models, train, natural_queries, args, device,
@@ -1526,6 +1542,14 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     for geometry, key in (("natural_head", "head_same_class"), ("rotated_head", "head_rotated")):
                         add_projected_track_readouts(f"{name}_{geometry}", features, transformed, query,
                                                      projection_actions, priors[key], distilled_support)
+                if args.track_distillation_projection_canonical_train:
+                    def canonical_encoder(batch, encoder=learned):
+                        return encoder(canonicalize_track_view(batch, pose_model))
+
+                    canonical_support = embed(canonical_encoder, train, args, device)
+                    canonical_query = natural_track_embeddings(canonical_encoder, {}, train, natural_queries, args, device)
+                    add_projected_track_readouts(f"{name}_canonical", canonical_support, canonical_query, query,
+                                                 projection_actions, projection_prior, distilled_support)
                 if args.track_distillation_projection_compress:
                     action = source.new_tensor(projection_actions["aligned"])
 
@@ -1713,6 +1737,7 @@ def main():
     selection.add_argument("--track-distillation-projection-terminal", action="store_true")
     selection.add_argument("--track-distillation-projection-canonical", action="store_true")
     selection.add_argument("--track-distillation-projection-joint-head", action="store_true")
+    selection.add_argument("--track-distillation-projection-canonical-train", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1724,7 +1749,8 @@ def main():
             or args.track_distillation_projection_penalty or args.track_distillation_projection_schedule
             or args.track_distillation_projection_compress or args.track_distillation_projection_timing_weights
             or args.track_distillation_projection_folded or args.track_distillation_projection_terminal
-            or args.track_distillation_projection_canonical or args.track_distillation_projection_joint_head):
+            or args.track_distillation_projection_canonical or args.track_distillation_projection_joint_head
+            or args.track_distillation_projection_canonical_train):
         args.track_distillation_projection = True
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
@@ -1783,6 +1809,8 @@ def main():
             name = "track_distillation_projection_canonical"
         elif args.track_distillation_projection_joint_head:
             name = "track_distillation_projection_joint_head"
+        elif args.track_distillation_projection_canonical_train:
+            name = "track_distillation_projection_canonical_train"
         elif args.track_distillation_projection:
             name = "track_distillation_projection"
         elif args.track_distillation_schedule:

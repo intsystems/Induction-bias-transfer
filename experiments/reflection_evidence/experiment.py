@@ -144,7 +144,8 @@ def discover_basis(teacher, probe, args):
 
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
                 hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.,
-                reflection_epochs=None, orbit_actions=None, orbit_order=None, invariant_variance_weight=0.):
+                reflection_epochs=None, orbit_actions=None, orbit_order=None, invariant_variance_weight=0.,
+                target_inputs=None, variance_projector=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
                             nn.Linear(hidden_width, basis.shape[1])).to(x.device)
@@ -174,13 +175,16 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
     elif orbit_order is not None:
         raise ValueError("orbit order requires orbit actions")
     if invariant_variance_weight:
-        if orbit_actions is None or orbit_actions.shape[0] != 1:
+        if variance_projector is None and (orbit_actions is None or orbit_actions.shape[0] != 1):
             raise ValueError("an invariant variance penalty requires one full orbit")
-        invariant_projection = orbit_actions[0].mean(dim=0)
+        invariant_projection = orbit_actions[0].mean(dim=0) if variance_projector is None else variance_projector
+    supervision = x if target_inputs is None else target_inputs
+    if supervision.shape != x.shape:
+        raise ValueError("teacher target inputs must match the student's training input shape")
     with torch.no_grad():
-        target = torch.cat([(teacher.encode(batch) - mean) @ basis for batch in x.split(args.batch_size)])
+        target = torch.cat([(teacher.encode(batch) - mean) @ basis for batch in supervision.split(args.batch_size)])
         targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
-                                     for batch in x.split(args.batch_size)]) for view in views]
+                                     for batch in supervision.split(args.batch_size)]) for view in views]
     for epoch in range(args.student_epochs):
         if frozen_feature_epochs is not None:
             student[1].requires_grad_(epoch not in frozen_feature_epochs)
@@ -218,7 +222,11 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
                 energy = ((complement @ metric) * complement).mean() if weighted else complement.square().mean()
                 loss = loss + reflection_penalty * energy
             if invariant_variance_weight:
-                deviation = (raw_prediction - prediction) @ invariant_projection
+                if variance_projector is None:
+                    deviation = (raw_prediction - prediction) @ invariant_projection
+                else:
+                    orbit = raw_prediction.reshape(len(views) + 1, len(batch), -1)
+                    deviation = (orbit - orbit.mean(dim=0)) @ invariant_projection
                 loss = loss + invariant_variance_weight * deviation.square().mean()
             loss.backward()
             optimizer.step()

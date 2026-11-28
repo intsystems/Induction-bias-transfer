@@ -180,6 +180,12 @@ TRACK_DISTILLATION_PROJECTION_JOINT_HEAD_METHODS = {
     "trained_late_natural_head_aligned": "Training projection · natural head",
     "trained_late_rotated_head_aligned": "Training projection · rotated head",
 }
+TRACK_DISTILLATION_PROJECTION_CANONICAL_TRAIN_METHODS = {
+    "trained_late_aligned": "Original training · original prediction",
+    "trained_late_canonical_aligned": "Original training · corrected prediction",
+    "canonical_trained_aligned": "Corrected training · original prediction",
+    "canonical_trained_canonical_aligned": "Corrected training · corrected prediction",
+}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -242,6 +248,8 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_CANONICAL_METHODS
     elif results["config"].get("track_distillation_projection_joint_head", False):
         methods = TRACK_DISTILLATION_PROJECTION_JOINT_HEAD_METHODS
+    elif results["config"].get("track_distillation_projection_canonical_train", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CANONICAL_TRAIN_METHODS
     elif results["config"].get("track_distillation_projection", False):
         methods = TRACK_DISTILLATION_PROJECTION_METHODS
     elif results["config"].get("track_distillation_schedule", False):

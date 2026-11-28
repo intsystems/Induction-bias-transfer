@@ -61,7 +61,10 @@ def plot_view_budget(runs, shots, output, variance_weights):
         models["half_turn_training"] = "Opposite pairs in training"
     if "adjacent_training" in runs[0]["shots"][str(min(shots))]:
         models["adjacent_training"] = "Adjacent pairs in training"
-    models.update({name: f"Invariant variance weight {value:g}" for name, value in variance_weights.items()})
+    pair_labels = {"opposite_variance_training": "Opposite pairs + invariant variance",
+                   "adjacent_variance_training": "Adjacent pairs + invariant variance"}
+    models.update({name: pair_labels.get(name, f"Invariant variance weight {value:g}")
+                   for name, value in variance_weights.items()})
     for axis, (metric, title) in zip(axes, (("mean_accuracy", "Mean over input rotations"),
                                            ("all_rotations_accuracy", "All input rotations correct")), strict=True):
         for model, label in models.items():

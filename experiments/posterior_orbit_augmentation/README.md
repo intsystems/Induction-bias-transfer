@@ -1703,3 +1703,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-projection-joint-head --seeds $(seq 937 952) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Обучение с согласованной коррекцией позы
+
+Оба студента используют проекцию отражения в функции дистилляции и поздние естественные веса. Один получает исходные изображения, другой получает их согласованно выправленные версии. Канонизатор обучен на естественных парах одного исходного трека. Учитель даёт одинаковые цели по исходным изображениям, порядок и число примеров совпадают. При целевой классификации каждый студент проверяется на исходных и выправленных кадрах. В каждом варианте кадры поддержки и теста обрабатываются одинаково.
+
+Основной парный контраст на seed 953–968 при трёх метках сравнивает изменение точности при коррекции на этапе предсказания между двумя режимами обучения. Сбалансированную точность отражённых кадров GTSRB усредняем по двум семействам задач и трём позициям. Дополнительно проверяем исходные кадры и меньшие бюджеты меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_projection_canonical_train"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-projection-canonical-train --seeds $(seq 953 968) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```

@@ -19,6 +19,7 @@ QUARTER_TURNS = np.array([[[1, 0], [0, 1]], [[0, -1], [1, 0]],
                           [[-1, 0], [0, -1]], [[0, 1], [-1, 0]]])
 VIEW_BUDGETS = {"one": (0,), "opposite": (0, 2), "adjacent": (0, 1), "four": (0, 1, 2, 3)}
 VARIANCE_WEIGHTS = {"variance_quarter_training": .25, "variance_unit_training": 1.}
+PAIR_VARIANCE_WEIGHTS = {"opposite_variance_training": 1., "adjacent_variance_training": 1.}
 
 
 def dihedral_view(images, rotation, mirrored):
@@ -205,10 +206,19 @@ def run(train, test, args, seed, device):
         variants.append(("adjacent_training", pairs, ((0, 1, 2, 3), (1, 2, 3, 0))))
     variance_weights = VARIANCE_WEIGHTS if args.invariant_variance else {}
     variants.extend((name, powers, None) for name in variance_weights)
+    variance_projector = None
+    if args.pair_variance:
+        variance_weights = PAIR_VARIANCE_WEIGHTS
+        variance_projector = source.new_tensor(projector)
+        pair_variants = {"half_turn_training": "opposite_variance_training",
+                         "adjacent_training": "adjacent_variance_training"}
+        variants.extend([(pair_variants[name], actions, order) for name, actions, order in variants
+                         if name in pair_variants])
     for name, actions, action_order in variants:
         student = fit_student(source, teacher, basis, mean, args, seed + 100, training_views=orbit_views,
                               orbit_actions=None if actions is None else source.new_tensor(actions),
-                              orbit_order=action_order, invariant_variance_weight=variance_weights.get(name, 0.))
+                              orbit_order=action_order, invariant_variance_weight=variance_weights.get(name, 0.),
+                              variance_projector=variance_projector)
         support, queries = (invariant_embeddings(student, part, fixed_tensor, args, device, views=orbit_views,
                                                  return_orbit=args.view_budget)
                             for part in (target, query))
@@ -262,9 +272,12 @@ def main():
     comparison.add_argument("--training-view-budget", action="store_true")
     comparison.add_argument("--invariant-variance", action="store_true")
     comparison.add_argument("--paired-view-alignment", action="store_true")
+    comparison.add_argument("--pair-variance", action="store_true")
     args = parser.parse_args()
     if args.dihedral_subgroups:
         args.dihedral_action = True
+    if args.pair_variance:
+        args.paired_view_alignment = True
     if args.paired_view_alignment:
         args.training_view_budget = True
     if args.training_view_budget or args.invariant_variance:
@@ -272,6 +285,8 @@ def main():
     dataset_name, first_seed = RESULTS.name, 1249
     if args.approximate_action:
         dataset_name, first_seed = "quarter_turn_approximate", 1265
+    elif args.pair_variance:
+        dataset_name, first_seed = "quarter_turn_pair_variance", 1377
     elif args.paired_view_alignment:
         dataset_name, first_seed = "quarter_turn_paired_view_alignment", 1361
     elif args.invariant_variance:
@@ -304,6 +319,8 @@ def main():
             "torch_version": torch.__version__, "runs": []}
     if args.invariant_variance:
         data["invariant_variance_weights"] = VARIANCE_WEIGHTS
+    if args.pair_variance:
+        data["invariant_variance_weights"] = PAIR_VARIANCE_WEIGHTS
     start = time.monotonic()
     for seed in args.seeds:
         data["runs"].append(run(train, test, args, seed, device))
