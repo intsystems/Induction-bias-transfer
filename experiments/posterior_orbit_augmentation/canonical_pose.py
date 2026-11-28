@@ -1490,9 +1490,20 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                              and not args.track_distillation)
         if args.track_distillation:
             priors = {}
+            projected_teacher_features = None
+            if args.track_distillation_projection_projected_teacher_prior:
+                parity_signs = torch.where(odd, -1., 1.)
+
+                def projected_teacher_features(batch):
+                    views = torch.cat((batch, teacher.view(batch)))
+                    clean, reflected = ((teacher.encode(views) - mean) @ basis).chunk(2)
+                    return (clean + reflected * parity_signs) / 2
+
             if (not args.track_distillation_projection_approx_teacher
-                    or args.track_distillation_projection_approx_teacher_track_prior):
-                priors, _ = natural_track_head_priors(teacher, basis, odd, source, source_partners, args, seed + 250)
+                    or args.track_distillation_projection_approx_teacher_track_prior
+                    or args.track_distillation_projection_projected_teacher_prior):
+                priors, _ = natural_track_head_priors(teacher, basis, odd, source, source_partners, args, seed + 250,
+                                                     student=projected_teacher_features)
             distilled_support = {}
             if args.track_distillation_joint:
                 head_kernels = {key: priors[key] for key in ("head_same_class", "head_rotated")}
@@ -1623,6 +1634,12 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                         for name in ("suppress_residual", "match_residual"):
                             variants.append((name, None, source, None))
                             projection_penalties[name] = .25
+                    elif args.track_distillation_projection_projected_teacher_prior:
+                        for name, key in (("raw_teacher_prior", "head_same_class"),
+                                          ("projected_teacher_prior", "head_student_class"),
+                                          ("rotated_teacher_prior", "head_rotated")):
+                            variants.append((name, key, source, late))
+                            projection_penalties[name] = 0.
                     else:
                         variants.append(("rotated_training", None, source, None))
                         projection_penalties["rotated_training"] = 0.
@@ -1958,12 +1975,14 @@ def main():
     selection.add_argument("--track-distillation-projection-teacher-confidence-head", action="store_true")
     selection.add_argument("--track-distillation-projection-approx-teacher-track-prior", action="store_true")
     selection.add_argument("--track-distillation-projection-teacher-residual", action="store_true")
+    selection.add_argument("--track-distillation-projection-projected-teacher-prior", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_distillation_projection_confident_teacher or args.track_distillation_projection_teacher_confidence_head
             or args.track_distillation_projection_approx_teacher_track_prior
-            or args.track_distillation_projection_teacher_residual):
+            or args.track_distillation_projection_teacher_residual
+            or args.track_distillation_projection_projected_teacher_prior):
         args.track_distillation_projection_approx_teacher = True
     if args.track_distillation_projection_mixed_prior:
         args.track_distillation_projection_student_prior = True
@@ -2057,6 +2076,8 @@ def main():
             name = "track_distillation_projection_approx_teacher_track_prior"
         elif args.track_distillation_projection_teacher_residual:
             name = "track_distillation_projection_teacher_residual"
+        elif args.track_distillation_projection_projected_teacher_prior:
+            name = "track_distillation_projection_projected_teacher_prior"
         elif args.track_distillation_projection_approx_teacher:
             name = "track_distillation_projection_approx_teacher"
         elif args.track_distillation_projection_joint_head:
@@ -2166,6 +2187,7 @@ def main():
     train_dataset = GTSRB(args.data, split="train", download=True)
     use_source_paths = (args.train_track_canonicalizer or args.track_head_prior
                         or args.track_distillation_projection_approx_teacher_track_prior
+                        or args.track_distillation_projection_projected_teacher_prior
                         or (args.track_distillation and not args.track_distillation_projection_approx_teacher))
     data = preprocess(train_dataset, GTSRB(args.data, split="test", download=True), args,
                       include_source_paths=use_source_paths and not args.track_head_predicted,
