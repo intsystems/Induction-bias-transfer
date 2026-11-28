@@ -51,13 +51,32 @@ def run(train, test, args, seed, device):
     variants = [("uniform", None, None)]
     variants.extend((f"{phase}_{key}", metric, epochs)
                     for phase, epochs in schedules.items() for key, metric in metrics.items())
+    projection_actions = {}
+    if args.projection_training:
+        late = schedules["late"]
+        variants = [("uniform", None, None), ("late_natural", metrics["natural"], late),
+                    ("projected_uniform", None, None), ("projected_late", metrics["natural"], late)]
+        action = source.new_tensor(np.diag(np.where(odd, -1., 1.)))
+        projection_actions = {"projected_uniform": action, "projected_late": action}
 
     shots = {str(count): {} for count in args.shots}
     equivariance = {}
     head = np.eye(basis.shape[1]) / basis.shape[1]
     for name, metric, epochs in variants:
-        student = fit_student(source, teacher, basis, mean, args, seed + 100, metric=metric, metric_epochs=epochs)
+        student = fit_student(source, teacher, basis, mean, args, seed + 100, metric=metric,
+                              metric_epochs=epochs, reflection_action=projection_actions.get(name))
         support, queries = (embed(student, part, args, device) for part in (target, query))
+        if args.projection_training:
+            # Pooling equivariant views keeps their mean in the teacher's even coordinates.
+            even = ~odd
+            invariant_support, invariant_query = ({label: h[..., even] for label, h in part.items()}
+                                                  for part in (support, queries))
+            invariant_head = np.eye(even.sum()) / even.sum()
+            scores = evaluate({"two_view": invariant_head}, invariant_support, invariant_query, target_classes,
+                              args, np.random.default_rng(seed + 500))
+            for count, row in scores.items():
+                shots[count][name] = row["two_view"]
+            continue
         priors = {name: head}
         if args.reflection_readouts:
             priors["two_view"] = head
@@ -104,10 +123,14 @@ def main():
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=.45)
-    parser.add_argument("--reflection-readouts", action="store_true")
+    comparison = parser.add_mutually_exclusive_group()
+    comparison.add_argument("--reflection-readouts", action="store_true")
+    comparison.add_argument("--projection-training", action="store_true")
     args = parser.parse_args()
     if args.output is None:
         folder = HERE / "results" / "class_pair_reflection_readouts" if args.reflection_readouts else RESULTS
+        if args.projection_training:
+            folder = HERE / "results" / "class_pair_projection_training"
         args.output = folder / "metrics.json"
     if args.student_epochs < 2 or args.probe_examples < 2:
         parser.error("need at least two student epochs and two probe examples per source class")

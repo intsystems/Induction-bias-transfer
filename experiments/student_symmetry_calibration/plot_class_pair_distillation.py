@@ -22,6 +22,9 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
+    if data["config"].get("projection_training", False):
+        plot_training_projection(data["runs"], shots, args.output)
+        return
     if data["config"].get("reflection_readouts", False):
         plot_readouts(data["runs"], shots, args.output)
         return
@@ -62,6 +65,30 @@ def plot_readouts(runs, shots, output):
         axis.grid(alpha=.2)
     axes[0].set_ylabel("Original and reflection correct (%)")
     axes[-1].legend(fontsize=8)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=170)
+
+
+def plot_training_projection(runs, shots, output):
+    figure, axes = plt.subplots(1, 2, figsize=(10, 4), layout="constrained")
+    methods = {"uniform": "Uniform loss · inference projection", "late_natural": "Natural loss · inference projection",
+               "projected_uniform": "Uniform loss · training projection", "projected_late": "Natural loss · training projection"}
+    values = {method: 100 * np.array([[run["shots"][str(count)][method]["matched_view_accuracy"]
+                                     for count in shots] for run in runs]) for method in methods}
+    for method, label in methods.items():
+        axes[0].plot(shots, values[method].mean(axis=0), marker="o", label=label)
+    for after, before, name in (("projected_uniform", "uniform", "Uniform loss"),
+                                ("projected_late", "late_natural", "Late natural loss")):
+        gain = values[after] - values[before]
+        axes[1].plot(shots, gain.mean(axis=0), marker="o", label=name)
+    axes[1].axhline(0, color=".5", linewidth=1)
+    axes[0].set_ylabel("Original and reflection correct (%)")
+    axes[1].set_ylabel("Effect of training projection (pp)")
+    for axis in axes:
+        axis.set_xlabel("Labels per class")
+        axis.set_xticks(shots)
+        axis.legend(fontsize=8)
+        axis.grid(alpha=.2)
     output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output, dpi=170)
 
