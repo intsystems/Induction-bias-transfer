@@ -30,6 +30,8 @@ DISTILLATION_TAILS = {"sixth": 6, "third": 3, "half": 2}
 PROJECTION_PENALTIES = {"penalty_zero": 0., "penalty_quarter": .25, "penalty_four": 4.}
 MIRRORED_TARGET_WEIGHTS = {"original_targets": 0., "quarter_mirror_targets": .25,
                            "majority_mirror_targets": .75, "mirror_targets": 1.}
+FOLDED_STUDENT_WIDTHS = (48, 96)
+FOLDED_CLASS_RESIDUAL_WEIGHTS = {"folded_class_residual_quarter": .25, "folded_class_residual_half": .5}
 
 
 def terminal_projection_schedules(student_epochs):
@@ -854,6 +856,14 @@ def teacher_confidence_priors(energies, odd, seed):
         block_means[mask] = weights[mask].mean()
     return {name: np.diag(values)[None] for name, values in
             (("confidence_head", weights), ("shuffled_head", shuffled), ("parity_head", block_means))}
+
+
+def isotropize_parity_blocks(priors, odd):
+    diagonals = np.zeros((len(priors), len(odd)))
+    original = np.diagonal(priors, axis1=1, axis2=2)
+    for mask in (~odd, odd):
+        diagonals[:, mask] = original[:, mask].mean(axis=1, keepdims=True)
+    return np.stack([np.diag(diagonal) for diagonal in diagonals])
 
 
 def blend_target_pairs(views, partners):
@@ -1750,6 +1760,18 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                         target_transforms[name] = target_transforms["scaled_class_prototypes"]
                                     variants.append(("dense_class_single_teacher", None, source, None))
                                     projection_penalties["dense_class_single_teacher"] = 0.
+                                if args.track_distillation_projection_class_parity_width:
+                                    for width in FOLDED_STUDENT_WIDTHS:
+                                        frame_name = f"folded_frame_targets_{width}"
+                                        class_name = f"folded_class_targets_{width}"
+                                        model_factories[frame_name] = partial(ParityStudent, odd, width=width)
+                                        model_factories[class_name] = model_factories[frame_name]
+                                        target_transforms[class_name] = target_transforms["scaled_class_prototypes"]
+                                if args.track_distillation_projection_class_parity_residuals:
+                                    for name, weight in FOLDED_CLASS_RESIDUAL_WEIGHTS.items():
+                                        model_factories[name] = folded
+                                        target_transforms[name] = partial(target_transforms["scaled_class_prototypes"],
+                                                                          within_class_weight=weight)
                                 variants.extend((name, None, source, None) for name in model_factories)
                         if args.track_distillation_projection_gaussian_targets:
                             class_labels = labels.to(source.device)
@@ -1876,6 +1898,16 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                        (name + "_rotated_head", priors["head_rotated"])))
                 for method, prior in evaluators:
                     add_track_readout(method, variant_support, transformed, query, prior, distilled_support)
+                if args.track_distillation_projection_class_parity_head and name == "folded_class_targets":
+                    fitted, _ = natural_track_head_priors(teacher, basis, odd, source, source_partners,
+                                                          args, seed + 250, student=learned)
+                    student_prior = fitted["head_student_class"]
+                    head_priors = {"student_head": student_prior, "teacher_head": fitted["head_same_class"],
+                                   "rotated_head": fitted["head_rotated"],
+                                   "parity_only_head": isotropize_parity_blocks(student_prior, odd.cpu().numpy())}
+                    for head_name, prior in head_priors.items():
+                        add_track_readout(f"{name}_{head_name}", variant_support, transformed, query, prior,
+                                          distilled_support)
                 if projection_actions:
                     learned_actions = projection_actions
                     if args.track_distillation_projection_calibrated:
@@ -2154,6 +2186,9 @@ def main():
     selection.add_argument("--track-distillation-projection-class-projection", action="store_true")
     selection.add_argument("--track-distillation-projection-class-parity", action="store_true")
     selection.add_argument("--track-distillation-projection-class-parity-supervision", action="store_true")
+    selection.add_argument("--track-distillation-projection-class-parity-head", action="store_true")
+    selection.add_argument("--track-distillation-projection-class-parity-width", action="store_true")
+    selection.add_argument("--track-distillation-projection-class-parity-residuals", action="store_true")
     selection.add_argument("--track-distillation-projection-gaussian-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-gaussian-parity", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-student", action="store_true")
@@ -2163,7 +2198,9 @@ def main():
     args = parser.parse_args()
     if args.track_distillation_projection_parity_supervision:
         args.track_distillation_projection_parity_student = True
-    if args.track_distillation_projection_class_parity_supervision:
+    if (args.track_distillation_projection_class_parity_supervision or args.track_distillation_projection_class_parity_head
+            or args.track_distillation_projection_class_parity_width
+            or args.track_distillation_projection_class_parity_residuals):
         args.track_distillation_projection_class_parity = True
     if (args.track_distillation_projection_class_geometry or args.track_distillation_projection_class_scale
             or args.track_distillation_projection_class_projection or args.track_distillation_projection_class_parity):
@@ -2287,6 +2324,12 @@ def main():
             name = "track_distillation_projection_class_projection"
         elif args.track_distillation_projection_class_parity_supervision:
             name = "track_distillation_projection_class_parity_supervision"
+        elif args.track_distillation_projection_class_parity_head:
+            name = "track_distillation_projection_class_parity_head"
+        elif args.track_distillation_projection_class_parity_width:
+            name = "track_distillation_projection_class_parity_width"
+        elif args.track_distillation_projection_class_parity_residuals:
+            name = "track_distillation_projection_class_parity_residuals"
         elif args.track_distillation_projection_class_parity:
             name = "track_distillation_projection_class_parity"
         elif args.track_distillation_projection_class_targets:
@@ -2442,6 +2485,11 @@ def main():
         output["projection_penalties"] = {**PROJECTION_PENALTIES, "late_track": 1.}
     if args.track_distillation_projection_mirrored_targets:
         output["mirrored_target_weights"] = {**MIRRORED_TARGET_WEIGHTS, "estimated_training": .5}
+    if args.track_distillation_projection_class_parity_width:
+        output["folded_student_widths"] = [*FOLDED_STUDENT_WIDTHS, 192]
+    if args.track_distillation_projection_class_parity_residuals:
+        output["within_class_weights"] = {"folded_class_targets": 0., **FOLDED_CLASS_RESIDUAL_WEIGHTS,
+                                          "folded_frame_targets": 1.}
     if args.track_distillation_projection_terminal:
         output["projection_epochs"] = terminal_projection_schedules(args.student_epochs)
     if source_partners is not None:

@@ -303,6 +303,13 @@ TRACK_DISTILLATION_PROJECTION_CLASS_PARITY_SUPERVISION_METHODS = {
     "folded_class_targets": "Folded · both teacher views",
     "folded_class_single_teacher": "Folded · one teacher view",
 }
+TRACK_DISTILLATION_PROJECTION_CLASS_PARITY_HEAD_METHODS = {
+    "folded_class_targets": "Isotropic head",
+    "folded_class_targets_student_head": "Natural directions from student",
+    "folded_class_targets_teacher_head": "Natural directions from teacher",
+    "folded_class_targets_rotated_head": "Rotated directions",
+    "folded_class_targets_parity_only_head": "Parity masses only",
+}
 TRACK_DISTILLATION_PROJECTION_GAUSSIAN_TARGETS_METHODS = {
     **TRACK_DISTILLATION_PROJECTION_TRACK_TARGETS_METHODS,
     "class_prototypes_aligned": "Class mean targets",
@@ -462,6 +469,16 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_PROJECTION_METHODS
     elif results["config"].get("track_distillation_projection_class_parity_supervision", False):
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_PARITY_SUPERVISION_METHODS
+    elif results["config"].get("track_distillation_projection_class_parity_head", False):
+        methods = TRACK_DISTILLATION_PROJECTION_CLASS_PARITY_HEAD_METHODS
+    elif results["config"].get("track_distillation_projection_class_parity_width", False):
+        methods = {}
+        for target in ("frame", "class"):
+            for width in results["folded_student_widths"]:
+                suffix = "" if width == 192 else f"_{width}"
+                methods[f"folded_{target}_targets{suffix}"] = f"{target.title()} targets · width {width}"
+    elif results["config"].get("track_distillation_projection_class_parity_residuals", False):
+        methods = {name: f"Within-class weight {weight:g}" for name, weight in results["within_class_weights"].items()}
     elif results["config"].get("track_distillation_projection_class_parity", False):
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_PARITY_METHODS
     elif results["config"].get("track_distillation_projection_class_targets", False):
