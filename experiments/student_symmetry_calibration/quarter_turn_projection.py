@@ -21,6 +21,7 @@ QUARTER_TURNS = np.array([[[1, 0], [0, 1]], [[0, -1], [1, 0]],
 VIEW_BUDGETS = {"one": (0,), "opposite": (0, 2), "adjacent": (0, 1), "four": (0, 1, 2, 3)}
 VARIANCE_WEIGHTS = {"variance_quarter_training": .25, "variance_unit_training": 1.}
 PAIR_VARIANCE_WEIGHTS = {"opposite_variance_training": 1., "adjacent_variance_training": 1.}
+CLASS_RESIDUAL_WEIGHTS = {"quarter_class_residual": .25, "half_class_residual": .5}
 
 
 def dihedral_view(images, rotation, mirrored):
@@ -224,6 +225,11 @@ def run(train, test, args, seed, device):
                                                                       restore_variance=True)}
         variants.extend((("class_inference_only", None, None), ("class_learned_training", powers, None),
                          ("scaled_class_learned_training", powers, None)))
+        if args.ordinary_teacher_class_residuals:
+            for name, weight in CLASS_RESIDUAL_WEIGHTS.items():
+                target_transforms[name] = partial(class_target_means, labels=labels, restore_variance=True,
+                                                  within_class_weight=weight)
+                variants.append((name, powers, None))
     for name, actions, action_order in variants:
         student = fit_student(source, teacher, basis, mean, args, seed + 100, training_views=orbit_views,
                               orbit_actions=None if actions is None else source.new_tensor(actions),
@@ -286,9 +292,12 @@ def main():
     comparison.add_argument("--ordinary-teacher", action="store_true")
     comparison.add_argument("--ordinary-teacher-action-rounding", action="store_true")
     comparison.add_argument("--ordinary-teacher-class-targets", action="store_true")
+    comparison.add_argument("--ordinary-teacher-class-residuals", action="store_true")
     args = parser.parse_args()
     if args.ordinary_teacher_action_rounding:
         args.ordinary_teacher = args.approximate_action = True
+    if args.ordinary_teacher_class_residuals:
+        args.ordinary_teacher_class_targets = True
     if args.ordinary_teacher_class_targets:
         args.ordinary_teacher = True
     if args.dihedral_subgroups:
@@ -300,7 +309,9 @@ def main():
     if args.training_view_budget or args.invariant_variance:
         args.view_budget = True
     dataset_name, first_seed = RESULTS.name, 1249
-    if args.ordinary_teacher_class_targets:
+    if args.ordinary_teacher_class_residuals:
+        dataset_name, first_seed = "quarter_turn_ordinary_teacher_class_residuals", 1441
+    elif args.ordinary_teacher_class_targets:
         dataset_name, first_seed = "quarter_turn_ordinary_teacher_class_targets", 1425
     elif args.ordinary_teacher_action_rounding:
         dataset_name, first_seed = "quarter_turn_ordinary_teacher_rounding", 1409
@@ -344,6 +355,9 @@ def main():
         data["invariant_variance_weights"] = VARIANCE_WEIGHTS
     if args.pair_variance:
         data["invariant_variance_weights"] = PAIR_VARIANCE_WEIGHTS
+    if args.ordinary_teacher_class_residuals:
+        data["class_residual_weights"] = {"scaled_class_learned_training": 0., **CLASS_RESIDUAL_WEIGHTS,
+                                          "learned_training": 1.}
     start = time.monotonic()
     for seed in args.seeds:
         data["runs"].append(run(train, test, args, seed, device))

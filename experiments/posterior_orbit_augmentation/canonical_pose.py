@@ -1604,6 +1604,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             target_transforms = {}
             model_factories = {}
             architecture_diagnostics = {}
+            measure_student_parity = (args.track_distillation_projection_parity_student
+                                      or args.track_distillation_projection_class_parity)
             projection_strengths = None
             confidence_priors = {}
             head_prior_multipliers = {}
@@ -1738,6 +1740,11 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                 projection_penalties["class_targets_rotated_projection"] = 0.
                                 training_projection_actions["class_targets_rotated_projection"] = (
                                     rotated_reflection_action(reflection_sign, seed + 950))
+                            if args.track_distillation_projection_class_parity:
+                                folded = partial(ParityStudent, odd)
+                                model_factories = dict.fromkeys(("folded_frame_targets", "folded_class_targets"), folded)
+                                target_transforms["folded_class_targets"] = target_transforms["scaled_class_prototypes"]
+                                variants.extend((name, None, source, None) for name in model_factories)
                         if args.track_distillation_projection_gaussian_targets:
                             class_labels = labels.to(source.device)
                             gaussian = partial(gaussian_class_targets, labels=class_labels, seed=seed + 990)
@@ -1841,7 +1848,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       model_factory=model_factories.get(name),
                                       teacher_reflection_from_action=name == "one_view_dense",
                                       target_transform=target_transforms.get(name))
-                if args.track_distillation_projection_parity_student:
+                if measure_student_parity:
                     width = len(odd)
                     encoder = SimpleNamespace(encode=learned, view=teacher.view)
                     architecture_diagnostics[name] = {
@@ -1964,7 +1971,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 teacher, probe[1::2], basis, mean, odd, args.batch_size)
         if args.track_distillation_projection_confident_teacher:
             diagnostics["mean_projection_strength"] = float(projection_strengths.mean())
-        if args.track_distillation_projection_parity_student:
+        if args.track_distillation and measure_student_parity:
             diagnostics["student_architectures"] = architecture_diagnostics
         if args.track_distillation_projection_class_scale:
             diagnostics["class_target_scale"] = target_scale
@@ -2137,6 +2144,7 @@ def main():
     selection.add_argument("--track-distillation-projection-class-geometry", action="store_true")
     selection.add_argument("--track-distillation-projection-class-scale", action="store_true")
     selection.add_argument("--track-distillation-projection-class-projection", action="store_true")
+    selection.add_argument("--track-distillation-projection-class-parity", action="store_true")
     selection.add_argument("--track-distillation-projection-gaussian-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-gaussian-parity", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-student", action="store_true")
@@ -2147,7 +2155,7 @@ def main():
     if args.track_distillation_projection_parity_supervision:
         args.track_distillation_projection_parity_student = True
     if (args.track_distillation_projection_class_geometry or args.track_distillation_projection_class_scale
-            or args.track_distillation_projection_class_projection):
+            or args.track_distillation_projection_class_projection or args.track_distillation_projection_class_parity):
         args.track_distillation_projection_class_targets = True
     if args.track_distillation_projection_gaussian_parity:
         args.track_distillation_projection_gaussian_targets = True
@@ -2266,6 +2274,8 @@ def main():
             name = "track_distillation_projection_class_scale"
         elif args.track_distillation_projection_class_projection:
             name = "track_distillation_projection_class_projection"
+        elif args.track_distillation_projection_class_parity:
+            name = "track_distillation_projection_class_parity"
         elif args.track_distillation_projection_class_targets:
             name = "track_distillation_projection_class_targets"
         elif args.track_distillation_projection_gaussian_parity:

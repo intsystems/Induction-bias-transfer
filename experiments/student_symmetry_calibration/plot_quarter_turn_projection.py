@@ -38,6 +38,10 @@ def main():
         methods = SUBGROUP_METHODS
     if data["config"].get("ordinary_teacher_class_targets", False):
         methods = CLASS_TARGET_METHODS
+    if data["config"].get("ordinary_teacher_class_residuals", False):
+        methods = {"inference_only": "Image targets · prediction projection",
+                   **{name: f"Within-class weight {weight:g}"
+                      for name, weight in data["class_residual_weights"].items()}}
     performance = {method: 100 * np.array([
         [run["shots"][str(count)][method]["clean_accuracy"] for count in shots] for run in data["runs"]
     ]) for method in methods}

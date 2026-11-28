@@ -168,13 +168,15 @@ def class_target_scale(targets, prototypes):
     return (total.clamp_min(1e-12) / between.clamp_min(1e-12)).sqrt()
 
 
-def class_target_means(views, labels, *, restore_variance, rotation_seed=None):
+def class_target_means(views, labels, *, restore_variance, rotation_seed=None, within_class_weight=0.):
     targets = torch.stack(views)
     classes, membership, counts = torch.unique(labels, return_inverse=True, return_counts=True)
     means = torch.stack([targets[:, labels == label].mean(dim=1) for label in classes], dim=1)
     if rotation_seed is not None:
         means = rotate_class_prototypes(means, counts, rotation_seed)
     prototypes = means[:, membership]
+    if within_class_weight:
+        prototypes = torch.lerp(prototypes, targets, within_class_weight)
     if restore_variance:
         mean = targets.mean(dim=1, keepdim=True)
         prototypes = mean + (prototypes - mean) * class_target_scale(targets, prototypes)
