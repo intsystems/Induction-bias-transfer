@@ -1,0 +1,5149 @@
+{
+  "config": {
+    "data": "/tmp/ibt-cifar-data",
+    "output": "experiments/student_symmetry_calibration/results/class_pair_reflection_readouts/metrics.json",
+    "device": "cuda",
+    "seeds": [
+      1217,
+      1218,
+      1219,
+      1220,
+      1221,
+      1222,
+      1223,
+      1224,
+      1225,
+      1226,
+      1227,
+      1228,
+      1229,
+      1230,
+      1231,
+      1232
+    ],
+    "shots": [
+      5,
+      20,
+      60
+    ],
+    "teacher_epochs": 26,
+    "student_epochs": 22,
+    "source_examples": 1400,
+    "probe_examples": 320,
+    "target_pool": 600,
+    "test_per_class": 600,
+    "batch_size": 128,
+    "episodes": 8,
+    "noise": 0.45,
+    "reflection_readouts": true
+  },
+  "device_name": "NVIDIA GeForce RTX 3070 Laptop GPU",
+  "torch_version": "2.14.0+cu130",
+  "runs": [
+    {
+      "seed": 1217,
+      "source_classes": [
+        1,
+        5,
+        6,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        4,
+        7,
+        9
+      ],
+      "latent_width": 70,
+      "teacher_odd_count": 27,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.28031249999999996,
+            "mirror_accuracy": 0.2861111111111111,
+            "matched_view_accuracy": 0.1613888888888889,
+            "agreement": 0.46045138888888887
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.29638888888888887,
+            "mirror_accuracy": 0.29638888888888887,
+            "matched_view_accuracy": 0.29638888888888887,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2923263888888889,
+            "mirror_accuracy": 0.291875,
+            "matched_view_accuracy": 0.23184027777777777,
+            "agreement": 0.7259027777777778
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2737847222222222,
+            "mirror_accuracy": 0.27451388888888884,
+            "matched_view_accuracy": 0.1359375,
+            "agreement": 0.36791666666666667
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2932986111111111,
+            "mirror_accuracy": 0.2932986111111111,
+            "matched_view_accuracy": 0.2932986111111111,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.28888888888888886,
+            "mirror_accuracy": 0.2880555555555556,
+            "matched_view_accuracy": 0.22993055555555558,
+            "agreement": 0.7294097222222222
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.25645833333333334,
+            "mirror_accuracy": 0.2576041666666667,
+            "matched_view_accuracy": 0.10989583333333333,
+            "agreement": 0.3392708333333333
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.27874999999999994,
+            "mirror_accuracy": 0.27874999999999994,
+            "matched_view_accuracy": 0.27874999999999994,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.26739583333333333,
+            "mirror_accuracy": 0.2700694444444445,
+            "matched_view_accuracy": 0.1971527777777778,
+            "agreement": 0.6699999999999999
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2846875,
+            "mirror_accuracy": 0.28607638888888887,
+            "matched_view_accuracy": 0.12909722222222222,
+            "agreement": 0.3314930555555556
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3075,
+            "mirror_accuracy": 0.3075,
+            "matched_view_accuracy": 0.3075,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.29909722222222224,
+            "mirror_accuracy": 0.29874999999999996,
+            "matched_view_accuracy": 0.21954861111111112,
+            "agreement": 0.6525694444444444
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2671527777777778,
+            "mirror_accuracy": 0.25902777777777775,
+            "matched_view_accuracy": 0.10829861111111111,
+            "agreement": 0.3133680555555556
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2926388888888889,
+            "mirror_accuracy": 0.2926388888888889,
+            "matched_view_accuracy": 0.2926388888888889,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.28079861111111115,
+            "mirror_accuracy": 0.2760763888888889,
+            "matched_view_accuracy": 0.19760416666666666,
+            "agreement": 0.6370138888888889
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.34694444444444444,
+            "mirror_accuracy": 0.3478472222222222,
+            "matched_view_accuracy": 0.2404513888888889,
+            "agreement": 0.5620486111111112
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3680555555555556,
+            "mirror_accuracy": 0.3680555555555556,
+            "matched_view_accuracy": 0.3680555555555556,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3519791666666667,
+            "mirror_accuracy": 0.3585763888888889,
+            "matched_view_accuracy": 0.2790625,
+            "agreement": 0.6872916666666666
+          },
+          "early_natural": {
+            "clean_accuracy": 0.3341319444444445,
+            "mirror_accuracy": 0.3326388888888889,
+            "matched_view_accuracy": 0.20826388888888892,
+            "agreement": 0.47885416666666664
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.35736111111111113,
+            "mirror_accuracy": 0.35736111111111113,
+            "matched_view_accuracy": 0.35736111111111113,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.34944444444444445,
+            "mirror_accuracy": 0.34826388888888893,
+            "matched_view_accuracy": 0.28125,
+            "agreement": 0.7172916666666667
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.3088888888888889,
+            "mirror_accuracy": 0.3086805555555555,
+            "matched_view_accuracy": 0.16972222222222222,
+            "agreement": 0.4275347222222222
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3479513888888889,
+            "mirror_accuracy": 0.3479513888888889,
+            "matched_view_accuracy": 0.3479513888888889,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.3194444444444444,
+            "mirror_accuracy": 0.31895833333333334,
+            "matched_view_accuracy": 0.23249999999999998,
+            "agreement": 0.6348958333333333
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3408333333333333,
+            "mirror_accuracy": 0.33791666666666664,
+            "matched_view_accuracy": 0.20124999999999998,
+            "agreement": 0.44229166666666664
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3747222222222222,
+            "mirror_accuracy": 0.3747222222222222,
+            "matched_view_accuracy": 0.3747222222222222,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3531597222222222,
+            "mirror_accuracy": 0.35034722222222225,
+            "matched_view_accuracy": 0.2601041666666667,
+            "agreement": 0.6259027777777778
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.3340972222222222,
+            "mirror_accuracy": 0.3245138888888889,
+            "matched_view_accuracy": 0.1965625,
+            "agreement": 0.45267361111111115
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.356875,
+            "mirror_accuracy": 0.356875,
+            "matched_view_accuracy": 0.356875,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.34572916666666664,
+            "mirror_accuracy": 0.33909722222222227,
+            "matched_view_accuracy": 0.26093750000000004,
+            "agreement": 0.6563194444444445
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.38288194444444446,
+            "mirror_accuracy": 0.38319444444444445,
+            "matched_view_accuracy": 0.2967013888888889,
+            "agreement": 0.655625
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.4046180555555556,
+            "mirror_accuracy": 0.4046180555555556,
+            "matched_view_accuracy": 0.4046180555555556,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3859027777777778,
+            "mirror_accuracy": 0.38708333333333333,
+            "matched_view_accuracy": 0.3193402777777778,
+            "agreement": 0.7288541666666666
+          },
+          "early_natural": {
+            "clean_accuracy": 0.36388888888888893,
+            "mirror_accuracy": 0.3601736111111111,
+            "matched_view_accuracy": 0.2685416666666667,
+            "agreement": 0.6100000000000001
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3856597222222222,
+            "mirror_accuracy": 0.3856597222222222,
+            "matched_view_accuracy": 0.3856597222222222,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3730555555555556,
+            "mirror_accuracy": 0.36916666666666664,
+            "matched_view_accuracy": 0.3132638888888889,
+            "agreement": 0.7533680555555555
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.33649305555555553,
+            "mirror_accuracy": 0.33795138888888887,
+            "matched_view_accuracy": 0.21965277777777775,
+            "agreement": 0.5120138888888889
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.37802083333333336,
+            "mirror_accuracy": 0.37802083333333336,
+            "matched_view_accuracy": 0.37802083333333336,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.343125,
+            "mirror_accuracy": 0.3477430555555555,
+            "matched_view_accuracy": 0.2616666666666667,
+            "agreement": 0.6500694444444445
+          },
+          "late_natural": {
+            "clean_accuracy": 0.36975694444444446,
+            "mirror_accuracy": 0.3657638888888889,
+            "matched_view_accuracy": 0.26631944444444444,
+            "agreement": 0.5889930555555556
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3979166666666667,
+            "mirror_accuracy": 0.3979166666666667,
+            "matched_view_accuracy": 0.3979166666666667,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3729166666666667,
+            "mirror_accuracy": 0.37145833333333333,
+            "matched_view_accuracy": 0.2989583333333333,
+            "agreement": 0.6960416666666667
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.3591319444444444,
+            "mirror_accuracy": 0.35864583333333333,
+            "matched_view_accuracy": 0.26381944444444444,
+            "agreement": 0.6125
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.38149305555555557,
+            "mirror_accuracy": 0.38149305555555557,
+            "matched_view_accuracy": 0.38149305555555557,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.36333333333333334,
+            "mirror_accuracy": 0.36336805555555557,
+            "matched_view_accuracy": 0.3001736111111111,
+            "agreement": 0.7280555555555556
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.12816930422661593,
+          "odd": 0.2907189173556082
+        },
+        "early_natural": {
+          "even": 0.1254264427205727,
+          "odd": 0.1571648902660845
+        },
+        "early_rotated": {
+          "even": 0.17399815957305018,
+          "odd": 0.25693325276202716
+        },
+        "late_natural": {
+          "even": 0.21784118339984151,
+          "odd": 0.16645737200074748
+        },
+        "late_rotated": {
+          "even": 0.2103150599975123,
+          "odd": 0.14495623368511135
+        }
+      }
+    },
+    {
+      "seed": 1218,
+      "source_classes": [
+        1,
+        3,
+        7,
+        9
+      ],
+      "target_classes": [
+        0,
+        2,
+        4,
+        5,
+        6,
+        8
+      ],
+      "latent_width": 126,
+      "teacher_odd_count": 56,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.20638888888888887,
+            "mirror_accuracy": 0.20583333333333334,
+            "matched_view_accuracy": 0.17697916666666666,
+            "agreement": 0.8118402777777778
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.20506944444444447,
+            "mirror_accuracy": 0.20506944444444447,
+            "matched_view_accuracy": 0.20506944444444447,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.20788194444444447,
+            "mirror_accuracy": 0.20652777777777778,
+            "matched_view_accuracy": 0.1767013888888889,
+            "agreement": 0.8076736111111111
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2659375,
+            "mirror_accuracy": 0.2643402777777778,
+            "matched_view_accuracy": 0.18625,
+            "agreement": 0.6080208333333333
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2811111111111111,
+            "mirror_accuracy": 0.2811111111111111,
+            "matched_view_accuracy": 0.2811111111111111,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.266875,
+            "mirror_accuracy": 0.2671875,
+            "matched_view_accuracy": 0.20527777777777778,
+            "agreement": 0.6994097222222222
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.27194444444444443,
+            "mirror_accuracy": 0.2632986111111111,
+            "matched_view_accuracy": 0.19010416666666669,
+            "agreement": 0.6353472222222222
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2768055555555556,
+            "mirror_accuracy": 0.2768055555555556,
+            "matched_view_accuracy": 0.2768055555555556,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2713541666666667,
+            "mirror_accuracy": 0.2646875,
+            "matched_view_accuracy": 0.20666666666666667,
+            "agreement": 0.7019444444444445
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2473263888888889,
+            "mirror_accuracy": 0.24597222222222223,
+            "matched_view_accuracy": 0.21336805555555555,
+            "agreement": 0.8023611111111111
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.24743055555555554,
+            "mirror_accuracy": 0.24743055555555554,
+            "matched_view_accuracy": 0.24743055555555554,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.24784722222222222,
+            "mirror_accuracy": 0.24597222222222223,
+            "matched_view_accuracy": 0.2140625,
+            "agreement": 0.8049999999999999
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.19163194444444445,
+            "mirror_accuracy": 0.1904861111111111,
+            "matched_view_accuracy": 0.10479166666666667,
+            "agreement": 0.5335763888888889
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.1878125,
+            "mirror_accuracy": 0.1878125,
+            "matched_view_accuracy": 0.1878125,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.19270833333333331,
+            "mirror_accuracy": 0.19243055555555555,
+            "matched_view_accuracy": 0.10795138888888889,
+            "agreement": 0.5474652777777778
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.2201736111111111,
+            "mirror_accuracy": 0.2213888888888889,
+            "matched_view_accuracy": 0.18166666666666667,
+            "agreement": 0.7670833333333333
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.22295138888888888,
+            "mirror_accuracy": 0.22295138888888888,
+            "matched_view_accuracy": 0.22295138888888888,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.22493055555555558,
+            "mirror_accuracy": 0.22593749999999999,
+            "matched_view_accuracy": 0.18375000000000002,
+            "agreement": 0.7642013888888889
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2795138888888889,
+            "mirror_accuracy": 0.2788541666666667,
+            "matched_view_accuracy": 0.1879513888888889,
+            "agreement": 0.5817013888888889
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.29961805555555554,
+            "mirror_accuracy": 0.29961805555555554,
+            "matched_view_accuracy": 0.29961805555555554,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.28215277777777775,
+            "mirror_accuracy": 0.2833333333333333,
+            "matched_view_accuracy": 0.2025,
+            "agreement": 0.6346527777777778
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.28868055555555555,
+            "mirror_accuracy": 0.27836805555555555,
+            "matched_view_accuracy": 0.18100694444444446,
+            "agreement": 0.5716319444444444
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.295,
+            "mirror_accuracy": 0.295,
+            "matched_view_accuracy": 0.295,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.28628472222222223,
+            "mirror_accuracy": 0.27836805555555555,
+            "matched_view_accuracy": 0.18798611111111113,
+            "agreement": 0.605
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2634722222222222,
+            "mirror_accuracy": 0.2609722222222222,
+            "matched_view_accuracy": 0.21878472222222223,
+            "agreement": 0.7567361111111112
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.2680208333333333,
+            "mirror_accuracy": 0.2680208333333333,
+            "matched_view_accuracy": 0.2680208333333333,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2649652777777778,
+            "mirror_accuracy": 0.26350694444444445,
+            "matched_view_accuracy": 0.2210763888888889,
+            "agreement": 0.7582291666666666
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2119097222222222,
+            "mirror_accuracy": 0.20788194444444444,
+            "matched_view_accuracy": 0.10902777777777778,
+            "agreement": 0.5024652777777778
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2198263888888889,
+            "mirror_accuracy": 0.2198263888888889,
+            "matched_view_accuracy": 0.2198263888888889,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.21559027777777778,
+            "mirror_accuracy": 0.21149305555555556,
+            "matched_view_accuracy": 0.11472222222222223,
+            "agreement": 0.5172916666666667
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.23493055555555556,
+            "mirror_accuracy": 0.23625,
+            "matched_view_accuracy": 0.19548611111111108,
+            "agreement": 0.771076388888889
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.23909722222222224,
+            "mirror_accuracy": 0.23909722222222224,
+            "matched_view_accuracy": 0.23909722222222224,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.23791666666666667,
+            "mirror_accuracy": 0.23965277777777777,
+            "matched_view_accuracy": 0.19854166666666667,
+            "agreement": 0.7672222222222222
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2935069444444445,
+            "mirror_accuracy": 0.29597222222222225,
+            "matched_view_accuracy": 0.1995486111111111,
+            "agreement": 0.5766666666666667
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.31652777777777774,
+            "mirror_accuracy": 0.31652777777777774,
+            "matched_view_accuracy": 0.31652777777777774,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.29510416666666667,
+            "mirror_accuracy": 0.29746527777777776,
+            "matched_view_accuracy": 0.21243055555555554,
+            "agreement": 0.6247569444444445
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.31322916666666667,
+            "mirror_accuracy": 0.2998263888888889,
+            "matched_view_accuracy": 0.19958333333333333,
+            "agreement": 0.5763194444444444
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.32048611111111114,
+            "mirror_accuracy": 0.32048611111111114,
+            "matched_view_accuracy": 0.32048611111111114,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.3123611111111111,
+            "mirror_accuracy": 0.30090277777777774,
+            "matched_view_accuracy": 0.20402777777777778,
+            "agreement": 0.595173611111111
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2761458333333333,
+            "mirror_accuracy": 0.2747222222222222,
+            "matched_view_accuracy": 0.22274305555555557,
+            "agreement": 0.7272222222222222
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.2761111111111111,
+            "mirror_accuracy": 0.2761111111111111,
+            "matched_view_accuracy": 0.2761111111111111,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.278125,
+            "mirror_accuracy": 0.2785763888888889,
+            "matched_view_accuracy": 0.226875,
+            "agreement": 0.732013888888889
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.25645833333333334,
+            "mirror_accuracy": 0.24843749999999998,
+            "matched_view_accuracy": 0.13631944444444444,
+            "agreement": 0.4751736111111111
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.25555555555555554,
+            "mirror_accuracy": 0.25555555555555554,
+            "matched_view_accuracy": 0.25555555555555554,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.25461805555555556,
+            "mirror_accuracy": 0.24638888888888888,
+            "matched_view_accuracy": 0.14847222222222223,
+            "agreement": 0.5324305555555555
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.13440917035638056,
+          "odd": 1.8140174005868699
+        },
+        "early_natural": {
+          "even": 0.15201067936687362,
+          "odd": 1.047965906848101
+        },
+        "early_rotated": {
+          "even": 0.1551493704503077,
+          "odd": 1.0445969520150082
+        },
+        "late_natural": {
+          "even": 0.1263073839846997,
+          "odd": 1.7531696060269248
+        },
+        "late_rotated": {
+          "even": 0.5943493850920603,
+          "odd": 1.280586514502355
+        }
+      }
+    },
+    {
+      "seed": 1219,
+      "source_classes": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "target_classes": [
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "latent_width": 82,
+      "teacher_odd_count": 31,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.2387152777777778,
+            "mirror_accuracy": 0.2403472222222222,
+            "matched_view_accuracy": 0.21125,
+            "agreement": 0.8389930555555556
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2407638888888889,
+            "mirror_accuracy": 0.2407638888888889,
+            "matched_view_accuracy": 0.2407638888888889,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.23888888888888887,
+            "mirror_accuracy": 0.2406597222222222,
+            "matched_view_accuracy": 0.21038194444444444,
+            "agreement": 0.8336111111111111
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2202777777777778,
+            "mirror_accuracy": 0.22079861111111113,
+            "matched_view_accuracy": 0.08302083333333332,
+            "agreement": 0.2957638888888889
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.26743055555555556,
+            "mirror_accuracy": 0.26743055555555556,
+            "matched_view_accuracy": 0.26743055555555556,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.22249999999999998,
+            "mirror_accuracy": 0.22347222222222224,
+            "matched_view_accuracy": 0.09079861111111111,
+            "agreement": 0.3223958333333333
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.23118055555555556,
+            "mirror_accuracy": 0.23399305555555555,
+            "matched_view_accuracy": 0.09878472222222223,
+            "agreement": 0.3180208333333333
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2675694444444444,
+            "mirror_accuracy": 0.2675694444444444,
+            "matched_view_accuracy": 0.2675694444444444,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2382986111111111,
+            "mirror_accuracy": 0.24059027777777775,
+            "matched_view_accuracy": 0.14961805555555555,
+            "agreement": 0.5236805555555556
+          },
+          "late_natural": {
+            "clean_accuracy": 0.26892361111111107,
+            "mirror_accuracy": 0.26937500000000003,
+            "matched_view_accuracy": 0.14972222222222223,
+            "agreement": 0.41312499999999996
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3035763888888889,
+            "mirror_accuracy": 0.3035763888888889,
+            "matched_view_accuracy": 0.3035763888888889,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.27045138888888887,
+            "mirror_accuracy": 0.2713541666666667,
+            "matched_view_accuracy": 0.15795138888888888,
+            "agreement": 0.4527083333333334
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.18961805555555555,
+            "mirror_accuracy": 0.18864583333333335,
+            "matched_view_accuracy": 0.06597222222222222,
+            "agreement": 0.2561805555555555
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2067013888888889,
+            "mirror_accuracy": 0.2067013888888889,
+            "matched_view_accuracy": 0.2067013888888889,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.19006944444444443,
+            "mirror_accuracy": 0.18885416666666666,
+            "matched_view_accuracy": 0.07211805555555556,
+            "agreement": 0.2944097222222222
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.259375,
+            "mirror_accuracy": 0.26232638888888893,
+            "matched_view_accuracy": 0.22340277777777778,
+            "agreement": 0.8159375
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2603125,
+            "mirror_accuracy": 0.2603125,
+            "matched_view_accuracy": 0.2603125,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2616666666666667,
+            "mirror_accuracy": 0.2659375,
+            "matched_view_accuracy": 0.22677083333333334,
+            "agreement": 0.8165625000000001
+          },
+          "early_natural": {
+            "clean_accuracy": 0.23690972222222223,
+            "mirror_accuracy": 0.23416666666666666,
+            "matched_view_accuracy": 0.09798611111111111,
+            "agreement": 0.2938194444444444
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2721527777777778,
+            "mirror_accuracy": 0.2721527777777778,
+            "matched_view_accuracy": 0.2721527777777778,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.23916666666666667,
+            "mirror_accuracy": 0.2371875,
+            "matched_view_accuracy": 0.1082638888888889,
+            "agreement": 0.31927083333333334
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.26722222222222225,
+            "mirror_accuracy": 0.2763888888888889,
+            "matched_view_accuracy": 0.13614583333333335,
+            "agreement": 0.36069444444444443
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.29986111111111113,
+            "mirror_accuracy": 0.29986111111111113,
+            "matched_view_accuracy": 0.29986111111111113,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.27184027777777775,
+            "mirror_accuracy": 0.28152777777777777,
+            "matched_view_accuracy": 0.175,
+            "agreement": 0.4982986111111112
+          },
+          "late_natural": {
+            "clean_accuracy": 0.30125,
+            "mirror_accuracy": 0.3042708333333334,
+            "matched_view_accuracy": 0.19996527777777778,
+            "agreement": 0.49649305555555556
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.33461805555555557,
+            "mirror_accuracy": 0.33461805555555557,
+            "matched_view_accuracy": 0.33461805555555557,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.30156249999999996,
+            "mirror_accuracy": 0.3042708333333333,
+            "matched_view_accuracy": 0.20336805555555557,
+            "agreement": 0.5116666666666667
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.22618055555555555,
+            "mirror_accuracy": 0.22552083333333334,
+            "matched_view_accuracy": 0.09913194444444445,
+            "agreement": 0.29236111111111107
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.24159722222222224,
+            "mirror_accuracy": 0.24159722222222224,
+            "matched_view_accuracy": 0.24159722222222224,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.22555555555555556,
+            "mirror_accuracy": 0.22562500000000002,
+            "matched_view_accuracy": 0.10510416666666668,
+            "agreement": 0.32076388888888885
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.28229166666666666,
+            "mirror_accuracy": 0.2863888888888889,
+            "matched_view_accuracy": 0.23972222222222223,
+            "agreement": 0.7744444444444445
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2854861111111111,
+            "mirror_accuracy": 0.2854861111111111,
+            "matched_view_accuracy": 0.2854861111111111,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2881597222222222,
+            "mirror_accuracy": 0.2935763888888889,
+            "matched_view_accuracy": 0.24708333333333335,
+            "agreement": 0.7841319444444445
+          },
+          "early_natural": {
+            "clean_accuracy": 0.24940972222222224,
+            "mirror_accuracy": 0.2515972222222222,
+            "matched_view_accuracy": 0.12350694444444445,
+            "agreement": 0.3351388888888889
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2969097222222222,
+            "mirror_accuracy": 0.2969097222222222,
+            "matched_view_accuracy": 0.2969097222222222,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2507638888888889,
+            "mirror_accuracy": 0.2521527777777778,
+            "matched_view_accuracy": 0.12628472222222223,
+            "agreement": 0.3455902777777778
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.28086805555555555,
+            "mirror_accuracy": 0.29194444444444445,
+            "matched_view_accuracy": 0.16958333333333334,
+            "agreement": 0.4375
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3136458333333333,
+            "mirror_accuracy": 0.3136458333333333,
+            "matched_view_accuracy": 0.3136458333333333,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2832986111111111,
+            "mirror_accuracy": 0.29194444444444445,
+            "matched_view_accuracy": 0.18958333333333333,
+            "agreement": 0.5088541666666667
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3120833333333333,
+            "mirror_accuracy": 0.31572916666666667,
+            "matched_view_accuracy": 0.21864583333333332,
+            "agreement": 0.5085069444444444
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.33534722222222224,
+            "mirror_accuracy": 0.33534722222222224,
+            "matched_view_accuracy": 0.33534722222222224,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3112152777777778,
+            "mirror_accuracy": 0.3146527777777778,
+            "matched_view_accuracy": 0.2189583333333333,
+            "agreement": 0.511076388888889
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.24552083333333333,
+            "mirror_accuracy": 0.2502083333333333,
+            "matched_view_accuracy": 0.13968750000000002,
+            "agreement": 0.3876736111111111
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.25725694444444447,
+            "mirror_accuracy": 0.25725694444444447,
+            "matched_view_accuracy": 0.25725694444444447,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.24284722222222221,
+            "mirror_accuracy": 0.24743055555555557,
+            "matched_view_accuracy": 0.14222222222222222,
+            "agreement": 0.4074305555555555
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.05054938586054113,
+          "odd": 1.7871308935562524
+        },
+        "early_natural": {
+          "even": 0.9434167961322356,
+          "odd": 0.782818561092535
+        },
+        "early_rotated": {
+          "even": 0.503759176298199,
+          "odd": 0.3331118656017902
+        },
+        "late_natural": {
+          "even": 0.5609846257274066,
+          "odd": 0.6514066012944641
+        },
+        "late_rotated": {
+          "even": 0.47081779129115997,
+          "odd": 0.2847051438724319
+        }
+      }
+    },
+    {
+      "seed": 1220,
+      "source_classes": [
+        4,
+        7,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6
+      ],
+      "latent_width": 104,
+      "teacher_odd_count": 44,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.2636805555555556,
+            "mirror_accuracy": 0.2617013888888889,
+            "matched_view_accuracy": 0.15100694444444446,
+            "agreement": 0.46600694444444446
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2843055555555556,
+            "mirror_accuracy": 0.2843055555555556,
+            "matched_view_accuracy": 0.2843055555555556,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.26913194444444444,
+            "mirror_accuracy": 0.26569444444444446,
+            "matched_view_accuracy": 0.1875,
+            "agreement": 0.6213541666666667
+          },
+          "early_natural": {
+            "clean_accuracy": 0.23583333333333334,
+            "mirror_accuracy": 0.23708333333333334,
+            "matched_view_accuracy": 0.09920138888888888,
+            "agreement": 0.31701388888888893
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2659722222222222,
+            "mirror_accuracy": 0.2659722222222222,
+            "matched_view_accuracy": 0.2659722222222222,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.24555555555555555,
+            "mirror_accuracy": 0.24506944444444445,
+            "matched_view_accuracy": 0.17381944444444442,
+            "agreement": 0.6394791666666667
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.21895833333333334,
+            "mirror_accuracy": 0.22055555555555556,
+            "matched_view_accuracy": 0.09902777777777777,
+            "agreement": 0.3614583333333333
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.22239583333333335,
+            "mirror_accuracy": 0.22239583333333335,
+            "matched_view_accuracy": 0.22239583333333335,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2257986111111111,
+            "mirror_accuracy": 0.2251736111111111,
+            "matched_view_accuracy": 0.133125,
+            "agreement": 0.512361111111111
+          },
+          "late_natural": {
+            "clean_accuracy": 0.25479166666666664,
+            "mirror_accuracy": 0.25326388888888884,
+            "matched_view_accuracy": 0.10239583333333334,
+            "agreement": 0.2888888888888889
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.27923611111111113,
+            "mirror_accuracy": 0.27923611111111113,
+            "matched_view_accuracy": 0.27923611111111113,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2762847222222222,
+            "mirror_accuracy": 0.27194444444444443,
+            "matched_view_accuracy": 0.18541666666666667,
+            "agreement": 0.594826388888889
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2573958333333333,
+            "mirror_accuracy": 0.2564236111111111,
+            "matched_view_accuracy": 0.10861111111111112,
+            "agreement": 0.3017708333333333
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.28475694444444444,
+            "mirror_accuracy": 0.28475694444444444,
+            "matched_view_accuracy": 0.28475694444444444,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.27489583333333334,
+            "mirror_accuracy": 0.27177083333333335,
+            "matched_view_accuracy": 0.18059027777777778,
+            "agreement": 0.5764583333333333
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.3276736111111111,
+            "mirror_accuracy": 0.32739583333333333,
+            "matched_view_accuracy": 0.22565972222222222,
+            "agreement": 0.565
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3459375,
+            "mirror_accuracy": 0.3459375,
+            "matched_view_accuracy": 0.3459375,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3286458333333333,
+            "mirror_accuracy": 0.33034722222222224,
+            "matched_view_accuracy": 0.24270833333333333,
+            "agreement": 0.6262847222222223
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2771527777777778,
+            "mirror_accuracy": 0.2863194444444444,
+            "matched_view_accuracy": 0.1544097222222222,
+            "agreement": 0.42895833333333333
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.32024305555555554,
+            "mirror_accuracy": 0.32024305555555554,
+            "matched_view_accuracy": 0.32024305555555554,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.28500000000000003,
+            "mirror_accuracy": 0.2904861111111111,
+            "matched_view_accuracy": 0.20059027777777777,
+            "agreement": 0.5970486111111111
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.251875,
+            "mirror_accuracy": 0.2532638888888889,
+            "matched_view_accuracy": 0.1317361111111111,
+            "agreement": 0.40246527777777774
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.25649305555555557,
+            "mirror_accuracy": 0.25649305555555557,
+            "matched_view_accuracy": 0.25649305555555557,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2556597222222222,
+            "mirror_accuracy": 0.2559722222222222,
+            "matched_view_accuracy": 0.1552777777777778,
+            "agreement": 0.5009722222222223
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3204513888888889,
+            "mirror_accuracy": 0.3217361111111111,
+            "matched_view_accuracy": 0.1867361111111111,
+            "agreement": 0.4281597222222222
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3532986111111111,
+            "mirror_accuracy": 0.3532986111111111,
+            "matched_view_accuracy": 0.3532986111111111,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3297916666666667,
+            "mirror_accuracy": 0.3314583333333333,
+            "matched_view_accuracy": 0.23201388888888888,
+            "agreement": 0.5798611111111112
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.3140625,
+            "mirror_accuracy": 0.31510416666666663,
+            "matched_view_accuracy": 0.18774305555555557,
+            "agreement": 0.44399305555555557
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.3440625,
+            "mirror_accuracy": 0.3440625,
+            "matched_view_accuracy": 0.3440625,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.32114583333333335,
+            "mirror_accuracy": 0.32,
+            "matched_view_accuracy": 0.22694444444444445,
+            "agreement": 0.5822916666666667
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.35315972222222225,
+            "mirror_accuracy": 0.3517013888888889,
+            "matched_view_accuracy": 0.2509027777777778,
+            "agreement": 0.5911805555555556
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3771875,
+            "mirror_accuracy": 0.3771875,
+            "matched_view_accuracy": 0.3771875,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3531944444444445,
+            "mirror_accuracy": 0.3509027777777778,
+            "matched_view_accuracy": 0.2575,
+            "agreement": 0.6159027777777778
+          },
+          "early_natural": {
+            "clean_accuracy": 0.3023958333333333,
+            "mirror_accuracy": 0.31385416666666666,
+            "matched_view_accuracy": 0.20072916666666668,
+            "agreement": 0.5200694444444445
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3507986111111111,
+            "mirror_accuracy": 0.3507986111111111,
+            "matched_view_accuracy": 0.3507986111111111,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3045833333333333,
+            "mirror_accuracy": 0.31451388888888887,
+            "matched_view_accuracy": 0.22194444444444444,
+            "agreement": 0.5982291666666666
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.28694444444444445,
+            "mirror_accuracy": 0.2913541666666667,
+            "matched_view_accuracy": 0.17843750000000003,
+            "agreement": 0.4787152777777778
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.29194444444444445,
+            "mirror_accuracy": 0.29194444444444445,
+            "matched_view_accuracy": 0.29194444444444445,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.28937500000000005,
+            "mirror_accuracy": 0.29517361111111107,
+            "matched_view_accuracy": 0.19333333333333333,
+            "agreement": 0.5270833333333333
+          },
+          "late_natural": {
+            "clean_accuracy": 0.34496527777777775,
+            "mirror_accuracy": 0.34677083333333336,
+            "matched_view_accuracy": 0.2382638888888889,
+            "agreement": 0.5354166666666667
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.37881944444444443,
+            "mirror_accuracy": 0.37881944444444443,
+            "matched_view_accuracy": 0.37881944444444443,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.34725694444444444,
+            "mirror_accuracy": 0.3505208333333333,
+            "matched_view_accuracy": 0.26,
+            "agreement": 0.6122569444444445
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.3335416666666666,
+            "mirror_accuracy": 0.3385416666666667,
+            "matched_view_accuracy": 0.2163888888888889,
+            "agreement": 0.4944791666666667
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.36913194444444447,
+            "mirror_accuracy": 0.36913194444444447,
+            "matched_view_accuracy": 0.36913194444444447,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.3343055555555555,
+            "mirror_accuracy": 0.3386458333333333,
+            "matched_view_accuracy": 0.23430555555555557,
+            "agreement": 0.5619097222222222
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.21353288520832114,
+          "odd": 0.6169175414405311
+        },
+        "early_natural": {
+          "even": 0.21420602170354922,
+          "odd": 0.33619200325595217
+        },
+        "early_rotated": {
+          "even": 0.459868870773617,
+          "odd": 0.6125850118681256
+        },
+        "late_natural": {
+          "even": 0.22431057028074394,
+          "odd": 0.27278301099141156
+        },
+        "late_rotated": {
+          "even": 0.27196466129614505,
+          "odd": 0.3109618817853676
+        }
+      }
+    },
+    {
+      "seed": 1221,
+      "source_classes": [
+        0,
+        3,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        2,
+        4,
+        5,
+        7,
+        9
+      ],
+      "latent_width": 91,
+      "teacher_odd_count": 36,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.24229166666666668,
+            "mirror_accuracy": 0.24145833333333333,
+            "matched_view_accuracy": 0.14607638888888888,
+            "agreement": 0.5489930555555556
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.25947916666666665,
+            "mirror_accuracy": 0.25947916666666665,
+            "matched_view_accuracy": 0.25947916666666665,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2504861111111111,
+            "mirror_accuracy": 0.24833333333333335,
+            "matched_view_accuracy": 0.1815277777777778,
+            "agreement": 0.688576388888889
+          },
+          "early_natural": {
+            "clean_accuracy": 0.23732638888888888,
+            "mirror_accuracy": 0.2419791666666667,
+            "matched_view_accuracy": 0.09409722222222222,
+            "agreement": 0.3253125
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2651041666666667,
+            "mirror_accuracy": 0.2651041666666667,
+            "matched_view_accuracy": 0.2651041666666667,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2557291666666667,
+            "mirror_accuracy": 0.2571527777777778,
+            "matched_view_accuracy": 0.19215277777777778,
+            "agreement": 0.6930555555555555
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.22072916666666667,
+            "mirror_accuracy": 0.22215277777777778,
+            "matched_view_accuracy": 0.1125,
+            "agreement": 0.4378819444444444
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.23354166666666665,
+            "mirror_accuracy": 0.23354166666666665,
+            "matched_view_accuracy": 0.23354166666666665,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.22756944444444444,
+            "mirror_accuracy": 0.22729166666666667,
+            "matched_view_accuracy": 0.13701388888888888,
+            "agreement": 0.5341319444444443
+          },
+          "late_natural": {
+            "clean_accuracy": 0.22833333333333333,
+            "mirror_accuracy": 0.22958333333333336,
+            "matched_view_accuracy": 0.08184027777777778,
+            "agreement": 0.286875
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.25322916666666667,
+            "mirror_accuracy": 0.25322916666666667,
+            "matched_view_accuracy": 0.25322916666666667,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.24125000000000002,
+            "mirror_accuracy": 0.2476388888888889,
+            "matched_view_accuracy": 0.13944444444444443,
+            "agreement": 0.513888888888889
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.22375,
+            "mirror_accuracy": 0.22861111111111113,
+            "matched_view_accuracy": 0.07458333333333333,
+            "agreement": 0.2770138888888889
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2581597222222222,
+            "mirror_accuracy": 0.2581597222222222,
+            "matched_view_accuracy": 0.2581597222222222,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.24225694444444446,
+            "mirror_accuracy": 0.24128472222222225,
+            "matched_view_accuracy": 0.12364583333333333,
+            "agreement": 0.45420138888888895
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.2936458333333334,
+            "mirror_accuracy": 0.2897222222222222,
+            "matched_view_accuracy": 0.20711805555555554,
+            "agreement": 0.6393402777777777
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.30347222222222225,
+            "mirror_accuracy": 0.30347222222222225,
+            "matched_view_accuracy": 0.30347222222222225,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2971180555555556,
+            "mirror_accuracy": 0.29208333333333336,
+            "matched_view_accuracy": 0.2259375,
+            "agreement": 0.7080555555555555
+          },
+          "early_natural": {
+            "clean_accuracy": 0.28798611111111116,
+            "mirror_accuracy": 0.2958680555555555,
+            "matched_view_accuracy": 0.16090277777777778,
+            "agreement": 0.46190972222222226
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.32052083333333337,
+            "mirror_accuracy": 0.32052083333333337,
+            "matched_view_accuracy": 0.32052083333333337,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.30180555555555555,
+            "mirror_accuracy": 0.30413194444444447,
+            "matched_view_accuracy": 0.22517361111111112,
+            "agreement": 0.6706944444444445
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.2582638888888889,
+            "mirror_accuracy": 0.2563888888888889,
+            "matched_view_accuracy": 0.1567013888888889,
+            "agreement": 0.5167708333333334
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2736111111111111,
+            "mirror_accuracy": 0.2736111111111111,
+            "matched_view_accuracy": 0.2736111111111111,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.25982638888888887,
+            "mirror_accuracy": 0.26055555555555554,
+            "matched_view_accuracy": 0.17052083333333334,
+            "agreement": 0.5663541666666667
+          },
+          "late_natural": {
+            "clean_accuracy": 0.27274305555555556,
+            "mirror_accuracy": 0.27718750000000003,
+            "matched_view_accuracy": 0.14850694444444446,
+            "agreement": 0.4448958333333333
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.2959722222222222,
+            "mirror_accuracy": 0.2959722222222222,
+            "matched_view_accuracy": 0.2959722222222222,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.28218750000000004,
+            "mirror_accuracy": 0.28607638888888887,
+            "matched_view_accuracy": 0.17972222222222223,
+            "agreement": 0.5514930555555555
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.26850694444444445,
+            "mirror_accuracy": 0.2697222222222222,
+            "matched_view_accuracy": 0.13677083333333334,
+            "agreement": 0.4229513888888889
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.30423611111111115,
+            "mirror_accuracy": 0.30423611111111115,
+            "matched_view_accuracy": 0.30423611111111115,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.27607638888888886,
+            "mirror_accuracy": 0.27809027777777773,
+            "matched_view_accuracy": 0.1679513888888889,
+            "agreement": 0.5191319444444444
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.3247916666666667,
+            "mirror_accuracy": 0.32038194444444446,
+            "matched_view_accuracy": 0.24472222222222223,
+            "agreement": 0.6882638888888889
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3342013888888889,
+            "mirror_accuracy": 0.3342013888888889,
+            "matched_view_accuracy": 0.3342013888888889,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3251736111111111,
+            "mirror_accuracy": 0.3208680555555556,
+            "matched_view_accuracy": 0.25354166666666667,
+            "agreement": 0.7198958333333334
+          },
+          "early_natural": {
+            "clean_accuracy": 0.3307986111111111,
+            "mirror_accuracy": 0.33166666666666667,
+            "matched_view_accuracy": 0.21763888888888888,
+            "agreement": 0.5662152777777778
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3560069444444444,
+            "mirror_accuracy": 0.3560069444444444,
+            "matched_view_accuracy": 0.3560069444444444,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3375,
+            "mirror_accuracy": 0.33840277777777783,
+            "matched_view_accuracy": 0.2571875,
+            "agreement": 0.6820138888888889
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.27440972222222226,
+            "mirror_accuracy": 0.2735763888888889,
+            "matched_view_accuracy": 0.19114583333333332,
+            "agreement": 0.6095833333333334
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2890625,
+            "mirror_accuracy": 0.2890625,
+            "matched_view_accuracy": 0.2890625,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.27697916666666667,
+            "mirror_accuracy": 0.27545138888888887,
+            "matched_view_accuracy": 0.19913194444444443,
+            "agreement": 0.6356597222222222
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2954513888888889,
+            "mirror_accuracy": 0.29625,
+            "matched_view_accuracy": 0.18975694444444444,
+            "agreement": 0.5565972222222222
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3204513888888889,
+            "mirror_accuracy": 0.3204513888888889,
+            "matched_view_accuracy": 0.3204513888888889,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.29961805555555554,
+            "mirror_accuracy": 0.2999652777777778,
+            "matched_view_accuracy": 0.19885416666666667,
+            "agreement": 0.5819444444444444
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.29857638888888893,
+            "mirror_accuracy": 0.2978125,
+            "matched_view_accuracy": 0.1764236111111111,
+            "agreement": 0.4994097222222222
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.3402777777777778,
+            "mirror_accuracy": 0.3402777777777778,
+            "matched_view_accuracy": 0.3402777777777778,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2990277777777778,
+            "mirror_accuracy": 0.2982638888888889,
+            "matched_view_accuracy": 0.18559027777777778,
+            "agreement": 0.5317708333333333
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.11204502657369934,
+          "odd": 0.6805522493135608
+        },
+        "early_natural": {
+          "even": 0.13716741813078226,
+          "odd": 0.24506970452875637
+        },
+        "early_rotated": {
+          "even": 0.2969527720752985,
+          "odd": 0.84166526829927
+        },
+        "late_natural": {
+          "even": 0.3311379861116642,
+          "odd": 0.36432628404710077
+        },
+        "late_rotated": {
+          "even": 0.3546360807488647,
+          "odd": 0.3882818594790008
+        }
+      }
+    },
+    {
+      "seed": 1222,
+      "source_classes": [
+        3,
+        6,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        4,
+        5,
+        7
+      ],
+      "latent_width": 78,
+      "teacher_odd_count": 32,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.2682986111111111,
+            "mirror_accuracy": 0.2678125,
+            "matched_view_accuracy": 0.14409722222222224,
+            "agreement": 0.4334027777777778
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.28805555555555556,
+            "mirror_accuracy": 0.28805555555555556,
+            "matched_view_accuracy": 0.28805555555555556,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.27753472222222225,
+            "mirror_accuracy": 0.27375000000000005,
+            "matched_view_accuracy": 0.20743055555555556,
+            "agreement": 0.6805902777777777
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2711458333333333,
+            "mirror_accuracy": 0.2638888888888889,
+            "matched_view_accuracy": 0.1242361111111111,
+            "agreement": 0.3507638888888889
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.28385416666666663,
+            "mirror_accuracy": 0.28385416666666663,
+            "matched_view_accuracy": 0.28385416666666663,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.27923611111111113,
+            "mirror_accuracy": 0.2778819444444445,
+            "matched_view_accuracy": 0.22260416666666666,
+            "agreement": 0.7485416666666667
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.22479166666666667,
+            "mirror_accuracy": 0.22864583333333333,
+            "matched_view_accuracy": 0.09309027777777779,
+            "agreement": 0.3442708333333333
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2521875,
+            "mirror_accuracy": 0.2521875,
+            "matched_view_accuracy": 0.2521875,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.23958333333333334,
+            "mirror_accuracy": 0.23968750000000003,
+            "matched_view_accuracy": 0.18364583333333334,
+            "agreement": 0.7302430555555556
+          },
+          "late_natural": {
+            "clean_accuracy": 0.28444444444444444,
+            "mirror_accuracy": 0.2795486111111111,
+            "matched_view_accuracy": 0.13777777777777778,
+            "agreement": 0.36378472222222225
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.30704861111111115,
+            "mirror_accuracy": 0.30704861111111115,
+            "matched_view_accuracy": 0.30704861111111115,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.30194444444444446,
+            "mirror_accuracy": 0.29868055555555556,
+            "matched_view_accuracy": 0.22638888888888892,
+            "agreement": 0.6749305555555556
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2518055555555555,
+            "mirror_accuracy": 0.2526041666666667,
+            "matched_view_accuracy": 0.10798611111111112,
+            "agreement": 0.32038194444444446
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2795486111111111,
+            "mirror_accuracy": 0.2795486111111111,
+            "matched_view_accuracy": 0.2795486111111111,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.26614583333333336,
+            "mirror_accuracy": 0.2638888888888889,
+            "matched_view_accuracy": 0.19100694444444444,
+            "agreement": 0.6457986111111111
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.3194097222222222,
+            "mirror_accuracy": 0.3140277777777778,
+            "matched_view_accuracy": 0.1995486111111111,
+            "agreement": 0.484375
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3399652777777778,
+            "mirror_accuracy": 0.3399652777777778,
+            "matched_view_accuracy": 0.3399652777777778,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.32909722222222226,
+            "mirror_accuracy": 0.3211111111111111,
+            "matched_view_accuracy": 0.23868055555555556,
+            "agreement": 0.6211111111111112
+          },
+          "early_natural": {
+            "clean_accuracy": 0.3094444444444444,
+            "mirror_accuracy": 0.31093750000000003,
+            "matched_view_accuracy": 0.1809375,
+            "agreement": 0.43493055555555554
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.33131944444444444,
+            "mirror_accuracy": 0.33131944444444444,
+            "matched_view_accuracy": 0.33131944444444444,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.32677083333333334,
+            "mirror_accuracy": 0.32652777777777775,
+            "matched_view_accuracy": 0.25729166666666664,
+            "agreement": 0.7030555555555555
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.25850694444444444,
+            "mirror_accuracy": 0.2598611111111111,
+            "matched_view_accuracy": 0.12666666666666665,
+            "agreement": 0.3917708333333333
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2995138888888889,
+            "mirror_accuracy": 0.2995138888888889,
+            "matched_view_accuracy": 0.2995138888888889,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2787152777777778,
+            "mirror_accuracy": 0.27975694444444443,
+            "matched_view_accuracy": 0.21010416666666668,
+            "agreement": 0.6923958333333333
+          },
+          "late_natural": {
+            "clean_accuracy": 0.32458333333333333,
+            "mirror_accuracy": 0.32350694444444444,
+            "matched_view_accuracy": 0.186875,
+            "agreement": 0.4265277777777778
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3607638888888889,
+            "mirror_accuracy": 0.3607638888888889,
+            "matched_view_accuracy": 0.3607638888888889,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.34111111111111114,
+            "mirror_accuracy": 0.3393055555555556,
+            "matched_view_accuracy": 0.25100694444444444,
+            "agreement": 0.6296180555555555
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.28500000000000003,
+            "mirror_accuracy": 0.2843402777777778,
+            "matched_view_accuracy": 0.14461805555555557,
+            "agreement": 0.3510416666666667
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.32329861111111113,
+            "mirror_accuracy": 0.32329861111111113,
+            "matched_view_accuracy": 0.32329861111111113,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.29986111111111113,
+            "mirror_accuracy": 0.29583333333333334,
+            "matched_view_accuracy": 0.1987847222222222,
+            "agreement": 0.5457291666666666
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.35586805555555556,
+            "mirror_accuracy": 0.34673611111111113,
+            "matched_view_accuracy": 0.24368055555555557,
+            "agreement": 0.5472569444444444
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.37993055555555555,
+            "mirror_accuracy": 0.37993055555555555,
+            "matched_view_accuracy": 0.37993055555555555,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3622222222222222,
+            "mirror_accuracy": 0.3519791666666666,
+            "matched_view_accuracy": 0.26753472222222224,
+            "agreement": 0.6213194444444445
+          },
+          "early_natural": {
+            "clean_accuracy": 0.3365972222222222,
+            "mirror_accuracy": 0.33524305555555556,
+            "matched_view_accuracy": 0.2160763888888889,
+            "agreement": 0.5081597222222223
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.359375,
+            "mirror_accuracy": 0.359375,
+            "matched_view_accuracy": 0.359375,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.34923611111111114,
+            "mirror_accuracy": 0.3479513888888889,
+            "matched_view_accuracy": 0.27381944444444445,
+            "agreement": 0.6970833333333333
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.30725694444444446,
+            "mirror_accuracy": 0.30138888888888893,
+            "matched_view_accuracy": 0.19302083333333334,
+            "agreement": 0.5311111111111111
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3397916666666667,
+            "mirror_accuracy": 0.3397916666666667,
+            "matched_view_accuracy": 0.3397916666666667,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.3121527777777778,
+            "mirror_accuracy": 0.31190972222222224,
+            "matched_view_accuracy": 0.2362152777777778,
+            "agreement": 0.6739236111111111
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3584375,
+            "mirror_accuracy": 0.35760416666666667,
+            "matched_view_accuracy": 0.23954861111111111,
+            "agreement": 0.5352777777777777
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3984722222222222,
+            "mirror_accuracy": 0.3984722222222222,
+            "matched_view_accuracy": 0.3984722222222222,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.36854166666666666,
+            "mirror_accuracy": 0.3650347222222222,
+            "matched_view_accuracy": 0.27812499999999996,
+            "agreement": 0.6496527777777779
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.3232291666666667,
+            "mirror_accuracy": 0.3180208333333333,
+            "matched_view_accuracy": 0.1856597222222222,
+            "agreement": 0.42940972222222223
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.36236111111111113,
+            "mirror_accuracy": 0.36236111111111113,
+            "matched_view_accuracy": 0.36236111111111113,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.33163194444444444,
+            "mirror_accuracy": 0.32590277777777776,
+            "matched_view_accuracy": 0.22128472222222223,
+            "agreement": 0.5385763888888888
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.12859042966498466,
+          "odd": 0.4215270058795542
+        },
+        "early_natural": {
+          "even": 0.11601628957255158,
+          "odd": 0.22868282908831286
+        },
+        "early_rotated": {
+          "even": 0.08765586293422796,
+          "odd": 0.156012686011013
+        },
+        "late_natural": {
+          "even": 0.19214459350081872,
+          "odd": 0.2538515613346497
+        },
+        "late_rotated": {
+          "even": 0.1688067733743672,
+          "odd": 0.2439632161503419
+        }
+      }
+    },
+    {
+      "seed": 1223,
+      "source_classes": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "latent_width": 80,
+      "teacher_odd_count": 31,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.24493055555555557,
+            "mirror_accuracy": 0.24784722222222222,
+            "matched_view_accuracy": 0.16670138888888889,
+            "agreement": 0.6010763888888888
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2552083333333333,
+            "mirror_accuracy": 0.2552083333333333,
+            "matched_view_accuracy": 0.2552083333333333,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.24631944444444445,
+            "mirror_accuracy": 0.24909722222222222,
+            "matched_view_accuracy": 0.17430555555555555,
+            "agreement": 0.6305208333333333
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2596875,
+            "mirror_accuracy": 0.2605208333333333,
+            "matched_view_accuracy": 0.12690972222222222,
+            "agreement": 0.3864930555555556
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.28024305555555556,
+            "mirror_accuracy": 0.28024305555555556,
+            "matched_view_accuracy": 0.28024305555555556,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.26840277777777777,
+            "mirror_accuracy": 0.27184027777777775,
+            "matched_view_accuracy": 0.19767361111111112,
+            "agreement": 0.6566666666666667
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.2732638888888889,
+            "mirror_accuracy": 0.27142361111111113,
+            "matched_view_accuracy": 0.14104166666666668,
+            "agreement": 0.40586805555555555
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.28565972222222225,
+            "mirror_accuracy": 0.28565972222222225,
+            "matched_view_accuracy": 0.28565972222222225,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2764930555555556,
+            "mirror_accuracy": 0.2788541666666667,
+            "matched_view_accuracy": 0.20649305555555555,
+            "agreement": 0.670625
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2454513888888889,
+            "mirror_accuracy": 0.24684027777777778,
+            "matched_view_accuracy": 0.11427083333333332,
+            "agreement": 0.37659722222222225
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.2689930555555555,
+            "mirror_accuracy": 0.2689930555555555,
+            "matched_view_accuracy": 0.2689930555555555,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2484722222222222,
+            "mirror_accuracy": 0.25243055555555555,
+            "matched_view_accuracy": 0.15944444444444444,
+            "agreement": 0.5712152777777777
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.21052083333333332,
+            "mirror_accuracy": 0.21284722222222224,
+            "matched_view_accuracy": 0.08236111111111111,
+            "agreement": 0.3344097222222222
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2214236111111111,
+            "mirror_accuracy": 0.2214236111111111,
+            "matched_view_accuracy": 0.2214236111111111,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.21173611111111112,
+            "mirror_accuracy": 0.21159722222222221,
+            "matched_view_accuracy": 0.1391666666666667,
+            "agreement": 0.6040972222222223
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.2937847222222222,
+            "mirror_accuracy": 0.2953125,
+            "matched_view_accuracy": 0.21506944444444445,
+            "agreement": 0.6325694444444445
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.30128472222222225,
+            "mirror_accuracy": 0.30128472222222225,
+            "matched_view_accuracy": 0.30128472222222225,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2948263888888889,
+            "mirror_accuracy": 0.2965277777777777,
+            "matched_view_accuracy": 0.21979166666666666,
+            "agreement": 0.6461805555555555
+          },
+          "early_natural": {
+            "clean_accuracy": 0.30083333333333334,
+            "mirror_accuracy": 0.30475694444444446,
+            "matched_view_accuracy": 0.1846875,
+            "agreement": 0.47097222222222224
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3269791666666667,
+            "mirror_accuracy": 0.3269791666666667,
+            "matched_view_accuracy": 0.3269791666666667,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.30659722222222224,
+            "mirror_accuracy": 0.31156249999999996,
+            "matched_view_accuracy": 0.2305902777777778,
+            "agreement": 0.6427430555555556
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.31052083333333336,
+            "mirror_accuracy": 0.3113541666666667,
+            "matched_view_accuracy": 0.1903125,
+            "agreement": 0.4695138888888889
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3246875,
+            "mirror_accuracy": 0.3246875,
+            "matched_view_accuracy": 0.3246875,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.31565972222222216,
+            "mirror_accuracy": 0.3181597222222222,
+            "matched_view_accuracy": 0.2329513888888889,
+            "agreement": 0.6221527777777778
+          },
+          "late_natural": {
+            "clean_accuracy": 0.28291666666666665,
+            "mirror_accuracy": 0.28142361111111114,
+            "matched_view_accuracy": 0.14555555555555558,
+            "agreement": 0.40493055555555557
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.31819444444444445,
+            "mirror_accuracy": 0.31819444444444445,
+            "matched_view_accuracy": 0.31819444444444445,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2866666666666666,
+            "mirror_accuracy": 0.289375,
+            "matched_view_accuracy": 0.1770138888888889,
+            "agreement": 0.5200347222222221
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.245,
+            "mirror_accuracy": 0.24517361111111108,
+            "matched_view_accuracy": 0.11906249999999999,
+            "agreement": 0.3662847222222222
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2663888888888889,
+            "mirror_accuracy": 0.2663888888888889,
+            "matched_view_accuracy": 0.2663888888888889,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2460763888888889,
+            "mirror_accuracy": 0.24885416666666665,
+            "matched_view_accuracy": 0.15940972222222222,
+            "agreement": 0.5557291666666666
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.3090625,
+            "mirror_accuracy": 0.30756944444444445,
+            "matched_view_accuracy": 0.22812500000000002,
+            "agreement": 0.6319097222222222
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3203472222222222,
+            "mirror_accuracy": 0.3203472222222222,
+            "matched_view_accuracy": 0.3203472222222222,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.31118055555555557,
+            "mirror_accuracy": 0.3105208333333333,
+            "matched_view_accuracy": 0.23208333333333334,
+            "agreement": 0.6392013888888888
+          },
+          "early_natural": {
+            "clean_accuracy": 0.32586805555555554,
+            "mirror_accuracy": 0.3280902777777778,
+            "matched_view_accuracy": 0.2214583333333333,
+            "agreement": 0.5437152777777778
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3442708333333333,
+            "mirror_accuracy": 0.3442708333333333,
+            "matched_view_accuracy": 0.3442708333333333,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3286111111111111,
+            "mirror_accuracy": 0.3328472222222222,
+            "matched_view_accuracy": 0.24909722222222225,
+            "agreement": 0.6414583333333334
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.32829861111111114,
+            "mirror_accuracy": 0.32857638888888885,
+            "matched_view_accuracy": 0.21847222222222223,
+            "agreement": 0.5302777777777778
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3407986111111111,
+            "mirror_accuracy": 0.3407986111111111,
+            "matched_view_accuracy": 0.3407986111111111,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.32875,
+            "mirror_accuracy": 0.33163194444444444,
+            "matched_view_accuracy": 0.25309027777777776,
+            "agreement": 0.6528472222222222
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3020138888888889,
+            "mirror_accuracy": 0.2921875,
+            "matched_view_accuracy": 0.1546875,
+            "agreement": 0.40260416666666665
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.34534722222222225,
+            "mirror_accuracy": 0.34534722222222225,
+            "matched_view_accuracy": 0.34534722222222225,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3053472222222222,
+            "mirror_accuracy": 0.29760416666666667,
+            "matched_view_accuracy": 0.17708333333333331,
+            "agreement": 0.4718055555555556
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2626041666666667,
+            "mirror_accuracy": 0.26274305555555555,
+            "matched_view_accuracy": 0.1273263888888889,
+            "agreement": 0.3663194444444444
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2867708333333333,
+            "mirror_accuracy": 0.2867708333333333,
+            "matched_view_accuracy": 0.2867708333333333,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2652083333333334,
+            "mirror_accuracy": 0.268125,
+            "matched_view_accuracy": 0.15600694444444446,
+            "agreement": 0.4781944444444444
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.17200335970801287,
+          "odd": 1.2034210024345686
+        },
+        "early_natural": {
+          "even": 0.13559866475097754,
+          "odd": 0.31471922163065474
+        },
+        "early_rotated": {
+          "even": 0.17215294191402541,
+          "odd": 0.40673969498505463
+        },
+        "late_natural": {
+          "even": 0.2887099460287637,
+          "odd": 0.3967649590806757
+        },
+        "late_rotated": {
+          "even": 0.25641680273974876,
+          "odd": 0.27776213012821604
+        }
+      }
+    },
+    {
+      "seed": 1224,
+      "source_classes": [
+        2,
+        6,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        3,
+        4,
+        5,
+        7
+      ],
+      "latent_width": 90,
+      "teacher_odd_count": 37,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.2622569444444445,
+            "mirror_accuracy": 0.26249999999999996,
+            "matched_view_accuracy": 0.11281249999999998,
+            "agreement": 0.3145833333333333
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.28218750000000004,
+            "mirror_accuracy": 0.28218750000000004,
+            "matched_view_accuracy": 0.28218750000000004,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2753125,
+            "mirror_accuracy": 0.2718055555555555,
+            "matched_view_accuracy": 0.16944444444444445,
+            "agreement": 0.5229513888888888
+          },
+          "early_natural": {
+            "clean_accuracy": 0.265625,
+            "mirror_accuracy": 0.26645833333333335,
+            "matched_view_accuracy": 0.12107638888888889,
+            "agreement": 0.3311458333333333
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.28475694444444444,
+            "mirror_accuracy": 0.28475694444444444,
+            "matched_view_accuracy": 0.28475694444444444,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2775694444444444,
+            "mirror_accuracy": 0.2793055555555556,
+            "matched_view_accuracy": 0.23395833333333332,
+            "agreement": 0.776111111111111
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.24802083333333333,
+            "mirror_accuracy": 0.24711805555555555,
+            "matched_view_accuracy": 0.09184027777777777,
+            "agreement": 0.25993055555555555
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2731597222222222,
+            "mirror_accuracy": 0.2731597222222222,
+            "matched_view_accuracy": 0.2731597222222222,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.26479166666666665,
+            "mirror_accuracy": 0.2644444444444444,
+            "matched_view_accuracy": 0.2053125,
+            "agreement": 0.7125
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2694444444444445,
+            "mirror_accuracy": 0.26656250000000004,
+            "matched_view_accuracy": 0.09333333333333334,
+            "agreement": 0.23881944444444445
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3035416666666667,
+            "mirror_accuracy": 0.3035416666666667,
+            "matched_view_accuracy": 0.3035416666666667,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.28607638888888887,
+            "mirror_accuracy": 0.2855902777777778,
+            "matched_view_accuracy": 0.18416666666666667,
+            "agreement": 0.5587152777777777
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2351388888888889,
+            "mirror_accuracy": 0.23104166666666667,
+            "matched_view_accuracy": 0.06454861111111113,
+            "agreement": 0.19913194444444443
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2588888888888889,
+            "mirror_accuracy": 0.2588888888888889,
+            "matched_view_accuracy": 0.2588888888888889,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.24006944444444445,
+            "mirror_accuracy": 0.2390625,
+            "matched_view_accuracy": 0.14604166666666668,
+            "agreement": 0.5330902777777777
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.3058680555555556,
+            "mirror_accuracy": 0.3040277777777778,
+            "matched_view_accuracy": 0.16868055555555556,
+            "agreement": 0.4145833333333333
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.32968749999999997,
+            "mirror_accuracy": 0.32968749999999997,
+            "matched_view_accuracy": 0.32968749999999997,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3164236111111111,
+            "mirror_accuracy": 0.31333333333333335,
+            "matched_view_accuracy": 0.20774305555555556,
+            "agreement": 0.5337152777777777
+          },
+          "early_natural": {
+            "clean_accuracy": 0.3123958333333333,
+            "mirror_accuracy": 0.31190972222222224,
+            "matched_view_accuracy": 0.19440972222222222,
+            "agreement": 0.4687847222222222
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3214930555555555,
+            "mirror_accuracy": 0.3214930555555555,
+            "matched_view_accuracy": 0.3214930555555555,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.31677083333333333,
+            "mirror_accuracy": 0.31986111111111115,
+            "matched_view_accuracy": 0.26465277777777774,
+            "agreement": 0.7524652777777778
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.30145833333333333,
+            "mirror_accuracy": 0.30298611111111107,
+            "matched_view_accuracy": 0.16958333333333334,
+            "agreement": 0.39916666666666667
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3336111111111111,
+            "mirror_accuracy": 0.3336111111111111,
+            "matched_view_accuracy": 0.3336111111111111,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.31631944444444443,
+            "mirror_accuracy": 0.3151736111111111,
+            "matched_view_accuracy": 0.25381944444444443,
+            "agreement": 0.7088194444444444
+          },
+          "late_natural": {
+            "clean_accuracy": 0.30374999999999996,
+            "mirror_accuracy": 0.30475694444444446,
+            "matched_view_accuracy": 0.15357638888888886,
+            "agreement": 0.35815972222222225
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3367013888888889,
+            "mirror_accuracy": 0.3367013888888889,
+            "matched_view_accuracy": 0.3367013888888889,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.31493055555555555,
+            "mirror_accuracy": 0.31298611111111113,
+            "matched_view_accuracy": 0.2087152777777778,
+            "agreement": 0.5471527777777778
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.26413194444444443,
+            "mirror_accuracy": 0.2645138888888889,
+            "matched_view_accuracy": 0.10829861111111111,
+            "agreement": 0.26947916666666666
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.30993055555555554,
+            "mirror_accuracy": 0.30993055555555554,
+            "matched_view_accuracy": 0.30993055555555554,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2773611111111111,
+            "mirror_accuracy": 0.2770486111111111,
+            "matched_view_accuracy": 0.16458333333333333,
+            "agreement": 0.46934027777777776
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.34229166666666666,
+            "mirror_accuracy": 0.34010416666666665,
+            "matched_view_accuracy": 0.22243055555555558,
+            "agreement": 0.5199305555555556
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3667013888888889,
+            "mirror_accuracy": 0.3667013888888889,
+            "matched_view_accuracy": 0.3667013888888889,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3465625,
+            "mirror_accuracy": 0.34239583333333334,
+            "matched_view_accuracy": 0.245,
+            "agreement": 0.5884375
+          },
+          "early_natural": {
+            "clean_accuracy": 0.33305555555555555,
+            "mirror_accuracy": 0.3357291666666667,
+            "matched_view_accuracy": 0.23697916666666666,
+            "agreement": 0.5811458333333333
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.34468750000000004,
+            "mirror_accuracy": 0.34468750000000004,
+            "matched_view_accuracy": 0.34468750000000004,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3370486111111111,
+            "mirror_accuracy": 0.33784722222222224,
+            "matched_view_accuracy": 0.2799652777777778,
+            "agreement": 0.7375347222222222
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.3383680555555555,
+            "mirror_accuracy": 0.34229166666666666,
+            "matched_view_accuracy": 0.22677083333333334,
+            "agreement": 0.5262847222222222
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.36118055555555556,
+            "mirror_accuracy": 0.36118055555555556,
+            "matched_view_accuracy": 0.36118055555555556,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.3461458333333334,
+            "mirror_accuracy": 0.34315972222222224,
+            "matched_view_accuracy": 0.27246527777777774,
+            "agreement": 0.6893055555555556
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3369791666666666,
+            "mirror_accuracy": 0.3400347222222222,
+            "matched_view_accuracy": 0.20177083333333334,
+            "agreement": 0.4507291666666667
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.36645833333333333,
+            "mirror_accuracy": 0.36645833333333333,
+            "matched_view_accuracy": 0.36645833333333333,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3420138888888889,
+            "mirror_accuracy": 0.3445138888888889,
+            "matched_view_accuracy": 0.2321875,
+            "agreement": 0.5491666666666666
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.29371527777777773,
+            "mirror_accuracy": 0.2944791666666666,
+            "matched_view_accuracy": 0.14684027777777775,
+            "agreement": 0.3569791666666667
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.33472222222222225,
+            "mirror_accuracy": 0.33472222222222225,
+            "matched_view_accuracy": 0.33472222222222225,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.29670138888888886,
+            "mirror_accuracy": 0.29680555555555554,
+            "matched_view_accuracy": 0.17885416666666668,
+            "agreement": 0.46725694444444443
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.29959430639744405,
+          "odd": 0.48381455506943916
+        },
+        "early_natural": {
+          "even": 0.08700318675801678,
+          "odd": 0.1418620791904107
+        },
+        "early_rotated": {
+          "even": 0.13888259874668166,
+          "odd": 0.15760428939385723
+        },
+        "late_natural": {
+          "even": 0.36684515853962146,
+          "odd": 0.25160379188603854
+        },
+        "late_rotated": {
+          "even": 0.3378914541825979,
+          "odd": 0.25771346770642906
+        }
+      }
+    },
+    {
+      "seed": 1225,
+      "source_classes": [
+        1,
+        4,
+        6,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        9
+      ],
+      "latent_width": 79,
+      "teacher_odd_count": 31,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.2698611111111111,
+            "mirror_accuracy": 0.27107638888888885,
+            "matched_view_accuracy": 0.15736111111111112,
+            "agreement": 0.4815625
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.28208333333333335,
+            "mirror_accuracy": 0.28208333333333335,
+            "matched_view_accuracy": 0.28208333333333335,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2772222222222222,
+            "mirror_accuracy": 0.27684027777777775,
+            "matched_view_accuracy": 0.23760416666666667,
+            "agreement": 0.8155208333333333
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2734722222222222,
+            "mirror_accuracy": 0.26968749999999997,
+            "matched_view_accuracy": 0.12940972222222225,
+            "agreement": 0.3469791666666667
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.30170138888888887,
+            "mirror_accuracy": 0.30170138888888887,
+            "matched_view_accuracy": 0.30170138888888887,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2845486111111111,
+            "mirror_accuracy": 0.2838194444444444,
+            "matched_view_accuracy": 0.20555555555555555,
+            "agreement": 0.6385763888888889
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.25979166666666664,
+            "mirror_accuracy": 0.25458333333333333,
+            "matched_view_accuracy": 0.1297222222222222,
+            "agreement": 0.4099652777777778
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.27513888888888893,
+            "mirror_accuracy": 0.27513888888888893,
+            "matched_view_accuracy": 0.27513888888888893,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2674305555555555,
+            "mirror_accuracy": 0.265,
+            "matched_view_accuracy": 0.21840277777777778,
+            "agreement": 0.7639930555555556
+          },
+          "late_natural": {
+            "clean_accuracy": 0.27822916666666664,
+            "mirror_accuracy": 0.2777777777777778,
+            "matched_view_accuracy": 0.14833333333333332,
+            "agreement": 0.4215625
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3013541666666667,
+            "mirror_accuracy": 0.3013541666666667,
+            "matched_view_accuracy": 0.3013541666666667,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.29614583333333333,
+            "mirror_accuracy": 0.2959722222222222,
+            "matched_view_accuracy": 0.2380902777777778,
+            "agreement": 0.739375
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.26534722222222223,
+            "mirror_accuracy": 0.26489583333333333,
+            "matched_view_accuracy": 0.13944444444444443,
+            "agreement": 0.4204861111111111
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.28208333333333335,
+            "mirror_accuracy": 0.28208333333333335,
+            "matched_view_accuracy": 0.28208333333333335,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2768055555555556,
+            "mirror_accuracy": 0.2737847222222222,
+            "matched_view_accuracy": 0.22104166666666666,
+            "agreement": 0.7456597222222223
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.3447916666666667,
+            "mirror_accuracy": 0.3430902777777778,
+            "matched_view_accuracy": 0.22749999999999998,
+            "agreement": 0.5427083333333333
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3736111111111111,
+            "mirror_accuracy": 0.3736111111111111,
+            "matched_view_accuracy": 0.3736111111111111,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.35659722222222223,
+            "mirror_accuracy": 0.3555208333333333,
+            "matched_view_accuracy": 0.3030902777777778,
+            "agreement": 0.7819097222222222
+          },
+          "early_natural": {
+            "clean_accuracy": 0.33461805555555557,
+            "mirror_accuracy": 0.3282986111111111,
+            "matched_view_accuracy": 0.20111111111111113,
+            "agreement": 0.4669097222222222
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3645138888888889,
+            "mirror_accuracy": 0.3645138888888889,
+            "matched_view_accuracy": 0.3645138888888889,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3447916666666667,
+            "mirror_accuracy": 0.3374652777777778,
+            "matched_view_accuracy": 0.2461111111111111,
+            "agreement": 0.6079166666666667
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.3120138888888889,
+            "mirror_accuracy": 0.3114583333333334,
+            "matched_view_accuracy": 0.19020833333333334,
+            "agreement": 0.4807986111111111
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.33253472222222225,
+            "mirror_accuracy": 0.33253472222222225,
+            "matched_view_accuracy": 0.33253472222222225,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.3214583333333333,
+            "mirror_accuracy": 0.31993055555555555,
+            "matched_view_accuracy": 0.25006944444444446,
+            "agreement": 0.6957986111111112
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3645486111111111,
+            "mirror_accuracy": 0.3615277777777778,
+            "matched_view_accuracy": 0.24166666666666667,
+            "agreement": 0.5235069444444445
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.38753472222222224,
+            "mirror_accuracy": 0.38753472222222224,
+            "matched_view_accuracy": 0.38753472222222224,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3765277777777778,
+            "mirror_accuracy": 0.37461805555555555,
+            "matched_view_accuracy": 0.30399305555555556,
+            "agreement": 0.7140277777777777
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.3401388888888889,
+            "mirror_accuracy": 0.33791666666666664,
+            "matched_view_accuracy": 0.2186111111111111,
+            "agreement": 0.5130555555555556
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.36364583333333333,
+            "mirror_accuracy": 0.36364583333333333,
+            "matched_view_accuracy": 0.36364583333333333,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.3542361111111111,
+            "mirror_accuracy": 0.3535069444444444,
+            "matched_view_accuracy": 0.28725694444444444,
+            "agreement": 0.7236458333333333
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.3880555555555556,
+            "mirror_accuracy": 0.3839930555555556,
+            "matched_view_accuracy": 0.28479166666666667,
+            "agreement": 0.6217013888888888
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.4112152777777778,
+            "mirror_accuracy": 0.4112152777777778,
+            "matched_view_accuracy": 0.4112152777777778,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3925694444444444,
+            "mirror_accuracy": 0.3920486111111111,
+            "matched_view_accuracy": 0.32999999999999996,
+            "agreement": 0.7600694444444445
+          },
+          "early_natural": {
+            "clean_accuracy": 0.355625,
+            "mirror_accuracy": 0.348125,
+            "matched_view_accuracy": 0.24375000000000002,
+            "agreement": 0.5603819444444444
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.383125,
+            "mirror_accuracy": 0.383125,
+            "matched_view_accuracy": 0.383125,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3577430555555556,
+            "mirror_accuracy": 0.35107638888888887,
+            "matched_view_accuracy": 0.2663888888888889,
+            "agreement": 0.6399652777777778
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.33458333333333334,
+            "mirror_accuracy": 0.3326041666666667,
+            "matched_view_accuracy": 0.23475694444444445,
+            "agreement": 0.5904166666666667
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3524652777777778,
+            "mirror_accuracy": 0.3524652777777778,
+            "matched_view_accuracy": 0.3524652777777778,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.3404166666666667,
+            "mirror_accuracy": 0.3392013888888889,
+            "matched_view_accuracy": 0.26829861111111114,
+            "agreement": 0.7054166666666666
+          },
+          "late_natural": {
+            "clean_accuracy": 0.39788194444444447,
+            "mirror_accuracy": 0.39288194444444446,
+            "matched_view_accuracy": 0.2949652777777778,
+            "agreement": 0.6242361111111112
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.414375,
+            "mirror_accuracy": 0.414375,
+            "matched_view_accuracy": 0.414375,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.4023958333333333,
+            "mirror_accuracy": 0.3971527777777778,
+            "matched_view_accuracy": 0.33892361111111113,
+            "agreement": 0.7635763888888889
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.3827777777777778,
+            "mirror_accuracy": 0.3760763888888889,
+            "matched_view_accuracy": 0.28097222222222223,
+            "agreement": 0.6191666666666666
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.3961111111111111,
+            "mirror_accuracy": 0.3961111111111111,
+            "matched_view_accuracy": 0.3961111111111111,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.38743055555555556,
+            "mirror_accuracy": 0.3856597222222222,
+            "matched_view_accuracy": 0.3286805555555556,
+            "agreement": 0.7704513888888889
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.07261902028017612,
+          "odd": 0.2595745263625239
+        },
+        "early_natural": {
+          "even": 0.19013521709810835,
+          "odd": 0.2843128976844116
+        },
+        "early_rotated": {
+          "even": 0.10618045281706535,
+          "odd": 0.1979336053111505
+        },
+        "late_natural": {
+          "even": 0.13019439340843492,
+          "odd": 0.17707579885266364
+        },
+        "late_rotated": {
+          "even": 0.11085701300953295,
+          "odd": 0.14283646821732277
+        }
+      }
+    },
+    {
+      "seed": 1226,
+      "source_classes": [
+        0,
+        5,
+        7,
+        8
+      ],
+      "target_classes": [
+        1,
+        2,
+        3,
+        4,
+        6,
+        9
+      ],
+      "latent_width": 111,
+      "teacher_odd_count": 46,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.21340277777777777,
+            "mirror_accuracy": 0.2110763888888889,
+            "matched_view_accuracy": 0.07420138888888889,
+            "agreement": 0.2977430555555556
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.23440972222222223,
+            "mirror_accuracy": 0.23440972222222223,
+            "matched_view_accuracy": 0.23440972222222223,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.22743055555555555,
+            "mirror_accuracy": 0.22895833333333335,
+            "matched_view_accuracy": 0.15194444444444444,
+            "agreement": 0.6215277777777778
+          },
+          "early_natural": {
+            "clean_accuracy": 0.23788194444444444,
+            "mirror_accuracy": 0.23343750000000002,
+            "matched_view_accuracy": 0.08399305555555556,
+            "agreement": 0.30496527777777777
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2571875,
+            "mirror_accuracy": 0.2571875,
+            "matched_view_accuracy": 0.2571875,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.25100694444444444,
+            "mirror_accuracy": 0.25131944444444443,
+            "matched_view_accuracy": 0.17010416666666667,
+            "agreement": 0.6372569444444445
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.20145833333333335,
+            "mirror_accuracy": 0.20038194444444446,
+            "matched_view_accuracy": 0.06722222222222221,
+            "agreement": 0.29704861111111114
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2351388888888889,
+            "mirror_accuracy": 0.2351388888888889,
+            "matched_view_accuracy": 0.2351388888888889,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.20753472222222222,
+            "mirror_accuracy": 0.20756944444444442,
+            "matched_view_accuracy": 0.12187500000000001,
+            "agreement": 0.5495833333333333
+          },
+          "late_natural": {
+            "clean_accuracy": 0.22663194444444446,
+            "mirror_accuracy": 0.22354166666666664,
+            "matched_view_accuracy": 0.07947916666666667,
+            "agreement": 0.28197916666666667
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.24659722222222222,
+            "mirror_accuracy": 0.24659722222222222,
+            "matched_view_accuracy": 0.24659722222222222,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.24493055555555557,
+            "mirror_accuracy": 0.24444444444444444,
+            "matched_view_accuracy": 0.19340277777777776,
+            "agreement": 0.7555902777777778
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2185763888888889,
+            "mirror_accuracy": 0.21826388888888887,
+            "matched_view_accuracy": 0.07201388888888889,
+            "agreement": 0.27399305555555553
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2487152777777778,
+            "mirror_accuracy": 0.2487152777777778,
+            "matched_view_accuracy": 0.2487152777777778,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.24163194444444447,
+            "mirror_accuracy": 0.2412152777777778,
+            "matched_view_accuracy": 0.18819444444444444,
+            "agreement": 0.7527083333333333
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.25166666666666665,
+            "mirror_accuracy": 0.25482638888888887,
+            "matched_view_accuracy": 0.12753472222222223,
+            "agreement": 0.42114583333333333
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2699652777777778,
+            "mirror_accuracy": 0.2699652777777778,
+            "matched_view_accuracy": 0.2699652777777778,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2580555555555556,
+            "mirror_accuracy": 0.2633680555555556,
+            "matched_view_accuracy": 0.17527777777777778,
+            "agreement": 0.6028819444444444
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2746180555555556,
+            "mirror_accuracy": 0.2755208333333333,
+            "matched_view_accuracy": 0.12760416666666666,
+            "agreement": 0.38232638888888887
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2951388888888889,
+            "mirror_accuracy": 0.2951388888888889,
+            "matched_view_accuracy": 0.2951388888888889,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2867708333333333,
+            "mirror_accuracy": 0.2832986111111111,
+            "matched_view_accuracy": 0.19100694444444444,
+            "agreement": 0.6070486111111111
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.23628472222222222,
+            "mirror_accuracy": 0.23927083333333332,
+            "matched_view_accuracy": 0.10611111111111111,
+            "agreement": 0.3720833333333333
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2667013888888889,
+            "mirror_accuracy": 0.2667013888888889,
+            "matched_view_accuracy": 0.2667013888888889,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.24475694444444443,
+            "mirror_accuracy": 0.24475694444444446,
+            "matched_view_accuracy": 0.1446875,
+            "agreement": 0.5169444444444444
+          },
+          "late_natural": {
+            "clean_accuracy": 0.27468750000000003,
+            "mirror_accuracy": 0.2749652777777778,
+            "matched_view_accuracy": 0.14319444444444446,
+            "agreement": 0.43472222222222223
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.29118055555555555,
+            "mirror_accuracy": 0.29118055555555555,
+            "matched_view_accuracy": 0.29118055555555555,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.29065972222222225,
+            "mirror_accuracy": 0.29305555555555557,
+            "matched_view_accuracy": 0.22746527777777778,
+            "agreement": 0.7240972222222222
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.24993055555555554,
+            "mirror_accuracy": 0.2529166666666667,
+            "matched_view_accuracy": 0.1085763888888889,
+            "agreement": 0.3660416666666667
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.27211805555555557,
+            "mirror_accuracy": 0.27211805555555557,
+            "matched_view_accuracy": 0.27211805555555557,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2621875,
+            "mirror_accuracy": 0.2642013888888889,
+            "matched_view_accuracy": 0.18937500000000002,
+            "agreement": 0.6623263888888888
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.2685763888888889,
+            "mirror_accuracy": 0.2792013888888889,
+            "matched_view_accuracy": 0.17440972222222223,
+            "agreement": 0.560763888888889
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2917361111111111,
+            "mirror_accuracy": 0.2917361111111111,
+            "matched_view_accuracy": 0.2917361111111111,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.27371527777777777,
+            "mirror_accuracy": 0.2836805555555556,
+            "matched_view_accuracy": 0.19506944444444443,
+            "agreement": 0.6279513888888889
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2965277777777777,
+            "mirror_accuracy": 0.3053472222222222,
+            "matched_view_accuracy": 0.17593750000000002,
+            "agreement": 0.49531250000000004
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3293055555555555,
+            "mirror_accuracy": 0.3293055555555555,
+            "matched_view_accuracy": 0.3293055555555555,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.30517361111111113,
+            "mirror_accuracy": 0.30899305555555556,
+            "matched_view_accuracy": 0.21225694444444443,
+            "agreement": 0.6124305555555556
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.24465277777777777,
+            "mirror_accuracy": 0.24545138888888887,
+            "matched_view_accuracy": 0.12343749999999999,
+            "agreement": 0.4315277777777778
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2742361111111111,
+            "mirror_accuracy": 0.2742361111111111,
+            "matched_view_accuracy": 0.2742361111111111,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.25020833333333337,
+            "mirror_accuracy": 0.2499652777777778,
+            "matched_view_accuracy": 0.14538194444444447,
+            "agreement": 0.5103819444444445
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2967361111111111,
+            "mirror_accuracy": 0.3005902777777778,
+            "matched_view_accuracy": 0.19690972222222222,
+            "agreement": 0.5697916666666667
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.31375000000000003,
+            "mirror_accuracy": 0.31375000000000003,
+            "matched_view_accuracy": 0.31375000000000003,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.30701388888888886,
+            "mirror_accuracy": 0.3115277777777778,
+            "matched_view_accuracy": 0.2406597222222222,
+            "agreement": 0.7121527777777777
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.26763888888888887,
+            "mirror_accuracy": 0.27434027777777775,
+            "matched_view_accuracy": 0.15125,
+            "agreement": 0.4805208333333333
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.29270833333333335,
+            "mirror_accuracy": 0.29270833333333335,
+            "matched_view_accuracy": 0.29270833333333335,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2783333333333333,
+            "mirror_accuracy": 0.2815972222222223,
+            "matched_view_accuracy": 0.194375,
+            "agreement": 0.62375
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.2082515307790415,
+          "odd": 0.2215388402716495
+        },
+        "early_natural": {
+          "even": 0.2294741140125862,
+          "odd": 0.272835608332129
+        },
+        "early_rotated": {
+          "even": 0.13545180703787796,
+          "odd": 0.3775307215760875
+        },
+        "late_natural": {
+          "even": 0.0916200111888345,
+          "odd": 0.12152498064485544
+        },
+        "late_rotated": {
+          "even": 0.12097107248022256,
+          "odd": 0.10672815019127953
+        }
+      }
+    },
+    {
+      "seed": 1227,
+      "source_classes": [
+        1,
+        3,
+        6,
+        9
+      ],
+      "target_classes": [
+        0,
+        2,
+        4,
+        5,
+        7,
+        8
+      ],
+      "latent_width": 125,
+      "teacher_odd_count": 53,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.27326388888888886,
+            "mirror_accuracy": 0.27392361111111113,
+            "matched_view_accuracy": 0.19416666666666665,
+            "agreement": 0.6491319444444444
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2783333333333333,
+            "mirror_accuracy": 0.2783333333333333,
+            "matched_view_accuracy": 0.2783333333333333,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2779513888888889,
+            "mirror_accuracy": 0.27666666666666667,
+            "matched_view_accuracy": 0.24055555555555555,
+            "agreement": 0.8364583333333333
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2852777777777778,
+            "mirror_accuracy": 0.2881597222222222,
+            "matched_view_accuracy": 0.16034722222222222,
+            "agreement": 0.4658333333333333
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.30208333333333337,
+            "mirror_accuracy": 0.30208333333333337,
+            "matched_view_accuracy": 0.30208333333333337,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2977430555555556,
+            "mirror_accuracy": 0.29538194444444443,
+            "matched_view_accuracy": 0.25375000000000003,
+            "agreement": 0.8162499999999999
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.25958333333333333,
+            "mirror_accuracy": 0.2614236111111111,
+            "matched_view_accuracy": 0.13756944444444447,
+            "agreement": 0.4347916666666667
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2753819444444444,
+            "mirror_accuracy": 0.2753819444444444,
+            "matched_view_accuracy": 0.2753819444444444,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.27489583333333334,
+            "mirror_accuracy": 0.2745138888888889,
+            "matched_view_accuracy": 0.22118055555555555,
+            "agreement": 0.7493402777777778
+          },
+          "late_natural": {
+            "clean_accuracy": 0.27958333333333335,
+            "mirror_accuracy": 0.28055555555555556,
+            "matched_view_accuracy": 0.15065972222222224,
+            "agreement": 0.4586111111111111
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3047222222222222,
+            "mirror_accuracy": 0.3047222222222222,
+            "matched_view_accuracy": 0.3047222222222222,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.28930555555555554,
+            "mirror_accuracy": 0.28951388888888885,
+            "matched_view_accuracy": 0.205,
+            "agreement": 0.6454166666666666
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.26381944444444444,
+            "mirror_accuracy": 0.26840277777777777,
+            "matched_view_accuracy": 0.1393402777777778,
+            "agreement": 0.44788194444444446
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.28729166666666667,
+            "mirror_accuracy": 0.28729166666666667,
+            "matched_view_accuracy": 0.28729166666666667,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.27388888888888885,
+            "mirror_accuracy": 0.2731944444444444,
+            "matched_view_accuracy": 0.1872916666666667,
+            "agreement": 0.6299999999999999
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.3229166666666667,
+            "mirror_accuracy": 0.3223611111111111,
+            "matched_view_accuracy": 0.2552777777777778,
+            "agreement": 0.7195833333333332
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.33336805555555554,
+            "mirror_accuracy": 0.33336805555555554,
+            "matched_view_accuracy": 0.33336805555555554,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.32590277777777776,
+            "mirror_accuracy": 0.32548611111111114,
+            "matched_view_accuracy": 0.28625,
+            "agreement": 0.8302777777777779
+          },
+          "early_natural": {
+            "clean_accuracy": 0.3396527777777778,
+            "mirror_accuracy": 0.3395138888888889,
+            "matched_view_accuracy": 0.2186111111111111,
+            "agreement": 0.5296180555555556
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3580902777777778,
+            "mirror_accuracy": 0.3580902777777778,
+            "matched_view_accuracy": 0.3580902777777778,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3521875,
+            "mirror_accuracy": 0.3525347222222222,
+            "matched_view_accuracy": 0.30166666666666664,
+            "agreement": 0.7939236111111111
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.28295138888888893,
+            "mirror_accuracy": 0.2812847222222222,
+            "matched_view_accuracy": 0.16875,
+            "agreement": 0.5191319444444444
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.30256944444444445,
+            "mirror_accuracy": 0.30256944444444445,
+            "matched_view_accuracy": 0.30256944444444445,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.28861111111111115,
+            "mirror_accuracy": 0.28684027777777776,
+            "matched_view_accuracy": 0.22364583333333332,
+            "agreement": 0.7164930555555555
+          },
+          "late_natural": {
+            "clean_accuracy": 0.32406250000000003,
+            "mirror_accuracy": 0.3263194444444445,
+            "matched_view_accuracy": 0.20829861111111111,
+            "agreement": 0.5362152777777778
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3434722222222222,
+            "mirror_accuracy": 0.3434722222222222,
+            "matched_view_accuracy": 0.3434722222222222,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3320486111111111,
+            "mirror_accuracy": 0.33479166666666665,
+            "matched_view_accuracy": 0.2519444444444444,
+            "agreement": 0.6742708333333334
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.3083680555555556,
+            "mirror_accuracy": 0.3086111111111111,
+            "matched_view_accuracy": 0.18166666666666664,
+            "agreement": 0.4910763888888889
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.33361111111111114,
+            "mirror_accuracy": 0.33361111111111114,
+            "matched_view_accuracy": 0.33361111111111114,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.31774305555555554,
+            "mirror_accuracy": 0.3145833333333333,
+            "matched_view_accuracy": 0.22163194444444445,
+            "agreement": 0.62
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.3554861111111111,
+            "mirror_accuracy": 0.3575694444444445,
+            "matched_view_accuracy": 0.2985069444444444,
+            "agreement": 0.7646527777777778
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3701041666666667,
+            "mirror_accuracy": 0.3701041666666667,
+            "matched_view_accuracy": 0.3701041666666667,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.35684027777777777,
+            "mirror_accuracy": 0.35892361111111115,
+            "matched_view_accuracy": 0.31222222222222223,
+            "agreement": 0.8143402777777777
+          },
+          "early_natural": {
+            "clean_accuracy": 0.39013888888888887,
+            "mirror_accuracy": 0.3890972222222222,
+            "matched_view_accuracy": 0.29618055555555556,
+            "agreement": 0.6521527777777778
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.40555555555555556,
+            "mirror_accuracy": 0.40555555555555556,
+            "matched_view_accuracy": 0.40555555555555556,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3984027777777778,
+            "mirror_accuracy": 0.399375,
+            "matched_view_accuracy": 0.3515972222222222,
+            "agreement": 0.8165625000000001
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.30243055555555554,
+            "mirror_accuracy": 0.30086805555555557,
+            "matched_view_accuracy": 0.2085763888888889,
+            "agreement": 0.6035763888888889
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.33826388888888886,
+            "mirror_accuracy": 0.33826388888888886,
+            "matched_view_accuracy": 0.33826388888888886,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.30614583333333334,
+            "mirror_accuracy": 0.3057986111111111,
+            "matched_view_accuracy": 0.23947916666666666,
+            "agreement": 0.7164236111111111
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3595486111111111,
+            "mirror_accuracy": 0.3612152777777778,
+            "matched_view_accuracy": 0.25322916666666667,
+            "agreement": 0.5903819444444445
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.38187499999999996,
+            "mirror_accuracy": 0.38187499999999996,
+            "matched_view_accuracy": 0.38187499999999996,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3646875,
+            "mirror_accuracy": 0.3651388888888889,
+            "matched_view_accuracy": 0.27493055555555557,
+            "agreement": 0.6536805555555555
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.3413888888888889,
+            "mirror_accuracy": 0.3403819444444445,
+            "matched_view_accuracy": 0.2149652777777778,
+            "agreement": 0.5177083333333333
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.3691319444444444,
+            "mirror_accuracy": 0.3691319444444444,
+            "matched_view_accuracy": 0.3691319444444444,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.34968750000000004,
+            "mirror_accuracy": 0.3467013888888889,
+            "matched_view_accuracy": 0.23881944444444442,
+            "agreement": 0.5769791666666666
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.05084924224407737,
+          "odd": 0.5035742354211625
+        },
+        "early_natural": {
+          "even": 0.0644392011454549,
+          "odd": 0.2545310375026277
+        },
+        "early_rotated": {
+          "even": 0.11537701580569082,
+          "odd": 0.34441369978804715
+        },
+        "late_natural": {
+          "even": 0.23151458906128575,
+          "odd": 0.6210420479778371
+        },
+        "late_rotated": {
+          "even": 0.217643302715526,
+          "odd": 0.5635482272277494
+        }
+      }
+    },
+    {
+      "seed": 1228,
+      "source_classes": [
+        0,
+        3,
+        5,
+        8
+      ],
+      "target_classes": [
+        1,
+        2,
+        4,
+        6,
+        7,
+        9
+      ],
+      "latent_width": 82,
+      "teacher_odd_count": 33,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.2236111111111111,
+            "mirror_accuracy": 0.22489583333333332,
+            "matched_view_accuracy": 0.11236111111111112,
+            "agreement": 0.4248263888888889
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.23690972222222223,
+            "mirror_accuracy": 0.23690972222222223,
+            "matched_view_accuracy": 0.23690972222222223,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.22913194444444446,
+            "mirror_accuracy": 0.22836805555555556,
+            "matched_view_accuracy": 0.18375,
+            "agreement": 0.7638888888888888
+          },
+          "early_natural": {
+            "clean_accuracy": 0.22413194444444445,
+            "mirror_accuracy": 0.22218749999999998,
+            "matched_view_accuracy": 0.05475694444444444,
+            "agreement": 0.20173611111111112
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2475,
+            "mirror_accuracy": 0.2475,
+            "matched_view_accuracy": 0.2475,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.24010416666666667,
+            "mirror_accuracy": 0.24194444444444446,
+            "matched_view_accuracy": 0.1403125,
+            "agreement": 0.5365277777777777
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.19718750000000002,
+            "mirror_accuracy": 0.19618055555555555,
+            "matched_view_accuracy": 0.06475694444444445,
+            "agreement": 0.2696875
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.20909722222222224,
+            "mirror_accuracy": 0.20909722222222224,
+            "matched_view_accuracy": 0.20909722222222224,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2014236111111111,
+            "mirror_accuracy": 0.20190972222222223,
+            "matched_view_accuracy": 0.08496527777777776,
+            "agreement": 0.35704861111111114
+          },
+          "late_natural": {
+            "clean_accuracy": 0.23444444444444446,
+            "mirror_accuracy": 0.23479166666666668,
+            "matched_view_accuracy": 0.09767361111111111,
+            "agreement": 0.33340277777777777
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.2603125,
+            "mirror_accuracy": 0.2603125,
+            "matched_view_accuracy": 0.2603125,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2448958333333333,
+            "mirror_accuracy": 0.24864583333333334,
+            "matched_view_accuracy": 0.17326388888888888,
+            "agreement": 0.6512152777777778
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.20513888888888887,
+            "mirror_accuracy": 0.20656249999999998,
+            "matched_view_accuracy": 0.07277777777777777,
+            "agreement": 0.27718750000000003
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2270486111111111,
+            "mirror_accuracy": 0.2270486111111111,
+            "matched_view_accuracy": 0.2270486111111111,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.21395833333333333,
+            "mirror_accuracy": 0.21545138888888887,
+            "matched_view_accuracy": 0.1342361111111111,
+            "agreement": 0.5663194444444445
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.25447916666666665,
+            "mirror_accuracy": 0.2534722222222222,
+            "matched_view_accuracy": 0.14881944444444445,
+            "agreement": 0.5083333333333333
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2680555555555555,
+            "mirror_accuracy": 0.2680555555555555,
+            "matched_view_accuracy": 0.2680555555555555,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2583333333333333,
+            "mirror_accuracy": 0.2582291666666666,
+            "matched_view_accuracy": 0.19892361111111112,
+            "agreement": 0.7143055555555555
+          },
+          "early_natural": {
+            "clean_accuracy": 0.24975694444444446,
+            "mirror_accuracy": 0.2520833333333333,
+            "matched_view_accuracy": 0.08690972222222222,
+            "agreement": 0.29347222222222225
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.29423611111111114,
+            "mirror_accuracy": 0.29423611111111114,
+            "matched_view_accuracy": 0.29423611111111114,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.26583333333333337,
+            "mirror_accuracy": 0.26187499999999997,
+            "matched_view_accuracy": 0.14947916666666666,
+            "agreement": 0.5115624999999999
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.23100694444444445,
+            "mirror_accuracy": 0.22805555555555557,
+            "matched_view_accuracy": 0.09079861111111112,
+            "agreement": 0.30680555555555555
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.236875,
+            "mirror_accuracy": 0.236875,
+            "matched_view_accuracy": 0.236875,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.23597222222222222,
+            "mirror_accuracy": 0.2361111111111111,
+            "matched_view_accuracy": 0.10732638888888889,
+            "agreement": 0.3705555555555555
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2841666666666667,
+            "mirror_accuracy": 0.28197916666666667,
+            "matched_view_accuracy": 0.14190972222222223,
+            "agreement": 0.40878472222222223
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.30746527777777777,
+            "mirror_accuracy": 0.30746527777777777,
+            "matched_view_accuracy": 0.30746527777777777,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.29364583333333333,
+            "mirror_accuracy": 0.2964236111111111,
+            "matched_view_accuracy": 0.19868055555555555,
+            "agreement": 0.5991666666666666
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.23364583333333333,
+            "mirror_accuracy": 0.23135416666666667,
+            "matched_view_accuracy": 0.09055555555555556,
+            "agreement": 0.3090625
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2519444444444444,
+            "mirror_accuracy": 0.2519444444444444,
+            "matched_view_accuracy": 0.2519444444444444,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.23607638888888888,
+            "mirror_accuracy": 0.23739583333333333,
+            "matched_view_accuracy": 0.14020833333333332,
+            "agreement": 0.5188888888888888
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.2857291666666667,
+            "mirror_accuracy": 0.27923611111111113,
+            "matched_view_accuracy": 0.1865277777777778,
+            "agreement": 0.5704861111111111
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3042708333333333,
+            "mirror_accuracy": 0.3042708333333333,
+            "matched_view_accuracy": 0.3042708333333333,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2870138888888889,
+            "mirror_accuracy": 0.28270833333333334,
+            "matched_view_accuracy": 0.21239583333333334,
+            "agreement": 0.6728125
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2813541666666667,
+            "mirror_accuracy": 0.2785763888888889,
+            "matched_view_accuracy": 0.11902777777777779,
+            "agreement": 0.34708333333333335
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3315625,
+            "mirror_accuracy": 0.3315625,
+            "matched_view_accuracy": 0.3315625,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2885416666666667,
+            "mirror_accuracy": 0.2874305555555555,
+            "matched_view_accuracy": 0.16256944444444446,
+            "agreement": 0.4861805555555556
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.25177083333333333,
+            "mirror_accuracy": 0.24850694444444443,
+            "matched_view_accuracy": 0.10527777777777778,
+            "agreement": 0.32885416666666667
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2735763888888889,
+            "mirror_accuracy": 0.2735763888888889,
+            "matched_view_accuracy": 0.2735763888888889,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2567361111111111,
+            "mirror_accuracy": 0.2575,
+            "matched_view_accuracy": 0.11506944444444445,
+            "agreement": 0.36607638888888894
+          },
+          "late_natural": {
+            "clean_accuracy": 0.30947916666666664,
+            "mirror_accuracy": 0.3035763888888889,
+            "matched_view_accuracy": 0.17618055555555556,
+            "agreement": 0.47982638888888884
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3299652777777778,
+            "mirror_accuracy": 0.3299652777777778,
+            "matched_view_accuracy": 0.3299652777777778,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.31347222222222226,
+            "mirror_accuracy": 0.31149305555555556,
+            "matched_view_accuracy": 0.21875,
+            "agreement": 0.6221875
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2524305555555556,
+            "mirror_accuracy": 0.24541666666666667,
+            "matched_view_accuracy": 0.1073263888888889,
+            "agreement": 0.3370486111111111
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.28555555555555556,
+            "mirror_accuracy": 0.28555555555555556,
+            "matched_view_accuracy": 0.28555555555555556,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2546875,
+            "mirror_accuracy": 0.25305555555555553,
+            "matched_view_accuracy": 0.1429513888888889,
+            "agreement": 0.47489583333333335
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.059452691562314045,
+          "odd": 0.20326194846274778
+        },
+        "early_natural": {
+          "even": 0.41511185512319565,
+          "odd": 0.27502164976885846
+        },
+        "early_rotated": {
+          "even": 0.15647465403648322,
+          "odd": 0.5444777586156526
+        },
+        "late_natural": {
+          "even": 0.1557505439021034,
+          "odd": 0.28796569577668274
+        },
+        "late_rotated": {
+          "even": 0.1554587194316905,
+          "odd": 0.2174401412518986
+        }
+      }
+    },
+    {
+      "seed": 1229,
+      "source_classes": [
+        0,
+        3,
+        6,
+        9
+      ],
+      "target_classes": [
+        1,
+        2,
+        4,
+        5,
+        7,
+        8
+      ],
+      "latent_width": 92,
+      "teacher_odd_count": 38,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.23520833333333332,
+            "mirror_accuracy": 0.23548611111111112,
+            "matched_view_accuracy": 0.16829861111111113,
+            "agreement": 0.6607638888888889
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.24506944444444445,
+            "mirror_accuracy": 0.24506944444444445,
+            "matched_view_accuracy": 0.24506944444444445,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.23576388888888888,
+            "mirror_accuracy": 0.23465277777777777,
+            "matched_view_accuracy": 0.17961805555555554,
+            "agreement": 0.7187152777777778
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2448263888888889,
+            "mirror_accuracy": 0.24951388888888892,
+            "matched_view_accuracy": 0.10881944444444444,
+            "agreement": 0.3095486111111111
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.2686805555555556,
+            "mirror_accuracy": 0.2686805555555556,
+            "matched_view_accuracy": 0.2686805555555556,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2602083333333334,
+            "mirror_accuracy": 0.2642013888888889,
+            "matched_view_accuracy": 0.21145833333333333,
+            "agreement": 0.7454861111111111
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.22020833333333334,
+            "mirror_accuracy": 0.2157291666666667,
+            "matched_view_accuracy": 0.09454861111111111,
+            "agreement": 0.3380208333333333
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.23447916666666668,
+            "mirror_accuracy": 0.23447916666666668,
+            "matched_view_accuracy": 0.23447916666666668,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.23114583333333333,
+            "mirror_accuracy": 0.22944444444444445,
+            "matched_view_accuracy": 0.1601388888888889,
+            "agreement": 0.6402430555555556
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2476736111111111,
+            "mirror_accuracy": 0.24711805555555558,
+            "matched_view_accuracy": 0.12152777777777776,
+            "agreement": 0.37895833333333334
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.26517361111111115,
+            "mirror_accuracy": 0.26517361111111115,
+            "matched_view_accuracy": 0.26517361111111115,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.25659722222222225,
+            "mirror_accuracy": 0.2584375,
+            "matched_view_accuracy": 0.17225694444444445,
+            "agreement": 0.5786805555555555
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.22399305555555557,
+            "mirror_accuracy": 0.22562500000000002,
+            "matched_view_accuracy": 0.10795138888888889,
+            "agreement": 0.3979166666666667
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.24534722222222222,
+            "mirror_accuracy": 0.24534722222222222,
+            "matched_view_accuracy": 0.24534722222222222,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.23697916666666666,
+            "mirror_accuracy": 0.23694444444444446,
+            "matched_view_accuracy": 0.16430555555555557,
+            "agreement": 0.6239583333333334
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.2586805555555556,
+            "mirror_accuracy": 0.2611111111111111,
+            "matched_view_accuracy": 0.18840277777777778,
+            "agreement": 0.6465972222222223
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.28055555555555556,
+            "mirror_accuracy": 0.28055555555555556,
+            "matched_view_accuracy": 0.28055555555555556,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2589236111111111,
+            "mirror_accuracy": 0.26086805555555553,
+            "matched_view_accuracy": 0.19774305555555555,
+            "agreement": 0.6882986111111111
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2859027777777778,
+            "mirror_accuracy": 0.2871180555555556,
+            "matched_view_accuracy": 0.15281250000000002,
+            "agreement": 0.4043055555555556
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3123958333333333,
+            "mirror_accuracy": 0.3123958333333333,
+            "matched_view_accuracy": 0.3123958333333333,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3001388888888889,
+            "mirror_accuracy": 0.30444444444444446,
+            "matched_view_accuracy": 0.23385416666666667,
+            "agreement": 0.6938541666666667
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.245,
+            "mirror_accuracy": 0.24395833333333333,
+            "matched_view_accuracy": 0.12468749999999999,
+            "agreement": 0.39677083333333335
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.26166666666666666,
+            "mirror_accuracy": 0.26166666666666666,
+            "matched_view_accuracy": 0.26166666666666666,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2501041666666667,
+            "mirror_accuracy": 0.25027777777777777,
+            "matched_view_accuracy": 0.17409722222222224,
+            "agreement": 0.6136805555555556
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2780208333333334,
+            "mirror_accuracy": 0.28138888888888886,
+            "matched_view_accuracy": 0.16024305555555554,
+            "agreement": 0.455625
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.31118055555555557,
+            "mirror_accuracy": 0.31118055555555557,
+            "matched_view_accuracy": 0.31118055555555557,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2848611111111111,
+            "mirror_accuracy": 0.2825,
+            "matched_view_accuracy": 0.19708333333333333,
+            "agreement": 0.5911805555555555
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.24746527777777777,
+            "mirror_accuracy": 0.2498263888888889,
+            "matched_view_accuracy": 0.1445486111111111,
+            "agreement": 0.4736111111111111
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.27826388888888887,
+            "mirror_accuracy": 0.27826388888888887,
+            "matched_view_accuracy": 0.27826388888888887,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2525347222222222,
+            "mirror_accuracy": 0.25416666666666665,
+            "matched_view_accuracy": 0.17906249999999999,
+            "agreement": 0.6140972222222222
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.28145833333333337,
+            "mirror_accuracy": 0.2816666666666666,
+            "matched_view_accuracy": 0.21225694444444443,
+            "agreement": 0.6652083333333334
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3004861111111111,
+            "mirror_accuracy": 0.3004861111111111,
+            "matched_view_accuracy": 0.3004861111111111,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.27913194444444445,
+            "mirror_accuracy": 0.27864583333333337,
+            "matched_view_accuracy": 0.21607638888888886,
+            "agreement": 0.692951388888889
+          },
+          "early_natural": {
+            "clean_accuracy": 0.3111111111111111,
+            "mirror_accuracy": 0.3139236111111111,
+            "matched_view_accuracy": 0.1923263888888889,
+            "agreement": 0.4925347222222222
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3418055555555556,
+            "mirror_accuracy": 0.3418055555555556,
+            "matched_view_accuracy": 0.3418055555555556,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3209722222222222,
+            "mirror_accuracy": 0.32371527777777775,
+            "matched_view_accuracy": 0.23885416666666665,
+            "agreement": 0.6481944444444445
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.25416666666666665,
+            "mirror_accuracy": 0.2549652777777778,
+            "matched_view_accuracy": 0.16555555555555557,
+            "agreement": 0.5468055555555555
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.27322916666666663,
+            "mirror_accuracy": 0.27322916666666663,
+            "matched_view_accuracy": 0.27322916666666663,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2595138888888889,
+            "mirror_accuracy": 0.26100694444444444,
+            "matched_view_accuracy": 0.19513888888888886,
+            "agreement": 0.6674305555555555
+          },
+          "late_natural": {
+            "clean_accuracy": 0.29965277777777777,
+            "mirror_accuracy": 0.30156249999999996,
+            "matched_view_accuracy": 0.1976388888888889,
+            "agreement": 0.547048611111111
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3333333333333333,
+            "mirror_accuracy": 0.3333333333333333,
+            "matched_view_accuracy": 0.3333333333333333,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3053125,
+            "mirror_accuracy": 0.3044097222222223,
+            "matched_view_accuracy": 0.21739583333333334,
+            "agreement": 0.614375
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.26468749999999996,
+            "mirror_accuracy": 0.26361111111111113,
+            "matched_view_accuracy": 0.17114583333333333,
+            "agreement": 0.5398611111111111
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2930555555555555,
+            "mirror_accuracy": 0.2930555555555555,
+            "matched_view_accuracy": 0.2930555555555555,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2628125,
+            "mirror_accuracy": 0.26361111111111113,
+            "matched_view_accuracy": 0.18,
+            "agreement": 0.5806944444444444
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.1451274194785285,
+          "odd": 0.8398888473522351
+        },
+        "early_natural": {
+          "even": 0.08101591501984548,
+          "odd": 0.14955685757944714
+        },
+        "early_rotated": {
+          "even": 0.16399168316388563,
+          "odd": 0.3299504602841346
+        },
+        "late_natural": {
+          "even": 0.23606420953992027,
+          "odd": 0.3832897158041244
+        },
+        "late_rotated": {
+          "even": 0.20151148545246872,
+          "odd": 0.3212780359557853
+        }
+      }
+    },
+    {
+      "seed": 1230,
+      "source_classes": [
+        1,
+        4,
+        5,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        6,
+        7,
+        9
+      ],
+      "latent_width": 68,
+      "teacher_odd_count": 25,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.23885416666666667,
+            "mirror_accuracy": 0.23951388888888886,
+            "matched_view_accuracy": 0.12135416666666668,
+            "agreement": 0.4231597222222222
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.27229166666666665,
+            "mirror_accuracy": 0.27229166666666665,
+            "matched_view_accuracy": 0.27229166666666665,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.24927083333333333,
+            "mirror_accuracy": 0.2467013888888889,
+            "matched_view_accuracy": 0.17548611111111112,
+            "agreement": 0.6412152777777778
+          },
+          "early_natural": {
+            "clean_accuracy": 0.24253472222222222,
+            "mirror_accuracy": 0.24406250000000002,
+            "matched_view_accuracy": 0.09597222222222222,
+            "agreement": 0.2989583333333333
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.28500000000000003,
+            "mirror_accuracy": 0.28500000000000003,
+            "matched_view_accuracy": 0.28500000000000003,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2634722222222222,
+            "mirror_accuracy": 0.26458333333333334,
+            "matched_view_accuracy": 0.19635416666666666,
+            "agreement": 0.677326388888889
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.21875,
+            "mirror_accuracy": 0.21836805555555555,
+            "matched_view_accuracy": 0.06072916666666667,
+            "agreement": 0.20239583333333333
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.2544444444444445,
+            "mirror_accuracy": 0.2544444444444445,
+            "matched_view_accuracy": 0.2544444444444445,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.23368055555555556,
+            "mirror_accuracy": 0.23097222222222222,
+            "matched_view_accuracy": 0.1394097222222222,
+            "agreement": 0.5106597222222222
+          },
+          "late_natural": {
+            "clean_accuracy": 0.25697916666666665,
+            "mirror_accuracy": 0.2526736111111111,
+            "matched_view_accuracy": 0.09524305555555557,
+            "agreement": 0.3043402777777778
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.30180555555555555,
+            "mirror_accuracy": 0.30180555555555555,
+            "matched_view_accuracy": 0.30180555555555555,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2698611111111111,
+            "mirror_accuracy": 0.2704861111111111,
+            "matched_view_accuracy": 0.17673611111111112,
+            "agreement": 0.5905902777777778
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2201736111111111,
+            "mirror_accuracy": 0.22006944444444443,
+            "matched_view_accuracy": 0.0871875,
+            "agreement": 0.29815972222222226
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2596527777777778,
+            "mirror_accuracy": 0.2596527777777778,
+            "matched_view_accuracy": 0.2596527777777778,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2329513888888889,
+            "mirror_accuracy": 0.23354166666666665,
+            "matched_view_accuracy": 0.14347222222222222,
+            "agreement": 0.5320833333333334
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.2968402777777778,
+            "mirror_accuracy": 0.2967708333333333,
+            "matched_view_accuracy": 0.1801736111111111,
+            "agreement": 0.47506944444444443
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3313888888888889,
+            "mirror_accuracy": 0.3313888888888889,
+            "matched_view_accuracy": 0.3313888888888889,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3008680555555555,
+            "mirror_accuracy": 0.3021180555555556,
+            "matched_view_accuracy": 0.21434027777777778,
+            "agreement": 0.5889236111111111
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2972222222222222,
+            "mirror_accuracy": 0.2935416666666667,
+            "matched_view_accuracy": 0.1625,
+            "agreement": 0.4215625
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.34503472222222226,
+            "mirror_accuracy": 0.34503472222222226,
+            "matched_view_accuracy": 0.34503472222222226,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3063194444444445,
+            "mirror_accuracy": 0.3060763888888889,
+            "matched_view_accuracy": 0.21350694444444446,
+            "agreement": 0.6107291666666667
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.2549652777777778,
+            "mirror_accuracy": 0.24736111111111111,
+            "matched_view_accuracy": 0.09923611111111111,
+            "agreement": 0.2942708333333333
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3017361111111111,
+            "mirror_accuracy": 0.3017361111111111,
+            "matched_view_accuracy": 0.3017361111111111,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.27336805555555554,
+            "mirror_accuracy": 0.26083333333333336,
+            "matched_view_accuracy": 0.15916666666666668,
+            "agreement": 0.4907291666666667
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3131597222222222,
+            "mirror_accuracy": 0.3146875,
+            "matched_view_accuracy": 0.16118055555555555,
+            "agreement": 0.39135416666666667
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3607986111111111,
+            "mirror_accuracy": 0.3607986111111111,
+            "matched_view_accuracy": 0.3607986111111111,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3273263888888889,
+            "mirror_accuracy": 0.32871527777777776,
+            "matched_view_accuracy": 0.22850694444444444,
+            "agreement": 0.6022569444444444
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2740625,
+            "mirror_accuracy": 0.2693402777777778,
+            "matched_view_accuracy": 0.13756944444444447,
+            "agreement": 0.36416666666666664
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.30416666666666664,
+            "mirror_accuracy": 0.30416666666666664,
+            "matched_view_accuracy": 0.30416666666666664,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2784027777777778,
+            "mirror_accuracy": 0.2768055555555555,
+            "matched_view_accuracy": 0.1846875,
+            "agreement": 0.5452430555555556
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.3275347222222222,
+            "mirror_accuracy": 0.32499999999999996,
+            "matched_view_accuracy": 0.20822916666666666,
+            "agreement": 0.5058333333333334
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.3665625,
+            "mirror_accuracy": 0.3665625,
+            "matched_view_accuracy": 0.3665625,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.32934027777777775,
+            "mirror_accuracy": 0.3307291666666667,
+            "matched_view_accuracy": 0.22618055555555555,
+            "agreement": 0.5630208333333333
+          },
+          "early_natural": {
+            "clean_accuracy": 0.31920138888888894,
+            "mirror_accuracy": 0.3121875,
+            "matched_view_accuracy": 0.18753472222222223,
+            "agreement": 0.4762152777777778
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3739236111111111,
+            "mirror_accuracy": 0.3739236111111111,
+            "matched_view_accuracy": 0.3739236111111111,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.32329861111111113,
+            "mirror_accuracy": 0.3170486111111111,
+            "matched_view_accuracy": 0.21815972222222224,
+            "agreement": 0.5887847222222222
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.2873263888888889,
+            "mirror_accuracy": 0.2764930555555556,
+            "matched_view_accuracy": 0.1410763888888889,
+            "agreement": 0.3610069444444445
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3267013888888889,
+            "mirror_accuracy": 0.3267013888888889,
+            "matched_view_accuracy": 0.3267013888888889,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2891666666666667,
+            "mirror_accuracy": 0.28003472222222225,
+            "matched_view_accuracy": 0.16861111111111113,
+            "agreement": 0.46020833333333333
+          },
+          "late_natural": {
+            "clean_accuracy": 0.3502777777777778,
+            "mirror_accuracy": 0.35062499999999996,
+            "matched_view_accuracy": 0.21635416666666668,
+            "agreement": 0.4852430555555555
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3876736111111111,
+            "mirror_accuracy": 0.3876736111111111,
+            "matched_view_accuracy": 0.3876736111111111,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.3532986111111111,
+            "mirror_accuracy": 0.35805555555555557,
+            "matched_view_accuracy": 0.2533333333333333,
+            "agreement": 0.6025
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2919097222222222,
+            "mirror_accuracy": 0.2934027777777778,
+            "matched_view_accuracy": 0.16572916666666665,
+            "agreement": 0.42510416666666667
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.32972222222222225,
+            "mirror_accuracy": 0.32972222222222225,
+            "matched_view_accuracy": 0.32972222222222225,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.29874999999999996,
+            "mirror_accuracy": 0.2984722222222222,
+            "matched_view_accuracy": 0.19510416666666666,
+            "agreement": 0.5219097222222222
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.1919429782643809,
+          "odd": 0.4072246357807297
+        },
+        "early_natural": {
+          "even": 0.26030954147818763,
+          "odd": 0.21327214648374068
+        },
+        "early_rotated": {
+          "even": 0.35482504443793106,
+          "odd": 0.21452398029633593
+        },
+        "late_natural": {
+          "even": 0.3263704969247436,
+          "odd": 0.1831491618679108
+        },
+        "late_rotated": {
+          "even": 0.34468117210459764,
+          "odd": 0.2773627724704145
+        }
+      }
+    },
+    {
+      "seed": 1231,
+      "source_classes": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "target_classes": [
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "latent_width": 93,
+      "teacher_odd_count": 38,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.22711805555555553,
+            "mirror_accuracy": 0.22892361111111112,
+            "matched_view_accuracy": 0.1502777777777778,
+            "agreement": 0.6049652777777778
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.23760416666666667,
+            "mirror_accuracy": 0.23760416666666667,
+            "matched_view_accuracy": 0.23760416666666667,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.2288888888888889,
+            "mirror_accuracy": 0.2300347222222222,
+            "matched_view_accuracy": 0.15291666666666665,
+            "agreement": 0.6165972222222222
+          },
+          "early_natural": {
+            "clean_accuracy": 0.27322916666666663,
+            "mirror_accuracy": 0.2754861111111111,
+            "matched_view_accuracy": 0.12833333333333335,
+            "agreement": 0.38850694444444445
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.3058680555555556,
+            "mirror_accuracy": 0.3058680555555556,
+            "matched_view_accuracy": 0.3058680555555556,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.29052083333333334,
+            "mirror_accuracy": 0.2925,
+            "matched_view_accuracy": 0.20461805555555557,
+            "agreement": 0.6461805555555555
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.255625,
+            "mirror_accuracy": 0.2551736111111111,
+            "matched_view_accuracy": 0.11333333333333334,
+            "agreement": 0.35225694444444444
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.29041666666666666,
+            "mirror_accuracy": 0.29041666666666666,
+            "matched_view_accuracy": 0.29041666666666666,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2620486111111111,
+            "mirror_accuracy": 0.26187499999999997,
+            "matched_view_accuracy": 0.16625,
+            "agreement": 0.544375
+          },
+          "late_natural": {
+            "clean_accuracy": 0.20538194444444446,
+            "mirror_accuracy": 0.20868055555555556,
+            "matched_view_accuracy": 0.057708333333333334,
+            "agreement": 0.22135416666666666
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.25274305555555554,
+            "mirror_accuracy": 0.25274305555555554,
+            "matched_view_accuracy": 0.25274305555555554,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.21968749999999998,
+            "mirror_accuracy": 0.22270833333333334,
+            "matched_view_accuracy": 0.09732638888888889,
+            "agreement": 0.3815625
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.18708333333333332,
+            "mirror_accuracy": 0.18868055555555557,
+            "matched_view_accuracy": 0.04399305555555555,
+            "agreement": 0.19496527777777778
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.22368055555555555,
+            "mirror_accuracy": 0.22368055555555555,
+            "matched_view_accuracy": 0.22368055555555555,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.19409722222222223,
+            "mirror_accuracy": 0.19746527777777778,
+            "matched_view_accuracy": 0.06715277777777777,
+            "agreement": 0.3085416666666667
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.2561805555555556,
+            "mirror_accuracy": 0.25913194444444443,
+            "matched_view_accuracy": 0.18482638888888892,
+            "agreement": 0.6368402777777777
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2607291666666667,
+            "mirror_accuracy": 0.2607291666666667,
+            "matched_view_accuracy": 0.2607291666666667,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.25875,
+            "mirror_accuracy": 0.2608680555555556,
+            "matched_view_accuracy": 0.18666666666666668,
+            "agreement": 0.6427777777777778
+          },
+          "early_natural": {
+            "clean_accuracy": 0.3049305555555556,
+            "mirror_accuracy": 0.30368055555555556,
+            "matched_view_accuracy": 0.1580902777777778,
+            "agreement": 0.4380208333333333
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.33100694444444445,
+            "mirror_accuracy": 0.33100694444444445,
+            "matched_view_accuracy": 0.33100694444444445,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.3098263888888889,
+            "mirror_accuracy": 0.3100347222222222,
+            "matched_view_accuracy": 0.2095486111111111,
+            "agreement": 0.6038888888888889
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.2949652777777778,
+            "mirror_accuracy": 0.29072916666666665,
+            "matched_view_accuracy": 0.15295138888888887,
+            "agreement": 0.39593750000000005
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.34305555555555556,
+            "mirror_accuracy": 0.34305555555555556,
+            "matched_view_accuracy": 0.34305555555555556,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2969097222222222,
+            "mirror_accuracy": 0.29256944444444444,
+            "matched_view_accuracy": 0.18840277777777778,
+            "agreement": 0.5214583333333334
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2370833333333333,
+            "mirror_accuracy": 0.2420138888888889,
+            "matched_view_accuracy": 0.08388888888888889,
+            "agreement": 0.24746527777777777
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.2780902777777778,
+            "mirror_accuracy": 0.2780902777777778,
+            "matched_view_accuracy": 0.2780902777777778,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.24753472222222223,
+            "mirror_accuracy": 0.2521527777777778,
+            "matched_view_accuracy": 0.11833333333333333,
+            "agreement": 0.36670138888888887
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2126736111111111,
+            "mirror_accuracy": 0.21850694444444443,
+            "matched_view_accuracy": 0.059791666666666674,
+            "agreement": 0.21680555555555558
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.24590277777777778,
+            "mirror_accuracy": 0.24590277777777778,
+            "matched_view_accuracy": 0.24590277777777778,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.22069444444444444,
+            "mirror_accuracy": 0.2214583333333333,
+            "matched_view_accuracy": 0.07677083333333334,
+            "agreement": 0.2947916666666667
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.2744097222222222,
+            "mirror_accuracy": 0.28291666666666665,
+            "matched_view_accuracy": 0.20763888888888887,
+            "agreement": 0.6651736111111112
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2869097222222222,
+            "mirror_accuracy": 0.2869097222222222,
+            "matched_view_accuracy": 0.2869097222222222,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.27565972222222224,
+            "mirror_accuracy": 0.28322916666666664,
+            "matched_view_accuracy": 0.20965277777777777,
+            "agreement": 0.6738888888888889
+          },
+          "early_natural": {
+            "clean_accuracy": 0.32843750000000005,
+            "mirror_accuracy": 0.3259375,
+            "matched_view_accuracy": 0.22239583333333332,
+            "agreement": 0.5940277777777778
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.36493055555555554,
+            "mirror_accuracy": 0.36493055555555554,
+            "matched_view_accuracy": 0.36493055555555554,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.33100694444444445,
+            "mirror_accuracy": 0.3291666666666667,
+            "matched_view_accuracy": 0.2484027777777778,
+            "agreement": 0.6744444444444444
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.32409722222222226,
+            "mirror_accuracy": 0.31795138888888885,
+            "matched_view_accuracy": 0.19194444444444445,
+            "agreement": 0.4642361111111111
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3742013888888889,
+            "mirror_accuracy": 0.3742013888888889,
+            "matched_view_accuracy": 0.3742013888888889,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.3246875,
+            "mirror_accuracy": 0.3185763888888889,
+            "matched_view_accuracy": 0.20708333333333334,
+            "agreement": 0.5162847222222222
+          },
+          "late_natural": {
+            "clean_accuracy": 0.26388888888888884,
+            "mirror_accuracy": 0.2668055555555555,
+            "matched_view_accuracy": 0.1248611111111111,
+            "agreement": 0.3586111111111111
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.29951388888888886,
+            "mirror_accuracy": 0.29951388888888886,
+            "matched_view_accuracy": 0.29951388888888886,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2681597222222222,
+            "mirror_accuracy": 0.2674305555555555,
+            "matched_view_accuracy": 0.13993055555555556,
+            "agreement": 0.4139236111111111
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.23996527777777776,
+            "mirror_accuracy": 0.24329861111111112,
+            "matched_view_accuracy": 0.10350694444444444,
+            "agreement": 0.3551388888888889
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2672569444444445,
+            "mirror_accuracy": 0.2672569444444445,
+            "matched_view_accuracy": 0.2672569444444445,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.24104166666666665,
+            "mirror_accuracy": 0.24253472222222222,
+            "matched_view_accuracy": 0.1086111111111111,
+            "agreement": 0.39583333333333337
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.18898504686942372,
+          "odd": 1.5222494897600256
+        },
+        "early_natural": {
+          "even": 0.26503333248383504,
+          "odd": 0.42610138447432067
+        },
+        "early_rotated": {
+          "even": 0.2901369735224647,
+          "odd": 0.4406015522394886
+        },
+        "late_natural": {
+          "even": 0.36830317050621214,
+          "odd": 0.3357247048383211
+        },
+        "late_rotated": {
+          "even": 0.42951888219129297,
+          "odd": 0.33983577529148323
+        }
+      }
+    },
+    {
+      "seed": 1232,
+      "source_classes": [
+        0,
+        4,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        2,
+        3,
+        5,
+        7,
+        9
+      ],
+      "latent_width": 71,
+      "teacher_odd_count": 28,
+      "shots": {
+        "5": {
+          "uniform": {
+            "clean_accuracy": 0.25569444444444445,
+            "mirror_accuracy": 0.2579166666666667,
+            "matched_view_accuracy": 0.1318402777777778,
+            "agreement": 0.4382986111111111
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.2809375,
+            "mirror_accuracy": 0.2809375,
+            "matched_view_accuracy": 0.2809375,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.26829861111111114,
+            "mirror_accuracy": 0.27,
+            "matched_view_accuracy": 0.1915625,
+            "agreement": 0.6554513888888889
+          },
+          "early_natural": {
+            "clean_accuracy": 0.24993055555555554,
+            "mirror_accuracy": 0.2472916666666667,
+            "matched_view_accuracy": 0.11340277777777777,
+            "agreement": 0.37906249999999997
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.26722222222222225,
+            "mirror_accuracy": 0.26722222222222225,
+            "matched_view_accuracy": 0.26722222222222225,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.26413194444444443,
+            "mirror_accuracy": 0.2631597222222222,
+            "matched_view_accuracy": 0.20559027777777777,
+            "agreement": 0.7287152777777778
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.22850694444444444,
+            "mirror_accuracy": 0.23520833333333335,
+            "matched_view_accuracy": 0.08777777777777777,
+            "agreement": 0.3090625
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.26340277777777776,
+            "mirror_accuracy": 0.26340277777777776,
+            "matched_view_accuracy": 0.26340277777777776,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.25048611111111113,
+            "mirror_accuracy": 0.2514236111111111,
+            "matched_view_accuracy": 0.1739236111111111,
+            "agreement": 0.6439930555555555
+          },
+          "late_natural": {
+            "clean_accuracy": 0.24371527777777777,
+            "mirror_accuracy": 0.2496875,
+            "matched_view_accuracy": 0.09100694444444445,
+            "agreement": 0.311875
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.2812152777777778,
+            "mirror_accuracy": 0.2812152777777778,
+            "matched_view_accuracy": 0.2812152777777778,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2567013888888889,
+            "mirror_accuracy": 0.25753472222222223,
+            "matched_view_accuracy": 0.17631944444444447,
+            "agreement": 0.648263888888889
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.23107638888888887,
+            "mirror_accuracy": 0.23298611111111112,
+            "matched_view_accuracy": 0.08430555555555555,
+            "agreement": 0.3091666666666667
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2646875,
+            "mirror_accuracy": 0.2646875,
+            "matched_view_accuracy": 0.2646875,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2500347222222222,
+            "mirror_accuracy": 0.2525,
+            "matched_view_accuracy": 0.17552083333333335,
+            "agreement": 0.6487847222222223
+          }
+        },
+        "20": {
+          "uniform": {
+            "clean_accuracy": 0.2873263888888889,
+            "mirror_accuracy": 0.28961805555555553,
+            "matched_view_accuracy": 0.17402777777777778,
+            "agreement": 0.5125
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.31416666666666665,
+            "mirror_accuracy": 0.31416666666666665,
+            "matched_view_accuracy": 0.31416666666666665,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.29538194444444443,
+            "mirror_accuracy": 0.29503472222222227,
+            "matched_view_accuracy": 0.21225694444444443,
+            "agreement": 0.6471875
+          },
+          "early_natural": {
+            "clean_accuracy": 0.2794097222222222,
+            "mirror_accuracy": 0.2758333333333333,
+            "matched_view_accuracy": 0.1461111111111111,
+            "agreement": 0.44493055555555555
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.29670138888888886,
+            "mirror_accuracy": 0.29670138888888886,
+            "matched_view_accuracy": 0.29670138888888886,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.28888888888888886,
+            "mirror_accuracy": 0.284375,
+            "matched_view_accuracy": 0.22225694444444444,
+            "agreement": 0.7182291666666667
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.25805555555555554,
+            "mirror_accuracy": 0.2559027777777778,
+            "matched_view_accuracy": 0.12472222222222222,
+            "agreement": 0.4084375
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.27513888888888893,
+            "mirror_accuracy": 0.27513888888888893,
+            "matched_view_accuracy": 0.27513888888888893,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2657638888888889,
+            "mirror_accuracy": 0.26239583333333333,
+            "matched_view_accuracy": 0.1781597222222222,
+            "agreement": 0.616111111111111
+          },
+          "late_natural": {
+            "clean_accuracy": 0.27350694444444446,
+            "mirror_accuracy": 0.2728125,
+            "matched_view_accuracy": 0.13288194444444446,
+            "agreement": 0.41368055555555555
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.3089236111111111,
+            "mirror_accuracy": 0.3089236111111111,
+            "matched_view_accuracy": 0.3089236111111111,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.2813888888888889,
+            "mirror_accuracy": 0.2793055555555556,
+            "matched_view_accuracy": 0.19461805555555556,
+            "agreement": 0.6310069444444445
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2527083333333333,
+            "mirror_accuracy": 0.2528472222222222,
+            "matched_view_accuracy": 0.12243055555555556,
+            "agreement": 0.4135763888888889
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.2919097222222222,
+            "mirror_accuracy": 0.2919097222222222,
+            "matched_view_accuracy": 0.2919097222222222,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.26315972222222217,
+            "mirror_accuracy": 0.26197916666666665,
+            "matched_view_accuracy": 0.17993055555555554,
+            "agreement": 0.6268402777777777
+          }
+        },
+        "60": {
+          "uniform": {
+            "clean_accuracy": 0.3154513888888889,
+            "mirror_accuracy": 0.3114930555555555,
+            "matched_view_accuracy": 0.21736111111111112,
+            "agreement": 0.6174652777777778
+          },
+          "uniform_pooled": {
+            "clean_accuracy": 0.33618055555555554,
+            "mirror_accuracy": 0.33618055555555554,
+            "matched_view_accuracy": 0.33618055555555554,
+            "agreement": 1.0
+          },
+          "uniform_even": {
+            "clean_accuracy": 0.3194097222222222,
+            "mirror_accuracy": 0.31461805555555555,
+            "matched_view_accuracy": 0.2342361111111111,
+            "agreement": 0.6658333333333334
+          },
+          "early_natural": {
+            "clean_accuracy": 0.29746527777777776,
+            "mirror_accuracy": 0.29194444444444445,
+            "matched_view_accuracy": 0.1997222222222222,
+            "agreement": 0.6002430555555556
+          },
+          "early_natural_pooled": {
+            "clean_accuracy": 0.31350694444444444,
+            "mirror_accuracy": 0.31350694444444444,
+            "matched_view_accuracy": 0.31350694444444444,
+            "agreement": 1.0
+          },
+          "early_natural_even": {
+            "clean_accuracy": 0.2984375,
+            "mirror_accuracy": 0.2966319444444444,
+            "matched_view_accuracy": 0.22847222222222224,
+            "agreement": 0.7083333333333333
+          },
+          "early_rotated": {
+            "clean_accuracy": 0.2769097222222222,
+            "mirror_accuracy": 0.2722569444444444,
+            "matched_view_accuracy": 0.17177083333333332,
+            "agreement": 0.5447569444444444
+          },
+          "early_rotated_pooled": {
+            "clean_accuracy": 0.3023958333333333,
+            "mirror_accuracy": 0.3023958333333333,
+            "matched_view_accuracy": 0.3023958333333333,
+            "agreement": 1.0
+          },
+          "early_rotated_even": {
+            "clean_accuracy": 0.2811458333333333,
+            "mirror_accuracy": 0.27809027777777784,
+            "matched_view_accuracy": 0.19805555555555554,
+            "agreement": 0.6454166666666667
+          },
+          "late_natural": {
+            "clean_accuracy": 0.2963888888888889,
+            "mirror_accuracy": 0.2947916666666667,
+            "matched_view_accuracy": 0.16559027777777777,
+            "agreement": 0.4766666666666667
+          },
+          "late_natural_pooled": {
+            "clean_accuracy": 0.33729166666666666,
+            "mirror_accuracy": 0.33729166666666666,
+            "matched_view_accuracy": 0.33729166666666666,
+            "agreement": 1.0
+          },
+          "late_natural_even": {
+            "clean_accuracy": 0.30072916666666666,
+            "mirror_accuracy": 0.29930555555555555,
+            "matched_view_accuracy": 0.19437500000000002,
+            "agreement": 0.5669791666666666
+          },
+          "late_rotated": {
+            "clean_accuracy": 0.2762847222222222,
+            "mirror_accuracy": 0.2723263888888889,
+            "matched_view_accuracy": 0.15489583333333334,
+            "agreement": 0.4887152777777778
+          },
+          "late_rotated_pooled": {
+            "clean_accuracy": 0.3161805555555556,
+            "mirror_accuracy": 0.3161805555555556,
+            "matched_view_accuracy": 0.3161805555555556,
+            "agreement": 1.0
+          },
+          "late_rotated_even": {
+            "clean_accuracy": 0.2808333333333334,
+            "mirror_accuracy": 0.27729166666666666,
+            "matched_view_accuracy": 0.18041666666666667,
+            "agreement": 0.5762499999999999
+          }
+        }
+      },
+      "reflection_error": {
+        "uniform": {
+          "even": 0.13745520605575887,
+          "odd": 0.24846010166856053
+        },
+        "early_natural": {
+          "even": 0.12945298284985707,
+          "odd": 0.1354483194227581
+        },
+        "early_rotated": {
+          "even": 0.23384711068958625,
+          "odd": 0.16990685750672818
+        },
+        "late_natural": {
+          "even": 0.15072224295390624,
+          "odd": 0.12293229596857783
+        },
+        "late_rotated": {
+          "even": 0.17803813777415156,
+          "odd": 0.18148094911807314
+        }
+      }
+    }
+  ],
+  "elapsed_seconds": 151.72578738001175
+}
