@@ -149,7 +149,8 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
                 hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.,
                 reflection_epochs=None, orbit_actions=None, orbit_order=None, invariant_variance_weight=0.,
                 target_inputs=None, variance_projector=None, reflection_penalty_mask=None, reflection_strengths=None,
-                match_reflection_residual=False, model_factory=None):
+                match_reflection_residual=False, model_factory=None, teacher_reflection_from_action=False,
+                average_target_partners=None):
     torch.manual_seed(seed)
     if model_factory is None:
         student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
@@ -168,6 +169,8 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         raise ValueError("reflection strengths require a projection action")
     if match_reflection_residual and (not reflection_penalty or reflection_strengths is not None):
         raise ValueError("matching reflection residuals requires a penalty with full projection")
+    if teacher_reflection_from_action and reflection_action is None:
+        raise ValueError("synthesizing reflected targets requires a reflection action")
     penalty_metric = metric
     if reflection_penalty_mask is not None and metric is not None:
         block = metric[reflection_penalty_mask][:, reflection_penalty_mask]
@@ -199,8 +202,14 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         raise ValueError("teacher target inputs must match the student's training input shape")
     with torch.no_grad():
         target = torch.cat([(teacher.encode(batch) - mean) @ basis for batch in supervision.split(args.batch_size)])
-        targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
-                                     for batch in supervision.split(args.batch_size)]) for view in views]
+        if teacher_reflection_from_action:
+            targets_by_view = [target @ reflection_action]
+        else:
+            targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
+                                         for batch in supervision.split(args.batch_size)]) for view in views]
+        if average_target_partners is not None:
+            target = (target + target[average_target_partners]) / 2
+            targets_by_view = [(value + value[average_target_partners]) / 2 for value in targets_by_view]
     for epoch in range(args.student_epochs):
         if frozen_feature_epochs is not None:
             student[1].requires_grad_(epoch not in frozen_feature_epochs)

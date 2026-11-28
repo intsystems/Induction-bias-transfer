@@ -1552,6 +1552,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
             reflection_penalty_masks = {}
             training_projection_actions = {}
             training_target_indices = {}
+            blended_target_indices = {}
             model_factories = {}
             architecture_diagnostics = {}
             projection_strengths = None
@@ -1653,9 +1654,20 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                             training_target_indices[name] = torch.where(partners >= 0, partners, source_indices)
                             variants.append((name, None, source, None))
                             projection_penalties[name] = 0.
+                            if args.track_distillation_projection_blended_targets:
+                                blended_name = name + "_blended"
+                                blended_target_indices[blended_name] = training_target_indices[name]
+                                variants.append((blended_name, None, source, None))
+                                projection_penalties[blended_name] = 0.
                     elif args.track_distillation_projection_parity_student:
-                        model_factories = {"folded_parameterization": partial(ParityStudent, odd),
-                                           "gated_parameterization": partial(ParityStudent, odd, gated=True)}
+                        folded = partial(ParityStudent, odd)
+                        model_factories = {"folded_parameterization": folded}
+                        if args.track_distillation_projection_parity_supervision:
+                            model_factories["one_view_folded"] = folded
+                            variants.append(("one_view_dense", None, source, None))
+                            projection_penalties["one_view_dense"] = 0.
+                        else:
+                            model_factories["gated_parameterization"] = partial(ParityStudent, odd, gated=True)
                         variants.extend((name, None, source, None) for name in model_factories)
                     else:
                         variants.append(("rotated_training", None, source, None))
@@ -1714,6 +1726,7 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 elif name in {"canonical_trained", "relative_augmented", "relative_shuffled"}:
                     target_inputs = source
                 learned = fit_student(training_source, teacher, basis, mean, args, seed + 100,
+                                      training_views=() if name == "one_view_folded" else None,
                                       metric=metric, metric_epochs=metric_epochs,
                                       hidden_width=48 if name in narrow_variants else 192,
                                       frozen_feature_epochs=frozen_epochs.get(name),
@@ -1725,7 +1738,9 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                       reflection_strengths=source.new_tensor(projection_strengths)
                                       if name == "confident_training" else None,
                                       match_reflection_residual=name == "match_residual",
-                                      model_factory=model_factories.get(name))
+                                      model_factory=model_factories.get(name),
+                                      teacher_reflection_from_action=name == "one_view_dense",
+                                      average_target_partners=blended_target_indices.get(name))
                 if args.track_distillation_projection_parity_student:
                     width = len(odd)
                     encoder = SimpleNamespace(encode=learned, view=teacher.view)
@@ -2010,10 +2025,16 @@ def main():
     selection.add_argument("--track-distillation-projection-teacher-residual", action="store_true")
     selection.add_argument("--track-distillation-projection-projected-teacher-prior", action="store_true")
     selection.add_argument("--track-distillation-projection-track-targets", action="store_true")
+    selection.add_argument("--track-distillation-projection-blended-targets", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-student", action="store_true")
+    selection.add_argument("--track-distillation-projection-parity-supervision", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
+    if args.track_distillation_projection_parity_supervision:
+        args.track_distillation_projection_parity_student = True
+    if args.track_distillation_projection_blended_targets:
+        args.track_distillation_projection_track_targets = True
     if (args.track_distillation_projection_confident_teacher or args.track_distillation_projection_teacher_confidence_head
             or args.track_distillation_projection_approx_teacher_track_prior
             or args.track_distillation_projection_teacher_residual
@@ -2115,8 +2136,12 @@ def main():
             name = "track_distillation_projection_teacher_residual"
         elif args.track_distillation_projection_projected_teacher_prior:
             name = "track_distillation_projection_projected_teacher_prior"
+        elif args.track_distillation_projection_blended_targets:
+            name = "track_distillation_projection_blended_targets"
         elif args.track_distillation_projection_track_targets:
             name = "track_distillation_projection_track_targets"
+        elif args.track_distillation_projection_parity_supervision:
+            name = "track_distillation_projection_parity_supervision"
         elif args.track_distillation_projection_parity_student:
             name = "track_distillation_projection_parity_student"
         elif args.track_distillation_projection_approx_teacher:
