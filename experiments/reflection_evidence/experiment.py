@@ -143,7 +143,7 @@ def discover_basis(teacher, probe, args):
 
 
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
-                hidden_width=192):
+                hidden_width=192, frozen_feature_epochs=None):
     torch.manual_seed(seed)
     student = nn.Sequential(nn.Flatten(), nn.Linear(3 * 32 * 32, hidden_width), nn.GELU(),
                             nn.Linear(hidden_width, basis.shape[1])).to(x.device)
@@ -155,6 +155,8 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
         targets_by_view = [torch.cat([(teacher.encode(view(batch)) - mean) @ basis
                                      for batch in x.split(args.batch_size)]) for view in views]
     for epoch in range(args.student_epochs):
+        if frozen_feature_epochs is not None:
+            student[1].requires_grad_(epoch not in frozen_feature_epochs)
         weighted = metric is not None and (metric_epochs is None or epoch in metric_epochs)
         for ix in batches(len(x), args.batch_size, rng):
             optimizer.zero_grad(set_to_none=True)
@@ -168,6 +170,8 @@ def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, met
                 loss = ((residual @ metric) * residual).mean()
             loss.backward()
             optimizer.step()
+    if frozen_feature_epochs is not None:
+        student[1].requires_grad_(True)
     return student.eval()
 
 

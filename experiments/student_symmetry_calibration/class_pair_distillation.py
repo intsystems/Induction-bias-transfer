@@ -53,21 +53,45 @@ def run(train, test, args, seed, device):
                     for phase, epochs in schedules.items() for key, metric in metrics.items())
 
     shots = {str(count): {} for count in args.shots}
+    equivariance = {}
     head = np.eye(basis.shape[1]) / basis.shape[1]
     for name, metric, epochs in variants:
         student = fit_student(source, teacher, basis, mean, args, seed + 100, metric=metric, metric_epochs=epochs)
         support, queries = (embed(student, part, args, device) for part in (target, query))
-        scores = evaluate({name: head}, support, queries, target_classes, args, np.random.default_rng(seed + 500))
+        priors = {name: head}
+        if args.reflection_readouts:
+            priors["two_view"] = head
+        scores = evaluate(priors, support, queries, target_classes, args, np.random.default_rng(seed + 500))
         for count, row in scores.items():
+            if args.reflection_readouts:
+                row[f"{name}_pooled"] = row.pop("two_view")
             shots[count].update(row)
-    return {"seed": seed, "source_classes": source_classes, "target_classes": target_classes,
-            "latent_width": basis.shape[1], "teacher_odd_count": int(odd.sum()), "shots": shots}
+        if args.reflection_readouts:
+            even = ~odd
+            even_support, even_query = ({label: views[..., even] for label, views in part.items()}
+                                        for part in (support, queries))
+            even_head = np.eye(even.sum()) / even.sum()
+            scores = evaluate({f"{name}_even": even_head}, even_support, even_query,
+                              target_classes, args, np.random.default_rng(seed + 500))
+            for count, row in scores.items():
+                shots[count].update(row)
+            clean, reflected = np.concatenate(list(queries.values()), axis=1).astype(np.float64)
+            equivariance[name] = {}
+            for label, mask, sign in (("even", even, 1), ("odd", odd, -1)):
+                first, second = clean[:, mask], reflected[:, mask]
+                energy = np.square(first).sum() + np.square(second).sum()
+                equivariance[name][label] = float(np.square(second - sign * first).sum() / max(energy, 1e-12))
+    result = {"seed": seed, "source_classes": source_classes, "target_classes": target_classes,
+              "latent_width": basis.shape[1], "teacher_odd_count": int(odd.sum()), "shots": shots}
+    if args.reflection_readouts:
+        result["reflection_error"] = equivariance
+    return result
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, default=Path("/tmp/ibt-cifar-data"))
-    parser.add_argument("--output", type=Path, default=RESULTS / "metrics.json")
+    parser.add_argument("--output", type=Path)
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--seeds", type=int, nargs="+", default=list(range(1201, 1217)))
     parser.add_argument("--shots", type=int, nargs="+", default=[5, 20, 60])
@@ -80,7 +104,11 @@ def main():
     parser.add_argument("--batch-size", type=int, default=128)
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--noise", type=float, default=.45)
+    parser.add_argument("--reflection-readouts", action="store_true")
     args = parser.parse_args()
+    if args.output is None:
+        folder = HERE / "results" / "class_pair_reflection_readouts" if args.reflection_readouts else RESULTS
+        args.output = folder / "metrics.json"
     if args.student_epochs < 2 or args.probe_examples < 2:
         parser.error("need at least two student epochs and two probe examples per source class")
     if not 0 < min(args.shots) <= max(args.shots) <= args.target_pool <= 5000:

@@ -22,6 +22,9 @@ def main():
     args = parser.parse_args()
     data = json.loads(args.metrics.read_text())
     shots = data["config"]["shots"]
+    if data["config"].get("reflection_readouts", False):
+        plot_readouts(data["runs"], shots, args.output)
+        return
     values = {metric: {key: 100 * np.array([
         [run["shots"][str(count)][key][metric] for count in shots] for run in data["runs"]
     ]) for key in METHODS} for metric in ("mirror_accuracy", "clean_accuracy")}
@@ -43,6 +46,24 @@ def main():
         axis.grid(alpha=.2)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(args.output, dpi=170)
+
+
+def plot_readouts(runs, shots, output):
+    figure, axes = plt.subplots(1, 3, figsize=(12, 4), sharey=True, layout="constrained")
+    for axis, (suffix, label) in zip(axes, (("", "All coordinates"), ("_even", "Even coordinates"),
+                                           ("_pooled", "Mean of both views")), strict=True):
+        for key, method in METHODS.items():
+            values = [[100 * run["shots"][str(count)][key + suffix]["matched_view_accuracy"]
+                       for count in shots] for run in runs]
+            axis.plot(shots, np.mean(values, axis=0), marker="o", label=method)
+        axis.set_title(label)
+        axis.set_xlabel("Labels per class")
+        axis.set_xticks(shots)
+        axis.grid(alpha=.2)
+    axes[0].set_ylabel("Original and reflection correct (%)")
+    axes[-1].legend(fontsize=8)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=170)
 
 
 if __name__ == "__main__":

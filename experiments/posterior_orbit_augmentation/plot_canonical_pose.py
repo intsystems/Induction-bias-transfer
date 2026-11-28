@@ -126,6 +126,9 @@ TRACK_DISTILLATION_WIDTH_METHODS = {"raw": "Width 192 · uniform", "track_distil
 TRACK_DISTILLATION_SYNTHETIC_METHODS = {"raw": "Uniform loss", "track_distilled": "Natural pairs",
                                        "synthetic_distilled": "Synthetic pairs", "mixed_distilled": "Mixed pairs",
                                        "rotated_distilled": "Rotated directions"}
+TRACK_DISTILLATION_LATE_HEAD_METHODS = {"raw": "All layers · uniform", "late_track": "All layers · natural",
+                                       "late_rotated": "All layers · rotated", "head_uniform": "Output only · uniform",
+                                       "head_track": "Output only · natural", "head_rotated": "Output only · rotated"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -165,6 +168,8 @@ def main():
         for phase, epochs in results["distillation_tail_epochs"].items():
             methods[f"{phase}_track"] = f"Final {epochs} · natural"
             methods[f"{phase}_rotated"] = f"Final {epochs} · rotated"
+    elif results["config"].get("track_distillation_late_head", False):
+        methods = TRACK_DISTILLATION_LATE_HEAD_METHODS
     elif results["config"].get("track_distillation_schedule", False):
         methods = TRACK_DISTILLATION_SCHEDULE_METHODS
     elif results["config"].get("track_distillation_blocks", False):

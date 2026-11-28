@@ -1283,6 +1283,15 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     epochs = range(start, args.student_epochs)
                     variants.extend(((f"{phase}_track", "head_same_class", source, epochs),
                                      (f"{phase}_rotated", "head_rotated", source, epochs)))
+            frozen_epochs = {}
+            if args.track_distillation_late_head:
+                late = range(args.student_epochs - args.student_epochs // 2, args.student_epochs)
+                metric_keys = (("track", "head_same_class"), ("rotated", "head_rotated"))
+                variants = [(f"late_{name}", key, source, late) for name, key in metric_keys]
+                head_variants = [(f"head_{name}", key, source, late)
+                                 for name, key in (*metric_keys, ("uniform", None))]
+                variants.extend(head_variants)
+                frozen_epochs = {name: late for name, *_ in head_variants}
             narrow_variants = {}
             if args.track_distillation_width:
                 narrow_variants = {"narrow_uniform": None, "narrow_track": "head_same_class", "narrow_rotated": "head_rotated"}
@@ -1294,7 +1303,8 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                     metric = source.new_tensor(matrix / np.diag(matrix).mean())
                 learned = fit_student(training_source, teacher, basis, mean, args, seed + 100,
                                       metric=metric, metric_epochs=metric_epochs,
-                                      hidden_width=48 if name in narrow_variants else 192)
+                                      hidden_width=48 if name in narrow_variants else 192,
+                                      frozen_feature_epochs=frozen_epochs.get(name))
                 features = embed(learned, train, args, device)
                 variant_support = {label: values[0] for label, values in features.items()}
                 transformed = natural_track_embeddings(learned, {}, train, natural_queries, args, device)
@@ -1445,12 +1455,13 @@ def main():
     selection.add_argument("--track-distillation-width", action="store_true")
     selection.add_argument("--track-distillation-synthetic", action="store_true")
     selection.add_argument("--track-distillation-tail", action="store_true")
+    selection.add_argument("--track-distillation-late-head", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
             or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
-            or args.track_distillation_tail):
+            or args.track_distillation_tail or args.track_distillation_late_head):
         args.track_distillation = True
     if args.track_parity_prior_route:
         args.track_parity_policy = True
@@ -1479,6 +1490,8 @@ def main():
             name = "track_distillation_synthetic"
         elif args.track_distillation_tail:
             name = "track_distillation_tail"
+        elif args.track_distillation_late_head:
+            name = "track_distillation_late_head"
         elif args.track_distillation_schedule:
             name = "track_distillation_schedule"
         elif args.track_distillation_blocks:
@@ -1562,7 +1575,7 @@ def main():
         parser.error("natural track frame fractions must be in [0, 1]")
     if args.track_consistency and len(set(args.strengths)) < 2:
         parser.error("track consistency requires at least two frame positions")
-    if args.track_distillation_schedule and args.student_epochs < 2:
+    if (args.track_distillation_schedule or args.track_distillation_late_head) and args.student_epochs < 2:
         parser.error("the weighted schedule requires at least two student epochs")
     if args.track_distillation_tail and args.student_epochs < max(DISTILLATION_TAILS.values()):
         parser.error("the weighted tail comparison requires at least six student epochs")
