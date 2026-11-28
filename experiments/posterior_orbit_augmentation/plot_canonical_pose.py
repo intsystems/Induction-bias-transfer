@@ -160,6 +160,11 @@ def main():
         methods = TRACK_DISTILLATION_WIDTH_METHODS
     elif results["config"].get("track_distillation_synthetic", False):
         methods = TRACK_DISTILLATION_SYNTHETIC_METHODS
+    elif results["config"].get("track_distillation_tail", False):
+        methods = {"raw": "Uniform throughout"}
+        for phase, epochs in results["distillation_tail_epochs"].items():
+            methods[f"{phase}_track"] = f"Final {epochs} · natural"
+            methods[f"{phase}_rotated"] = f"Final {epochs} · rotated"
     elif results["config"].get("track_distillation_schedule", False):
         methods = TRACK_DISTILLATION_SCHEDULE_METHODS
     elif results["config"].get("track_distillation_blocks", False):

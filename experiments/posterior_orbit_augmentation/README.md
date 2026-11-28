@@ -1284,3 +1284,17 @@ OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
   --track-distillation-synthetic --seeds $(seq 697 712) --output "$run/metrics.json"
 ~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
 ```
+
+### Длительность позднего взвешивания
+
+Проверяем, сохраняется ли выигрыш естественной геометрии при сокращении взвешенной части дистилляции. Студент обучается 18 эпох. Естественные или повёрнутые веса с тем же спектром применяются в последние 3, 6 или 9 эпох, а раньше действует равномерная ошибка. Для сравнения обучаем также студентов с каждой матрицей на протяжении всех 18 эпох и равномерного студента. Инициализация, последовательность обучающих кадров и целевая поддержка совпадают. Связанный вопрос о времени вмешательства изучали в online-дистилляции с меняющимся учителем. [Sun и соавторы, ICML 2025, раздел 5.3](https://proceedings.mlr.press/v267/sun25w.html)
+
+Основной парный контраст на seed 713–728 при трёх метках сравнивает выигрыши естественных весов над повёрнутыми в последние три и девять эпох. Для сбалансированной точности отражённых кадров GTSRB используем равные веса двух семейств задач и трёх позиций кадра. Дополнительно проверяем шесть эпох, непрерывное взвешивание, равномерную ошибку, исходные кадры и меньшие бюджеты меток.
+
+```bash
+dir=experiments/posterior_orbit_augmentation
+run="$dir/results/track_distillation_tail"
+OPENBLAS_NUM_THREADS=1 ~/venv/bin/python "$dir/canonical_pose.py" \
+  --track-distillation-tail --seeds $(seq 713 728) --output "$run/metrics.json"
+~/venv/bin/python "$dir/plot_canonical_pose.py" --metrics "$run/metrics.json" --output "$run/curves.png"
+```

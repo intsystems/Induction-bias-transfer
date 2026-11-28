@@ -23,6 +23,7 @@ POSTERIOR_STEPS = (0., .5, 1.)
 MIXED_LEVELS = (0., .5, 1.)
 ANGLE_GATE_MODELS = ("gate_fixed", "gate_adaptive", "gate_shuffled")
 TRACK_PAIR_BUDGETS = (2, 8, 32)
+DISTILLATION_TAILS = {"sixth": 6, "third": 3, "half": 2}
 
 
 def pose_warp(images, pose):
@@ -1276,6 +1277,12 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                 variants = [(f"{phase}_{name}", key, source, epochs)
                             for phase, epochs in (("early", early), ("late", late))
                             for name, key in (("track", "head_same_class"), ("rotated", "head_rotated"))]
+            if args.track_distillation_tail:
+                for phase, divisor in DISTILLATION_TAILS.items():
+                    start = args.student_epochs - args.student_epochs // divisor
+                    epochs = range(start, args.student_epochs)
+                    variants.extend(((f"{phase}_track", "head_same_class", source, epochs),
+                                     (f"{phase}_rotated", "head_rotated", source, epochs)))
             narrow_variants = {}
             if args.track_distillation_width:
                 narrow_variants = {"narrow_uniform": None, "narrow_track": "head_same_class", "narrow_rotated": "head_rotated"}
@@ -1437,11 +1444,13 @@ def main():
     selection.add_argument("--track-distillation-schedule", action="store_true")
     selection.add_argument("--track-distillation-width", action="store_true")
     selection.add_argument("--track-distillation-synthetic", action="store_true")
+    selection.add_argument("--track-distillation-tail", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
     if (args.track_distillation_budget or args.track_distillation_joint or args.track_distillation_blocks
-            or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic):
+            or args.track_distillation_schedule or args.track_distillation_width or args.track_distillation_synthetic
+            or args.track_distillation_tail):
         args.track_distillation = True
     if args.track_parity_prior_route:
         args.track_parity_policy = True
@@ -1468,6 +1477,8 @@ def main():
             name = "track_distillation_width"
         elif args.track_distillation_synthetic:
             name = "track_distillation_synthetic"
+        elif args.track_distillation_tail:
+            name = "track_distillation_tail"
         elif args.track_distillation_schedule:
             name = "track_distillation_schedule"
         elif args.track_distillation_blocks:
@@ -1553,6 +1564,8 @@ def main():
         parser.error("track consistency requires at least two frame positions")
     if args.track_distillation_schedule and args.student_epochs < 2:
         parser.error("the weighted schedule requires at least two student epochs")
+    if args.track_distillation_tail and args.student_epochs < max(DISTILLATION_TAILS.values()):
+        parser.error("the weighted tail comparison requires at least six student epochs")
     if not math.isfinite(args.selector_ridge) or args.selector_ridge <= 0:
         parser.error("selector ridge must be finite and positive")
     if args.refiner_epochs < 1:
@@ -1583,6 +1596,9 @@ def main():
     output = {"config": {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()},
               "device_name": torch.cuda.get_device_name(device) if device.type == "cuda" else "CPU",
               "torch_version": torch.__version__, "target_tasks": TASKS, "runs": []}
+    if args.track_distillation_tail:
+        output["distillation_tail_epochs"] = {phase: args.student_epochs // divisor
+                                               for phase, divisor in DISTILLATION_TAILS.items()}
     if source_partners is not None:
         count = int((source_partners["same_track"] >= 0).sum())
         if not count:
