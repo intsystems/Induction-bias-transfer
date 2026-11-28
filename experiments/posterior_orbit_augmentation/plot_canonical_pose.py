@@ -101,6 +101,9 @@ TRACK_HEAD_SYNTHETIC_METHODS = {"raw": "Uniform parity blocks", "head_same_class
                                  "head_synthetic_pairs": "Synthetic pose pairs",
                                  "head_natural_synthetic": "Natural and synthetic mixture",
                                  "head_rotated": "Rotated basis"}
+TRACK_HEAD_CROSS_PARITY_METHODS = {"raw": "Uniform parity blocks", "head_same_class": "Independent parity blocks",
+                                    "head_cross_aligned": "Negative residual correlation",
+                                    "head_cross_reversed": "Positive residual correlation"}
 TRACK_CONSISTENCY_METHODS = {"raw": "Uncorrected", "same_track": "Full correction",
                              "matched_weight": "Matched mean weight", "shuffled_weight": "Shuffled weights",
                              "consistency_weight": "Track consistency weights"}
@@ -133,6 +136,8 @@ def main():
     methods = METHODS
     if results["config"].get("track_parity_prior_route", False):
         methods = TRACK_PARITY_PRIOR_ROUTE_METHODS
+    elif results["config"].get("track_head_cross_parity", False):
+        methods = TRACK_HEAD_CROSS_PARITY_METHODS
     elif results["config"].get("track_head_synthetic", False):
         methods = TRACK_HEAD_SYNTHETIC_METHODS
     elif results["config"].get("track_head_source_split", False):

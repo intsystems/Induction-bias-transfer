@@ -464,6 +464,34 @@ def track_prior_spectrum(energies):
     return values / values.sum()
 
 
+def attach_track_cross_parity(prior, residuals, odd):
+    even = ~odd
+    first, second = residuals[:, even].astype(np.float64), residuals[:, odd].astype(np.float64)
+
+    def regularized_whitener(values):
+        moment = values.T @ values / len(values)
+        energies, basis = np.linalg.eigh(moment)
+        ridge = max(.1 * float(energies.mean()), 1e-12)
+        return (basis * (np.maximum(energies, 0) + ridge)**-.5) @ basis.T
+
+    correlation = regularized_whitener(first) @ (first.T @ second / len(first)) @ regularized_whitener(second)
+    aligned, reversed_cross = prior.copy(), prior.copy()
+    even_index, odd_index = np.ix_(even, even), np.ix_(odd, odd)
+    cross_index, reverse_index = np.ix_(even, odd), np.ix_(odd, even)
+    for mode, matrix in enumerate(prior):
+        roots = []
+        for index in (even_index, odd_index):
+            energies, basis = np.linalg.eigh(matrix[index])
+            roots.append((basis * np.sqrt(np.maximum(energies, 0))) @ basis.T)
+        cross = .5 * roots[0] @ correlation @ roots[1]
+        aligned[mode][cross_index] = -cross
+        aligned[mode][reverse_index] = -cross.T
+        reversed_cross[mode][cross_index] = cross
+        reversed_cross[mode][reverse_index] = cross.T
+    return ({"head_cross_aligned": aligned, "head_cross_reversed": reversed_cross},
+            {"max_correlation": float(np.linalg.norm(correlation, ord=2))})
+
+
 @torch.no_grad()
 def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed, *,
                               source_paths=None, student=None, source_labels=None, probe_data=None):
@@ -578,6 +606,9 @@ def natural_track_head_priors(teacher, basis, odd, source, partners, args, seed,
         for name, mask in (("head_learned_even", ~odd), ("head_learned_odd", odd)):
             keep = mask[:, None] & mask[None, :]
             priors[name] = np.where(keep, priors["head_same_class"], priors["head_rotated"])
+    if args.track_head_cross_parity:
+        cross_priors, pair_diagnostics = attach_track_cross_parity(priors["head_same_class"], residuals[1], odd)
+        priors.update(cross_priors)
     return priors, pair_diagnostics
 
 
@@ -1208,7 +1239,11 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
         if teacher_parity is not None:
             diagnostics["teacher_parity"] = teacher_parity
         if pair_diagnostics is not None:
-            key = "matched_source" if args.track_head_source_split else "neighbor_pairing"
+            key = "neighbor_pairing"
+            if args.track_head_source_split:
+                key = "matched_source"
+            elif args.track_head_cross_parity:
+                key = "cross_parity"
             diagnostics[key] = pair_diagnostics
     elif args.pose_refinement:
         calibration = fit_pose_refinement(probe[1::2], pose_model, args, seed + 250)
@@ -1321,6 +1356,7 @@ def main():
     selection.add_argument("--track-head-predicted", action="store_true")
     selection.add_argument("--track-head-source-split", action="store_true")
     selection.add_argument("--track-head-synthetic", action="store_true")
+    selection.add_argument("--track-head-cross-parity", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
     parser.add_argument("--selector-ridge", type=float, default=.05)
     args = parser.parse_args()
@@ -1329,7 +1365,7 @@ def main():
     if (args.track_head_between or args.track_head_student or args.track_head_evidence or args.track_head_budget
             or args.track_head_blocks or args.track_head_pair_control or args.track_head_distance
             or args.track_head_neighbors or args.track_head_spectrum or args.track_head_predicted
-            or args.track_head_source_split or args.track_head_synthetic):
+            or args.track_head_source_split or args.track_head_synthetic or args.track_head_cross_parity):
         args.track_head_prior = True
     if args.track_parity_policy:
         args.track_teacher_parity = True
@@ -1347,6 +1383,8 @@ def main():
     if args.output is None:
         if args.track_parity_prior_route:
             name = "track_parity_prior_route"
+        elif args.track_head_cross_parity:
+            name = "track_head_cross_parity"
         elif args.track_head_synthetic:
             name = "track_head_synthetic"
         elif args.track_head_source_split:
