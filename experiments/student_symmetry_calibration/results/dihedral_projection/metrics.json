@@ -1,0 +1,1439 @@
+{
+  "config": {
+    "data": "/tmp/ibt-cifar-data",
+    "output": "experiments/student_symmetry_calibration/results/dihedral_projection/metrics.json",
+    "device": "cuda",
+    "seeds": [
+      1297,
+      1298,
+      1299,
+      1300,
+      1301,
+      1302,
+      1303,
+      1304,
+      1305,
+      1306,
+      1307,
+      1308,
+      1309,
+      1310,
+      1311,
+      1312
+    ],
+    "shots": [
+      5,
+      20,
+      60
+    ],
+    "teacher_epochs": 26,
+    "student_epochs": 22,
+    "source_examples": 1400,
+    "probe_examples": 320,
+    "target_pool": 600,
+    "test_per_class": 600,
+    "batch_size": 128,
+    "episodes": 8,
+    "noise": 0.45,
+    "approximate_action": false,
+    "view_budget": false,
+    "dihedral_action": true
+  },
+  "device_name": "NVIDIA GeForce RTX 3070 Laptop GPU",
+  "torch_version": "2.14.0+cu130",
+  "runs": [
+    {
+      "seed": 1297,
+      "source_classes": [
+        3,
+        5,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        4,
+        6,
+        7
+      ],
+      "latent_width": 86,
+      "invariant_width": 29,
+      "action_error": {
+        "learned": 0.9411418849119374,
+        "rotated": 1.9623176365085975
+      },
+      "order_four_error": 2.8588933320622264e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.28923611111111114,
+            "mirror_accuracy": 0.28923611111111114,
+            "matched_view_accuracy": 0.28923611111111114,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3174652777777778,
+            "mirror_accuracy": 0.3174652777777778,
+            "matched_view_accuracy": 0.3174652777777778,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.30281250000000004,
+            "mirror_accuracy": 0.30281250000000004,
+            "matched_view_accuracy": 0.30281250000000004,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.3436458333333333,
+            "mirror_accuracy": 0.3436458333333333,
+            "matched_view_accuracy": 0.3436458333333333,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3927777777777778,
+            "mirror_accuracy": 0.3927777777777778,
+            "matched_view_accuracy": 0.3927777777777778,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3799652777777778,
+            "mirror_accuracy": 0.3799652777777778,
+            "matched_view_accuracy": 0.3799652777777778,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.3720486111111111,
+            "mirror_accuracy": 0.3720486111111111,
+            "matched_view_accuracy": 0.3720486111111111,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.4335069444444445,
+            "mirror_accuracy": 0.4335069444444445,
+            "matched_view_accuracy": 0.4335069444444445,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.41565972222222225,
+            "mirror_accuracy": 0.41565972222222225,
+            "matched_view_accuracy": 0.41565972222222225,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1298,
+      "source_classes": [
+        2,
+        3,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        4,
+        5,
+        6,
+        7
+      ],
+      "latent_width": 85,
+      "invariant_width": 29,
+      "action_error": {
+        "learned": 0.9441646262191122,
+        "rotated": 1.9859763645869628
+      },
+      "order_four_error": 2.7755575615628914e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.28336805555555555,
+            "mirror_accuracy": 0.28336805555555555,
+            "matched_view_accuracy": 0.28336805555555555,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3454861111111111,
+            "mirror_accuracy": 0.3454861111111111,
+            "matched_view_accuracy": 0.3454861111111111,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.30885416666666665,
+            "mirror_accuracy": 0.30885416666666665,
+            "matched_view_accuracy": 0.30885416666666665,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.3332638888888889,
+            "mirror_accuracy": 0.3332638888888889,
+            "matched_view_accuracy": 0.3332638888888889,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.4315625,
+            "mirror_accuracy": 0.4315625,
+            "matched_view_accuracy": 0.4315625,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3509027777777778,
+            "mirror_accuracy": 0.3509027777777778,
+            "matched_view_accuracy": 0.3509027777777778,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.35881944444444447,
+            "mirror_accuracy": 0.35881944444444447,
+            "matched_view_accuracy": 0.35881944444444447,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.48135416666666664,
+            "mirror_accuracy": 0.48135416666666664,
+            "matched_view_accuracy": 0.48135416666666664,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3920486111111111,
+            "mirror_accuracy": 0.3920486111111111,
+            "matched_view_accuracy": 0.3920486111111111,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1299,
+      "source_classes": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "target_classes": [
+        0,
+        3,
+        5,
+        6,
+        7,
+        9
+      ],
+      "latent_width": 90,
+      "invariant_width": 29,
+      "action_error": {
+        "learned": 0.9256402192147859,
+        "rotated": 1.9819863390604073
+      },
+      "order_four_error": 2.55351295663786e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.30288194444444444,
+            "mirror_accuracy": 0.30288194444444444,
+            "matched_view_accuracy": 0.30288194444444444,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3305208333333334,
+            "mirror_accuracy": 0.3305208333333334,
+            "matched_view_accuracy": 0.3305208333333334,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3354166666666667,
+            "mirror_accuracy": 0.3354166666666667,
+            "matched_view_accuracy": 0.3354166666666667,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.3531944444444444,
+            "mirror_accuracy": 0.3531944444444444,
+            "matched_view_accuracy": 0.3531944444444444,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.39899305555555553,
+            "mirror_accuracy": 0.39899305555555553,
+            "matched_view_accuracy": 0.39899305555555553,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.38020833333333337,
+            "mirror_accuracy": 0.38020833333333337,
+            "matched_view_accuracy": 0.38020833333333337,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.3805208333333333,
+            "mirror_accuracy": 0.3805208333333333,
+            "matched_view_accuracy": 0.3805208333333333,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.44177083333333333,
+            "mirror_accuracy": 0.44177083333333333,
+            "matched_view_accuracy": 0.44177083333333333,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.40670138888888885,
+            "mirror_accuracy": 0.40670138888888885,
+            "matched_view_accuracy": 0.40670138888888885,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1300,
+      "source_classes": [
+        1,
+        2,
+        4,
+        9
+      ],
+      "target_classes": [
+        0,
+        3,
+        5,
+        6,
+        7,
+        8
+      ],
+      "latent_width": 109,
+      "invariant_width": 37,
+      "action_error": {
+        "learned": 1.0239138123023146,
+        "rotated": 1.9610357154409417
+      },
+      "order_four_error": 2.3314683517128287e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.2886111111111111,
+            "mirror_accuracy": 0.2886111111111111,
+            "matched_view_accuracy": 0.2886111111111111,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3067361111111111,
+            "mirror_accuracy": 0.3067361111111111,
+            "matched_view_accuracy": 0.3067361111111111,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3120833333333333,
+            "mirror_accuracy": 0.3120833333333333,
+            "matched_view_accuracy": 0.3120833333333333,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.32295138888888886,
+            "mirror_accuracy": 0.32295138888888886,
+            "matched_view_accuracy": 0.32295138888888886,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.37677083333333333,
+            "mirror_accuracy": 0.37677083333333333,
+            "matched_view_accuracy": 0.37677083333333333,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.370625,
+            "mirror_accuracy": 0.370625,
+            "matched_view_accuracy": 0.370625,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.34444444444444444,
+            "mirror_accuracy": 0.34444444444444444,
+            "matched_view_accuracy": 0.34444444444444444,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.4162152777777778,
+            "mirror_accuracy": 0.4162152777777778,
+            "matched_view_accuracy": 0.4162152777777778,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.4071180555555556,
+            "mirror_accuracy": 0.4071180555555556,
+            "matched_view_accuracy": 0.4071180555555556,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1301,
+      "source_classes": [
+        1,
+        2,
+        5,
+        9
+      ],
+      "target_classes": [
+        0,
+        3,
+        4,
+        6,
+        7,
+        8
+      ],
+      "latent_width": 105,
+      "invariant_width": 34,
+      "action_error": {
+        "learned": 0.9462317144437479,
+        "rotated": 1.99692539987569
+      },
+      "order_four_error": 4.218847493575595e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.30614583333333334,
+            "mirror_accuracy": 0.30614583333333334,
+            "matched_view_accuracy": 0.30614583333333334,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3236805555555555,
+            "mirror_accuracy": 0.3236805555555555,
+            "matched_view_accuracy": 0.3236805555555555,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.31451388888888887,
+            "mirror_accuracy": 0.31451388888888887,
+            "matched_view_accuracy": 0.31451388888888887,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.35086805555555556,
+            "mirror_accuracy": 0.35086805555555556,
+            "matched_view_accuracy": 0.35086805555555556,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3869097222222222,
+            "mirror_accuracy": 0.3869097222222222,
+            "matched_view_accuracy": 0.3869097222222222,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.36538194444444444,
+            "mirror_accuracy": 0.36538194444444444,
+            "matched_view_accuracy": 0.36538194444444444,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.3763888888888889,
+            "mirror_accuracy": 0.3763888888888889,
+            "matched_view_accuracy": 0.3763888888888889,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.42975694444444446,
+            "mirror_accuracy": 0.42975694444444446,
+            "matched_view_accuracy": 0.42975694444444446,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3938888888888889,
+            "mirror_accuracy": 0.3938888888888889,
+            "matched_view_accuracy": 0.3938888888888889,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1302,
+      "source_classes": [
+        0,
+        1,
+        4,
+        7
+      ],
+      "target_classes": [
+        2,
+        3,
+        5,
+        6,
+        8,
+        9
+      ],
+      "latent_width": 95,
+      "invariant_width": 28,
+      "action_error": {
+        "learned": 1.0438352798138189,
+        "rotated": 1.994364856283745
+      },
+      "order_four_error": 2.4424906541753444e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.2649652777777778,
+            "mirror_accuracy": 0.2649652777777778,
+            "matched_view_accuracy": 0.2649652777777778,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.31420138888888893,
+            "mirror_accuracy": 0.31420138888888893,
+            "matched_view_accuracy": 0.31420138888888893,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.32218749999999996,
+            "mirror_accuracy": 0.32218749999999996,
+            "matched_view_accuracy": 0.32218749999999996,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.3057986111111111,
+            "mirror_accuracy": 0.3057986111111111,
+            "matched_view_accuracy": 0.3057986111111111,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3862152777777778,
+            "mirror_accuracy": 0.3862152777777778,
+            "matched_view_accuracy": 0.3862152777777778,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.37652777777777774,
+            "mirror_accuracy": 0.37652777777777774,
+            "matched_view_accuracy": 0.37652777777777774,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.31409722222222225,
+            "mirror_accuracy": 0.31409722222222225,
+            "matched_view_accuracy": 0.31409722222222225,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.4251388888888889,
+            "mirror_accuracy": 0.4251388888888889,
+            "matched_view_accuracy": 0.4251388888888889,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.4096527777777778,
+            "mirror_accuracy": 0.4096527777777778,
+            "matched_view_accuracy": 0.4096527777777778,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1303,
+      "source_classes": [
+        1,
+        3,
+        6,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        4,
+        5,
+        7,
+        9
+      ],
+      "latent_width": 84,
+      "invariant_width": 34,
+      "action_error": {
+        "learned": 0.8362170757744074,
+        "rotated": 1.9207452880724298
+      },
+      "order_four_error": 3.1086244689504383e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.30552083333333335,
+            "mirror_accuracy": 0.30552083333333335,
+            "matched_view_accuracy": 0.30552083333333335,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.32125,
+            "mirror_accuracy": 0.32125,
+            "matched_view_accuracy": 0.32125,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.32336805555555553,
+            "mirror_accuracy": 0.32336805555555553,
+            "matched_view_accuracy": 0.32336805555555553,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.33392361111111113,
+            "mirror_accuracy": 0.33392361111111113,
+            "matched_view_accuracy": 0.33392361111111113,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3899652777777778,
+            "mirror_accuracy": 0.3899652777777778,
+            "matched_view_accuracy": 0.3899652777777778,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3784722222222222,
+            "mirror_accuracy": 0.3784722222222222,
+            "matched_view_accuracy": 0.3784722222222222,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.3712847222222222,
+            "mirror_accuracy": 0.3712847222222222,
+            "matched_view_accuracy": 0.3712847222222222,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.4242013888888889,
+            "mirror_accuracy": 0.4242013888888889,
+            "matched_view_accuracy": 0.4242013888888889,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.4074652777777778,
+            "mirror_accuracy": 0.4074652777777778,
+            "matched_view_accuracy": 0.4074652777777778,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1304,
+      "source_classes": [
+        5,
+        7,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "latent_width": 95,
+      "invariant_width": 29,
+      "action_error": {
+        "learned": 0.9720225530511306,
+        "rotated": 1.9991836185313596
+      },
+      "order_four_error": 4.218847493575595e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.3020138888888889,
+            "mirror_accuracy": 0.3020138888888889,
+            "matched_view_accuracy": 0.3020138888888889,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.29503472222222227,
+            "mirror_accuracy": 0.29503472222222227,
+            "matched_view_accuracy": 0.29503472222222227,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.2875347222222222,
+            "mirror_accuracy": 0.2875347222222222,
+            "matched_view_accuracy": 0.2875347222222222,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.3384722222222222,
+            "mirror_accuracy": 0.3384722222222222,
+            "matched_view_accuracy": 0.3384722222222222,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.37958333333333333,
+            "mirror_accuracy": 0.37958333333333333,
+            "matched_view_accuracy": 0.37958333333333333,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3632638888888889,
+            "mirror_accuracy": 0.3632638888888889,
+            "matched_view_accuracy": 0.3632638888888889,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.37572916666666667,
+            "mirror_accuracy": 0.37572916666666667,
+            "matched_view_accuracy": 0.37572916666666667,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.42909722222222224,
+            "mirror_accuracy": 0.42909722222222224,
+            "matched_view_accuracy": 0.42909722222222224,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.42041666666666666,
+            "mirror_accuracy": 0.42041666666666666,
+            "matched_view_accuracy": 0.42041666666666666,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1305,
+      "source_classes": [
+        1,
+        2,
+        6,
+        9
+      ],
+      "target_classes": [
+        0,
+        3,
+        4,
+        5,
+        7,
+        8
+      ],
+      "latent_width": 98,
+      "invariant_width": 33,
+      "action_error": {
+        "learned": 0.96832639713512,
+        "rotated": 1.9684810642104449
+      },
+      "order_four_error": 3.6637359812630166e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.29993055555555553,
+            "mirror_accuracy": 0.29993055555555553,
+            "matched_view_accuracy": 0.29993055555555553,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3176388888888889,
+            "mirror_accuracy": 0.3176388888888889,
+            "matched_view_accuracy": 0.3176388888888889,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3012152777777778,
+            "mirror_accuracy": 0.3012152777777778,
+            "matched_view_accuracy": 0.3012152777777778,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.3528472222222222,
+            "mirror_accuracy": 0.3528472222222222,
+            "matched_view_accuracy": 0.3528472222222222,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3844444444444445,
+            "mirror_accuracy": 0.3844444444444445,
+            "matched_view_accuracy": 0.3844444444444445,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.36652777777777773,
+            "mirror_accuracy": 0.36652777777777773,
+            "matched_view_accuracy": 0.36652777777777773,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.37947916666666665,
+            "mirror_accuracy": 0.37947916666666665,
+            "matched_view_accuracy": 0.37947916666666665,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.4139583333333333,
+            "mirror_accuracy": 0.4139583333333333,
+            "matched_view_accuracy": 0.4139583333333333,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3943055555555556,
+            "mirror_accuracy": 0.3943055555555556,
+            "matched_view_accuracy": 0.3943055555555556,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1306,
+      "source_classes": [
+        1,
+        5,
+        6,
+        8
+      ],
+      "target_classes": [
+        0,
+        2,
+        3,
+        4,
+        7,
+        9
+      ],
+      "latent_width": 67,
+      "invariant_width": 26,
+      "action_error": {
+        "learned": 0.8872489652880748,
+        "rotated": 1.925957187132361
+      },
+      "order_four_error": 2.886579864025407e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.2585763888888889,
+            "mirror_accuracy": 0.2585763888888889,
+            "matched_view_accuracy": 0.2585763888888889,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.2935069444444445,
+            "mirror_accuracy": 0.2935069444444445,
+            "matched_view_accuracy": 0.2935069444444445,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.28225694444444444,
+            "mirror_accuracy": 0.28225694444444444,
+            "matched_view_accuracy": 0.28225694444444444,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.30569444444444444,
+            "mirror_accuracy": 0.30569444444444444,
+            "matched_view_accuracy": 0.30569444444444444,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.37253472222222217,
+            "mirror_accuracy": 0.37253472222222217,
+            "matched_view_accuracy": 0.37253472222222217,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3598611111111111,
+            "mirror_accuracy": 0.3598611111111111,
+            "matched_view_accuracy": 0.3598611111111111,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.3284375,
+            "mirror_accuracy": 0.3284375,
+            "matched_view_accuracy": 0.3284375,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.413125,
+            "mirror_accuracy": 0.413125,
+            "matched_view_accuracy": 0.413125,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.40225694444444443,
+            "mirror_accuracy": 0.40225694444444443,
+            "matched_view_accuracy": 0.40225694444444443,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1307,
+      "source_classes": [
+        1,
+        3,
+        7,
+        9
+      ],
+      "target_classes": [
+        0,
+        2,
+        4,
+        5,
+        6,
+        8
+      ],
+      "latent_width": 126,
+      "invariant_width": 42,
+      "action_error": {
+        "learned": 1.0498531586407682,
+        "rotated": 1.9887693450911899
+      },
+      "order_four_error": 2.4424906541753444e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.3169444444444444,
+            "mirror_accuracy": 0.3169444444444444,
+            "matched_view_accuracy": 0.3169444444444444,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3284375,
+            "mirror_accuracy": 0.3284375,
+            "matched_view_accuracy": 0.3284375,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3115625,
+            "mirror_accuracy": 0.3115625,
+            "matched_view_accuracy": 0.3115625,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.3454166666666667,
+            "mirror_accuracy": 0.3454166666666667,
+            "matched_view_accuracy": 0.3454166666666667,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.38364583333333335,
+            "mirror_accuracy": 0.38364583333333335,
+            "matched_view_accuracy": 0.38364583333333335,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3732638888888889,
+            "mirror_accuracy": 0.3732638888888889,
+            "matched_view_accuracy": 0.3732638888888889,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.3674652777777778,
+            "mirror_accuracy": 0.3674652777777778,
+            "matched_view_accuracy": 0.3674652777777778,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.42819444444444443,
+            "mirror_accuracy": 0.42819444444444443,
+            "matched_view_accuracy": 0.42819444444444443,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.41322916666666665,
+            "mirror_accuracy": 0.41322916666666665,
+            "matched_view_accuracy": 0.41322916666666665,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1308,
+      "source_classes": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "target_classes": [
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "latent_width": 100,
+      "invariant_width": 35,
+      "action_error": {
+        "learned": 0.9692067401356245,
+        "rotated": 1.943821180216028
+      },
+      "order_four_error": 4.218847493575595e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.3163888888888889,
+            "mirror_accuracy": 0.3163888888888889,
+            "matched_view_accuracy": 0.3163888888888889,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3098263888888889,
+            "mirror_accuracy": 0.3098263888888889,
+            "matched_view_accuracy": 0.3098263888888889,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.31305555555555553,
+            "mirror_accuracy": 0.31305555555555553,
+            "matched_view_accuracy": 0.31305555555555553,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.3528472222222222,
+            "mirror_accuracy": 0.3528472222222222,
+            "matched_view_accuracy": 0.3528472222222222,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3829166666666667,
+            "mirror_accuracy": 0.3829166666666667,
+            "matched_view_accuracy": 0.3829166666666667,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.37104166666666666,
+            "mirror_accuracy": 0.37104166666666666,
+            "matched_view_accuracy": 0.37104166666666666,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.37194444444444447,
+            "mirror_accuracy": 0.37194444444444447,
+            "matched_view_accuracy": 0.37194444444444447,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.42451388888888886,
+            "mirror_accuracy": 0.42451388888888886,
+            "matched_view_accuracy": 0.42451388888888886,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3998611111111111,
+            "mirror_accuracy": 0.3998611111111111,
+            "matched_view_accuracy": 0.3998611111111111,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1309,
+      "source_classes": [
+        4,
+        7,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6
+      ],
+      "latent_width": 94,
+      "invariant_width": 31,
+      "action_error": {
+        "learned": 1.023247394240209,
+        "rotated": 1.9613287982116197
+      },
+      "order_four_error": 4.3298697960381105e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.2814930555555556,
+            "mirror_accuracy": 0.2814930555555556,
+            "matched_view_accuracy": 0.2814930555555556,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3364236111111111,
+            "mirror_accuracy": 0.3364236111111111,
+            "matched_view_accuracy": 0.3364236111111111,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3116319444444444,
+            "mirror_accuracy": 0.3116319444444444,
+            "matched_view_accuracy": 0.3116319444444444,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.33968750000000003,
+            "mirror_accuracy": 0.33968750000000003,
+            "matched_view_accuracy": 0.33968750000000003,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.4185069444444445,
+            "mirror_accuracy": 0.4185069444444445,
+            "matched_view_accuracy": 0.4185069444444445,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.38392361111111106,
+            "mirror_accuracy": 0.38392361111111106,
+            "matched_view_accuracy": 0.38392361111111106,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.3662847222222222,
+            "mirror_accuracy": 0.3662847222222222,
+            "matched_view_accuracy": 0.3662847222222222,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.45437500000000003,
+            "mirror_accuracy": 0.45437500000000003,
+            "matched_view_accuracy": 0.45437500000000003,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.4001736111111111,
+            "mirror_accuracy": 0.4001736111111111,
+            "matched_view_accuracy": 0.4001736111111111,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1310,
+      "source_classes": [
+        0,
+        3,
+        6,
+        8
+      ],
+      "target_classes": [
+        1,
+        2,
+        4,
+        5,
+        7,
+        9
+      ],
+      "latent_width": 71,
+      "invariant_width": 28,
+      "action_error": {
+        "learned": 0.8617426263701264,
+        "rotated": 1.9805791383112574
+      },
+      "order_four_error": 4.884981308350689e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.2668402777777778,
+            "mirror_accuracy": 0.2668402777777778,
+            "matched_view_accuracy": 0.2668402777777778,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.28510416666666666,
+            "mirror_accuracy": 0.28510416666666666,
+            "matched_view_accuracy": 0.28510416666666666,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.2709722222222222,
+            "mirror_accuracy": 0.2709722222222222,
+            "matched_view_accuracy": 0.2709722222222222,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.31211805555555555,
+            "mirror_accuracy": 0.31211805555555555,
+            "matched_view_accuracy": 0.31211805555555555,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3317013888888889,
+            "mirror_accuracy": 0.3317013888888889,
+            "matched_view_accuracy": 0.3317013888888889,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.31850694444444444,
+            "mirror_accuracy": 0.31850694444444444,
+            "matched_view_accuracy": 0.31850694444444444,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.33708333333333335,
+            "mirror_accuracy": 0.33708333333333335,
+            "matched_view_accuracy": 0.33708333333333335,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3679861111111111,
+            "mirror_accuracy": 0.3679861111111111,
+            "matched_view_accuracy": 0.3679861111111111,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.35270833333333335,
+            "mirror_accuracy": 0.35270833333333335,
+            "matched_view_accuracy": 0.35270833333333335,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1311,
+      "source_classes": [
+        3,
+        6,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        4,
+        5,
+        7
+      ],
+      "latent_width": 94,
+      "invariant_width": 31,
+      "action_error": {
+        "learned": 0.8626144460753323,
+        "rotated": 1.9570498559593976
+      },
+      "order_four_error": 3.1086244689504383e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.30267361111111113,
+            "mirror_accuracy": 0.30267361111111113,
+            "matched_view_accuracy": 0.30267361111111113,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.33295138888888887,
+            "mirror_accuracy": 0.33295138888888887,
+            "matched_view_accuracy": 0.33295138888888887,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.31180555555555556,
+            "mirror_accuracy": 0.31180555555555556,
+            "matched_view_accuracy": 0.31180555555555556,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.35336805555555556,
+            "mirror_accuracy": 0.35336805555555556,
+            "matched_view_accuracy": 0.35336805555555556,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3997222222222222,
+            "mirror_accuracy": 0.3997222222222222,
+            "matched_view_accuracy": 0.3997222222222222,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.38579861111111113,
+            "mirror_accuracy": 0.38579861111111113,
+            "matched_view_accuracy": 0.38579861111111113,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.3713194444444444,
+            "mirror_accuracy": 0.3713194444444444,
+            "matched_view_accuracy": 0.3713194444444444,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.4420138888888889,
+            "mirror_accuracy": 0.4420138888888889,
+            "matched_view_accuracy": 0.4420138888888889,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.4210069444444444,
+            "mirror_accuracy": 0.4210069444444444,
+            "matched_view_accuracy": 0.4210069444444444,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    },
+    {
+      "seed": 1312,
+      "source_classes": [
+        6,
+        7,
+        8,
+        9
+      ],
+      "target_classes": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "latent_width": 103,
+      "invariant_width": 33,
+      "action_error": {
+        "learned": 0.8965003645355096,
+        "rotated": 1.9512208296522129
+      },
+      "order_four_error": 3.6637359812630166e-15,
+      "shots": {
+        "5": {
+          "inference_only": {
+            "clean_accuracy": 0.2825,
+            "mirror_accuracy": 0.2825,
+            "matched_view_accuracy": 0.2825,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3198263888888889,
+            "mirror_accuracy": 0.3198263888888889,
+            "matched_view_accuracy": 0.3198263888888889,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.32309027777777777,
+            "mirror_accuracy": 0.32309027777777777,
+            "matched_view_accuracy": 0.32309027777777777,
+            "agreement": 1.0
+          }
+        },
+        "20": {
+          "inference_only": {
+            "clean_accuracy": 0.31409722222222225,
+            "mirror_accuracy": 0.31409722222222225,
+            "matched_view_accuracy": 0.31409722222222225,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.3716319444444445,
+            "mirror_accuracy": 0.3716319444444445,
+            "matched_view_accuracy": 0.3716319444444445,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3655208333333333,
+            "mirror_accuracy": 0.3655208333333333,
+            "matched_view_accuracy": 0.3655208333333333,
+            "agreement": 1.0
+          }
+        },
+        "60": {
+          "inference_only": {
+            "clean_accuracy": 0.3602430555555556,
+            "mirror_accuracy": 0.3602430555555556,
+            "matched_view_accuracy": 0.3602430555555556,
+            "agreement": 1.0
+          },
+          "learned_training": {
+            "clean_accuracy": 0.41711805555555553,
+            "mirror_accuracy": 0.41711805555555553,
+            "matched_view_accuracy": 0.41711805555555553,
+            "agreement": 1.0
+          },
+          "rotated_training": {
+            "clean_accuracy": 0.3973263888888889,
+            "mirror_accuracy": 0.3973263888888889,
+            "matched_view_accuracy": 0.3973263888888889,
+            "agreement": 1.0
+          }
+        }
+      },
+      "reflection_rotation_error": 0.0
+    }
+  ],
+  "elapsed_seconds": 156.47973524103872
+}
