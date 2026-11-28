@@ -17,7 +17,7 @@ import torch
 from experiment import (GTSRB, HERE, TASKS, PoseGenerator, batches, discover_basis, embed,
                         fit_student, fit_teacher, predict, preprocess, prior_kernels)
 from reflection_evidence.experiment import (BatchedFoldedReflectionStudent, FoldedReflectionStudent, MIXTURE,
-                                            ParityStudent, paths_by_class)
+                                            ParityStudent, class_target_means, class_target_scale, paths_by_class)
 
 ANGLE = math.radians(32)
 SHIFT = .24
@@ -866,42 +866,6 @@ def weight_reflected_targets(views, signs, weight):
     return aligned, aligned * signs
 
 
-def rotate_class_prototypes(prototypes, counts, seed):
-    values = prototypes.double()
-    weights = (counts.double() / counts.sum()).sqrt()
-    contrast_count = len(weights) - 1
-    rng = torch.Generator(device=values.device).manual_seed(seed)
-    trial = torch.randn((len(weights), contrast_count), generator=rng, device=values.device, dtype=values.dtype)
-    frame, _ = torch.linalg.qr(torch.column_stack((weights, trial)))
-    contrasts = frame[:, 1:]
-    trial = torch.randn((contrast_count, contrast_count), generator=rng, device=values.device, dtype=values.dtype)
-    rotated, _ = torch.linalg.qr(trial)
-    action = torch.outer(weights, weights) + contrasts @ rotated @ contrasts.T
-    mean = (values * weights.square()[None, :, None]).sum(dim=1, keepdim=True)
-    scale = weights[None, :, None]
-    return (mean + (action @ ((values - mean) * scale)) / scale).to(prototypes.dtype)
-
-
-def class_target_scale(targets, prototypes):
-    mean = targets.mean(dim=1, keepdim=True)
-    total = (targets - mean).square().mean()
-    between = (prototypes - mean).square().mean()
-    return (total.clamp_min(1e-12) / between.clamp_min(1e-12)).sqrt()
-
-
-def class_target_means(views, labels, *, restore_variance, rotation_seed=None):
-    targets = torch.stack(views)
-    classes, membership, counts = torch.unique(labels, return_inverse=True, return_counts=True)
-    means = torch.stack([targets[:, labels == label].mean(dim=1) for label in classes], dim=1)
-    if rotation_seed is not None:
-        means = rotate_class_prototypes(means, counts, rotation_seed)
-    prototypes = means[:, membership]
-    if restore_variance:
-        mean = targets.mean(dim=1, keepdim=True)
-        prototypes = mean + (prototypes - mean) * class_target_scale(targets, prototypes)
-    return prototypes.unbind(0)
-
-
 @torch.inference_mode()
 def source_class_target_scale(teacher, source, basis, mean, labels, batch_size):
     batches = [((teacher.encode(torch.cat((batch, teacher.view(batch)))) - mean) @ basis).reshape(2, len(batch), -1)
@@ -911,7 +875,7 @@ def source_class_target_scale(teacher, source, basis, mean, labels, batch_size):
     return float(class_target_scale(targets, prototypes))
 
 
-def gaussian_class_targets(views, labels, seed, *, rotation=None):
+def gaussian_class_targets(views, labels, seed, *, rotation=None, active=None, noise_scale=1.):
     targets = torch.stack(views, dim=1)
     view_count, width = targets.shape[1:]
     generated = torch.empty_like(targets)
@@ -925,10 +889,12 @@ def gaussian_class_targets(views, labels, seed, *, rotation=None):
         noise = torch.randn(centered.shape, generator=rng, device=targets.device, dtype=centered.dtype)
         draws = noise @ (axes * energies.clamp_min(0).sqrt()).T
         draws -= draws.mean(dim=0)
+        if active is not None:
+            draws = (draws.reshape(-1, view_count, width) * active).flatten(1)
         draws *= (centered.square().mean() / draws.square().mean().clamp_min(1e-12)).sqrt()
         if rotation is not None:
             draws = (draws.reshape(-1, view_count, width) @ rotation).flatten(1)
-        generated[members] = (mean + draws).reshape(-1, view_count, width).to(targets.dtype)
+        generated[members] = (mean + noise_scale * draws).reshape(-1, view_count, width).to(targets.dtype)
     return generated.unbind(1)
 
 
@@ -1774,21 +1740,26 @@ def run(data, args, device, seed, *, source_partners=None, source_paths=None, pr
                                     rotated_reflection_action(reflection_sign, seed + 950))
                         if args.track_distillation_projection_gaussian_targets:
                             class_labels = labels.to(source.device)
-                            rotation = np.eye(len(odd))
-                            rng = np.random.default_rng(seed + 980)
-                            parity = odd.cpu().numpy()
-                            for index in (parity, ~parity):
-                                count = int(index.sum())
-                                rotated, _ = np.linalg.qr(rng.standard_normal((count, count)))
-                                rotation[np.ix_(index, index)] = rotated
-                            target_transforms["class_prototypes"] = partial(class_target_means, labels=class_labels,
-                                                                             restore_variance=False)
-                            target_transforms["gaussian_targets"] = partial(gaussian_class_targets, labels=class_labels,
-                                                                            seed=seed + 990)
-                            target_transforms["rotated_gaussian_targets"] = partial(
-                                gaussian_class_targets, labels=class_labels, seed=seed + 990,
-                                rotation=torch.as_tensor(rotation, device=source.device))
-                            for name in ("class_prototypes", "gaussian_targets", "rotated_gaussian_targets"):
+                            gaussian = partial(gaussian_class_targets, labels=class_labels, seed=seed + 990)
+                            methods = {"class_prototypes": partial(class_target_means, labels=class_labels,
+                                                                    restore_variance=False)}
+                            if args.track_distillation_projection_gaussian_parity:
+                                for name, active in (("gaussian_all", None), ("gaussian_even", ~odd), ("gaussian_odd", odd)):
+                                    methods[name] = partial(gaussian, active=active, noise_scale=.5)
+                            else:
+                                rotation = np.eye(len(odd))
+                                rng = np.random.default_rng(seed + 980)
+                                parity = odd.cpu().numpy()
+                                for mask in (parity, ~parity):
+                                    count = int(mask.sum())
+                                    rotated, _ = np.linalg.qr(rng.standard_normal((count, count)))
+                                    block = np.ix_(mask, mask)
+                                    rotation[block] = rotated
+                                methods["gaussian_targets"] = gaussian
+                                methods["rotated_gaussian_targets"] = partial(
+                                    gaussian, rotation=torch.as_tensor(rotation, device=source.device))
+                            for name, transform in methods.items():
+                                target_transforms[name] = transform
                                 variants.append((name, None, source, None))
                                 projection_penalties[name] = 0.
                     elif args.track_distillation_projection_parity_student:
@@ -2167,6 +2138,7 @@ def main():
     selection.add_argument("--track-distillation-projection-class-scale", action="store_true")
     selection.add_argument("--track-distillation-projection-class-projection", action="store_true")
     selection.add_argument("--track-distillation-projection-gaussian-targets", action="store_true")
+    selection.add_argument("--track-distillation-projection-gaussian-parity", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-student", action="store_true")
     selection.add_argument("--track-distillation-projection-parity-supervision", action="store_true")
     parser.add_argument("--refiner-epochs", type=int, default=8)
@@ -2177,6 +2149,8 @@ def main():
     if (args.track_distillation_projection_class_geometry or args.track_distillation_projection_class_scale
             or args.track_distillation_projection_class_projection):
         args.track_distillation_projection_class_targets = True
+    if args.track_distillation_projection_gaussian_parity:
+        args.track_distillation_projection_gaussian_targets = True
     if (args.track_distillation_projection_blended_targets or args.track_distillation_projection_class_targets
             or args.track_distillation_projection_gaussian_targets):
         args.track_distillation_projection_track_targets = True
@@ -2294,6 +2268,8 @@ def main():
             name = "track_distillation_projection_class_projection"
         elif args.track_distillation_projection_class_targets:
             name = "track_distillation_projection_class_targets"
+        elif args.track_distillation_projection_gaussian_parity:
+            name = "track_distillation_projection_gaussian_parity"
         elif args.track_distillation_projection_gaussian_targets:
             name = "track_distillation_projection_gaussian_targets"
         elif args.track_distillation_projection_track_targets:

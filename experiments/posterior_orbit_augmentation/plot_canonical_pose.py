@@ -297,6 +297,12 @@ TRACK_DISTILLATION_PROJECTION_GAUSSIAN_TARGETS_METHODS = {
     "gaussian_targets_aligned": "Class Gaussian targets",
     "rotated_gaussian_targets_aligned": "Class Gaussian · rotated covariance",
 }
+TRACK_DISTILLATION_PROJECTION_GAUSSIAN_PARITY_METHODS = {
+    "class_prototypes_aligned": "Class mean targets",
+    "gaussian_all_aligned": "Gaussian residual · both blocks",
+    "gaussian_even_aligned": "Gaussian residual · even block",
+    "gaussian_odd_aligned": "Gaussian residual · odd block",
+}
 TRACK_DISTILLATION_PROJECTION_PARITY_STUDENT_METHODS = {
     "raw_aligned": "Ordinary training · two views",
     "estimated_training_aligned": "Projected training · two views",
@@ -444,6 +450,8 @@ def main():
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_PROJECTION_METHODS
     elif results["config"].get("track_distillation_projection_class_targets", False):
         methods = TRACK_DISTILLATION_PROJECTION_CLASS_TARGETS_METHODS
+    elif results["config"].get("track_distillation_projection_gaussian_parity", False):
+        methods = TRACK_DISTILLATION_PROJECTION_GAUSSIAN_PARITY_METHODS
     elif results["config"].get("track_distillation_projection_gaussian_targets", False):
         methods = TRACK_DISTILLATION_PROJECTION_GAUSSIAN_TARGETS_METHODS
     elif results["config"].get("track_distillation_projection_track_targets", False):

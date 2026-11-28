@@ -12,6 +12,7 @@ import torch
 
 from experiment import (CIFAR10, HERE, class_split, data_partitions, discover_basis,
                         evaluate, fit_student, fit_teacher, predict)
+from reflection_evidence.experiment import class_target_means
 
 RESULTS = HERE / "results" / "quarter_turn_projection"
 VIEWS = tuple(partial(torch.rot90, k=rotation, dims=(-2, -1)) for rotation in range(1, 4))
@@ -176,7 +177,7 @@ def run(train, test, args, seed, device):
     candidates = {"learned": action}
     if args.approximate_action:
         candidates.update(midpoint=round_quarter_turn(fitted, .5), unrounded=fitted)
-    elif not (args.view_budget or args.dihedral_subgroups):
+    elif not (args.view_budget or args.dihedral_subgroups or args.ordinary_teacher_class_targets):
         generator = np.random.default_rng(seed + 250)
         rotation, _ = np.linalg.qr(generator.standard_normal(action.shape))
         candidates["rotated"] = rotation @ action @ rotation.T
@@ -215,11 +216,19 @@ def run(train, test, args, seed, device):
                          "adjacent_training": "adjacent_variance_training"}
         variants.extend([(pair_variants[name], actions, order) for name, actions, order in variants
                          if name in pair_variants])
+    target_transforms = {}
+    if args.ordinary_teacher_class_targets:
+        class_targets = partial(class_target_means, labels=labels, restore_variance=False)
+        target_transforms = {"class_inference_only": class_targets, "class_learned_training": class_targets,
+                             "scaled_class_learned_training": partial(class_target_means, labels=labels,
+                                                                      restore_variance=True)}
+        variants.extend((("class_inference_only", None, None), ("class_learned_training", powers, None),
+                         ("scaled_class_learned_training", powers, None)))
     for name, actions, action_order in variants:
         student = fit_student(source, teacher, basis, mean, args, seed + 100, training_views=orbit_views,
                               orbit_actions=None if actions is None else source.new_tensor(actions),
                               orbit_order=action_order, invariant_variance_weight=variance_weights.get(name, 0.),
-                              variance_projector=variance_projector)
+                              variance_projector=variance_projector, target_transform=target_transforms.get(name))
         support, queries = (invariant_embeddings(student, part, fixed_tensor, args, device, views=orbit_views,
                                                  return_orbit=args.view_budget)
                             for part in (target, query))
@@ -276,9 +285,12 @@ def main():
     comparison.add_argument("--pair-variance", action="store_true")
     comparison.add_argument("--ordinary-teacher", action="store_true")
     comparison.add_argument("--ordinary-teacher-action-rounding", action="store_true")
+    comparison.add_argument("--ordinary-teacher-class-targets", action="store_true")
     args = parser.parse_args()
     if args.ordinary_teacher_action_rounding:
         args.ordinary_teacher = args.approximate_action = True
+    if args.ordinary_teacher_class_targets:
+        args.ordinary_teacher = True
     if args.dihedral_subgroups:
         args.dihedral_action = True
     if args.pair_variance:
@@ -288,7 +300,9 @@ def main():
     if args.training_view_budget or args.invariant_variance:
         args.view_budget = True
     dataset_name, first_seed = RESULTS.name, 1249
-    if args.ordinary_teacher_action_rounding:
+    if args.ordinary_teacher_class_targets:
+        dataset_name, first_seed = "quarter_turn_ordinary_teacher_class_targets", 1425
+    elif args.ordinary_teacher_action_rounding:
         dataset_name, first_seed = "quarter_turn_ordinary_teacher_rounding", 1409
     elif args.ordinary_teacher:
         dataset_name, first_seed = "quarter_turn_ordinary_teacher", 1393

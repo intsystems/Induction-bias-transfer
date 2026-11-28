@@ -16,6 +16,11 @@ APPROXIMATE_METHODS = {"inference_only": "Project only for prediction", "learned
                        "midpoint_training": "Round angles halfway", "unrounded_training": "Keep fitted angles"}
 SUBGROUP_METHODS = {"inference_only": "Project only for prediction", "learned_training": "Joint projection",
                     "rotations_only": "Rotation projection", "reflection_only": "Reflection projection"}
+CLASS_TARGET_METHODS = {"inference_only": "Image targets · prediction projection",
+                        "learned_training": "Image targets · training projection",
+                        "class_inference_only": "Class targets · prediction projection",
+                        "class_learned_training": "Class targets · training projection",
+                        "scaled_class_learned_training": "Scaled class targets · training projection"}
 
 
 def main():
@@ -31,6 +36,8 @@ def main():
     methods = APPROXIMATE_METHODS if data["config"].get("approximate_action", False) else METHODS
     if data["config"].get("dihedral_subgroups", False):
         methods = SUBGROUP_METHODS
+    if data["config"].get("ordinary_teacher_class_targets", False):
+        methods = CLASS_TARGET_METHODS
     performance = {method: 100 * np.array([
         [run["shots"][str(count)][method]["clean_accuracy"] for count in shots] for run in data["runs"]
     ]) for method in methods}

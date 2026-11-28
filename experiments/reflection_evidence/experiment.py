@@ -145,6 +145,42 @@ def discover_basis(teacher, probe, args):
     return mean.float(), (stencil @ directions).float(), energies.clamp(0, 1).float()
 
 
+def rotate_class_prototypes(prototypes, counts, seed):
+    values = prototypes.double()
+    weights = (counts.double() / counts.sum()).sqrt()
+    contrast_count = len(weights) - 1
+    rng = torch.Generator(device=values.device).manual_seed(seed)
+    trial = torch.randn((len(weights), contrast_count), generator=rng, device=values.device, dtype=values.dtype)
+    frame, _ = torch.linalg.qr(torch.column_stack((weights, trial)))
+    contrasts = frame[:, 1:]
+    trial = torch.randn((contrast_count, contrast_count), generator=rng, device=values.device, dtype=values.dtype)
+    rotated, _ = torch.linalg.qr(trial)
+    action = torch.outer(weights, weights) + contrasts @ rotated @ contrasts.T
+    mean = (values * weights.square()[None, :, None]).sum(dim=1, keepdim=True)
+    scale = weights[None, :, None]
+    return (mean + (action @ ((values - mean) * scale)) / scale).to(prototypes.dtype)
+
+
+def class_target_scale(targets, prototypes):
+    mean = targets.mean(dim=1, keepdim=True)
+    total = (targets - mean).square().mean()
+    between = (prototypes - mean).square().mean()
+    return (total.clamp_min(1e-12) / between.clamp_min(1e-12)).sqrt()
+
+
+def class_target_means(views, labels, *, restore_variance, rotation_seed=None):
+    targets = torch.stack(views)
+    classes, membership, counts = torch.unique(labels, return_inverse=True, return_counts=True)
+    means = torch.stack([targets[:, labels == label].mean(dim=1) for label in classes], dim=1)
+    if rotation_seed is not None:
+        means = rotate_class_prototypes(means, counts, rotation_seed)
+    prototypes = means[:, membership]
+    if restore_variance:
+        mean = targets.mean(dim=1, keepdim=True)
+        prototypes = mean + (prototypes - mean) * class_target_scale(targets, prototypes)
+    return prototypes.unbind(0)
+
+
 def fit_student(x, teacher, basis, mean, args, seed, *, training_views=None, metric=None, metric_epochs=None,
                 hidden_width=192, frozen_feature_epochs=None, reflection_action=None, reflection_penalty=0.,
                 reflection_epochs=None, orbit_actions=None, orbit_order=None, invariant_variance_weight=0.,
